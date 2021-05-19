@@ -3,6 +3,8 @@ library talkjs;
 import 'dart:convert' show json, utf8;
 import 'package:crypto/crypto.dart' show sha1;
 
+export 'src/user.dart';
+
 class Talk {
   static String oneOnOneId(String me, String other) {
     List ids = [me, other];
