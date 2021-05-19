@@ -30,8 +30,7 @@ class ConversationBuilder {
     final userName = session.getUserName(user);
     final settings = participantSettings ?? {};
     session.execute(
-        '$variableName.setParticipant($userName, ${json.encode(settings)});'
-            'console.log("$userName: ${user.id}");');
+        '$variableName.setParticipant($userName, ${json.encode(settings)});');
   }
 }
 
