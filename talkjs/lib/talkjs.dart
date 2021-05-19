@@ -3,6 +3,7 @@ library talkjs;
 import 'dart:convert' show json, utf8;
 import 'package:crypto/crypto.dart' show sha1;
 
+export 'src/chatbox.dart';
 export 'src/conversation.dart';
 export 'src/user.dart';
 export 'src/webview.dart';

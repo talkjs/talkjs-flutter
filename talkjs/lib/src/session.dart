@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import './chatbox.dart';
 import './conversation.dart';
 import './user.dart';
 import './webview.dart';
@@ -88,5 +89,15 @@ class Session {
     execute(
         'const conversation = session.getOrCreateConversation("$conversationId")');
     return ConversationBuilder(session: this, variableName: 'conversation');
+  }
+
+  ChatBox createChatbox(
+      ConversationBuilder selectedConversation,
+      {ChatBoxOptions? chatBoxOptions}) {
+    final options = chatBoxOptions ?? {};
+    execute('const chatBox = session.createChatbox('
+        '${selectedConversation.variableName}, ${json.encode(options)});');
+
+    return ChatBox(session: this, variableName: 'chatBox');
   }
 }
