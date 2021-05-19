@@ -4,6 +4,7 @@ import 'dart:convert' show json, utf8;
 import 'package:crypto/crypto.dart' show sha1;
 
 export 'src/user.dart';
+export 'src/webview.dart';
 
 class Talk {
   static String oneOnOneId(String me, String other) {
