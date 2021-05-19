@@ -3,10 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:talkjs/talkjs.dart';
 
 void main() {
-  test('adds one to input values', () {
-    final calculator = Calculator();
-    expect(calculator.addOne(2), 3);
-    expect(calculator.addOne(-7), -6);
-    expect(calculator.addOne(0), 1);
+  test('test oneOnOneId', () {
+    expect(Talk.oneOnOneId('1234', 'abcd'), '35ec37e6e0ca43ac8ccc');
+    expect(Talk.oneOnOneId('abcd', '1234'), '35ec37e6e0ca43ac8ccc');
   });
 }
