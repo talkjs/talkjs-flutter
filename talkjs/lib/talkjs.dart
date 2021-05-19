@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart' show sha1;
 
 export 'src/user.dart';
 export 'src/webview.dart';
+export 'src/session.dart';
 
 class Talk {
   static String oneOnOneId(String me, String other) {

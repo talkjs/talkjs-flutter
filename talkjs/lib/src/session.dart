@@ -1,0 +1,85 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+
+import './user.dart';
+import './webview.dart';
+
+const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+
+class Session {
+  String appId;
+  User me;
+  late Widget chatUI;
+
+  String? _signature;
+
+  final List<String> _pending = [];
+  WebViewController? _webViewController;
+
+  Map<String, String> _users = {};
+
+  Session({required this.appId, required this.me, this._signature}) {
+    this.chatUI = ChatWebView(_webViewCreatedCallback, _onPageFinished);
+
+    // Initialize Session object
+    final options = {'appId': appId};
+    execute('const options = ${json.encode(options)};');
+
+    final variableName = getUserName(this.me);
+    execute('options["me"] = $variableName;');
+
+    if (_signature != null) {
+      execute('options["signature"] = "$_signature";');
+    }
+
+    execute('const session = new Talk.Session(options);');
+  }
+
+  void _webViewCreatedCallback(WebViewController webViewController) async {
+    String htmlData = await rootBundle.loadString('assets/index.html');
+    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html',
+        encoding: Encoding.getByName('utf-8'));
+    webViewController.loadUrl(uri.toString());
+
+    this._webViewController = webViewController;
+  }
+
+  void _onPageFinished(String url) {
+    if (url != 'about:blank') {
+      // Execute any pending instructions
+      for (var statement in this._pending) {
+        this._webViewController!.evaluateJavascript(statement);
+      }
+    }
+  }
+
+  String getUserName(User user) {
+    if (_users[user.id] == null) {
+      // Generate random variable name
+      final rand = Random();
+      final characters = List.generate(
+          15, (index) => chars[rand.nextInt(chars.length)]);
+      final variableName = characters.join();
+
+      execute('const $variableName = new Talk.User(${json.encode(me)});');
+      _users[user.id] = variableName;
+    }
+
+    return _users[user.id]!;
+  }
+
+  void execute(String statement) {
+    final controller = this._webViewController;
+    if (controller != null) {
+      controller.evaluateJavascript(statement);
+    } else {
+      this._pending.add(statement);
+    }
+  }
+
+  void destroy() => execute('session.destroy();');
+}
