@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import './conversation.dart';
 import './user.dart';
 import './webview.dart';
 
@@ -82,4 +83,10 @@ class Session {
   }
 
   void destroy() => execute('session.destroy();');
+
+  ConversationBuilder getOrCreateConversation(String conversationId) {
+    execute(
+        'const conversation = session.getOrCreateConversation("$conversationId")');
+    return ConversationBuilder(session: this, variableName: 'conversation');
+  }
 }
