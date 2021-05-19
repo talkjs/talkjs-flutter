@@ -62,7 +62,7 @@ class MessageFieldOptions {
   }
 }
 
-class ChatOptions {
+abstract class ChatOptions {
   ChatMode chatSubtitleMode;
   ChatMode chatTitleMode;
 

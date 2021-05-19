@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import './session.dart';
 
-class UI {
+abstract class UI {
   Session session;
   String variableName;
 
