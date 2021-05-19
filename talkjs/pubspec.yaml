@@ -12,6 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  webview_flutter: ^2.0.4
+  crypto: ^3.0.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
