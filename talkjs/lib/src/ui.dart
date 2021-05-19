@@ -23,3 +23,8 @@ class ChatBox extends UI {
   ChatBox({session, variableName})
       : super(session: session, variableName: variableName);
 }
+
+class Inbox extends UI {
+  Inbox({session, variableName})
+      : super(session: session, variableName: variableName);
+}
