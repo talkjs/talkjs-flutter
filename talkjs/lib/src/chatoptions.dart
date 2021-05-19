@@ -100,3 +100,13 @@ class InboxOptions extends ChatOptions {
               dir: dir, showChatHeader: showChatHeader,
               messageField: messageField);
 }
+
+class PopupOptions extends ChatOptions {
+  bool keepOpen;
+
+  PopupOptions({this.keepOpen = false, chatSubtitleMode, chatTitleMode, dir,
+    showChatHeader, messageField})
+      : super(chatSubtitleMode: chatSubtitleMode, chatTitleMode: chatTitleMode,
+      dir: dir, showChatHeader: showChatHeader,
+      messageField: messageField);
+}

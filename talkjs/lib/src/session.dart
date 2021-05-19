@@ -108,4 +108,15 @@ class Session {
 
     return Inbox(session: this, variableName: 'inbox');
   }
+
+  Popup createPopup(
+      ConversationBuilder conversation, {PopupOptions? popupOptions}) {
+    final options = popupOptions ?? {};
+    final variableName = 'popup';
+
+    execute('const $variableName = session.createPopup('
+      '${conversation.variableName}, ${json.encode(options)});');
+
+    return Popup(session: this, variableName: variableName);
+  }
 }

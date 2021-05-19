@@ -28,3 +28,8 @@ class Inbox extends UI {
   Inbox({session, variableName})
       : super(session: session, variableName: variableName);
 }
+
+class Popup extends UI {
+  Popup({session, variableName})
+      : super(session: session, variableName: variableName);
+}
