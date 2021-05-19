@@ -25,7 +25,7 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
-    - assets/index.html
+    - packages/talkjs/assets/index.html
 
   # To add assets to your package, add an assets section, like this:
   # assets:

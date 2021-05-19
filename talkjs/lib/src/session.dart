@@ -43,7 +43,8 @@ class Session {
   }
 
   void _webViewCreatedCallback(WebViewController webViewController) async {
-    String htmlData = await rootBundle.loadString('assets/index.html');
+    String htmlData = await rootBundle.loadString(
+        'packages/talkjs/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html',
         encoding: Encoding.getByName('utf-8'));
     webViewController.loadUrl(uri.toString());
