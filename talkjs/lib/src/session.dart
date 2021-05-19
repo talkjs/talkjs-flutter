@@ -15,14 +15,14 @@ class Session {
   User me;
   late Widget chatUI;
 
-  String? _signature;
+  String? signature;
 
   final List<String> _pending = [];
   WebViewController? _webViewController;
 
   Map<String, String> _users = {};
 
-  Session({required this.appId, required this.me, this._signature}) {
+  Session({required this.appId, required this.me, this.signature}) {
     this.chatUI = ChatWebView(_webViewCreatedCallback, _onPageFinished);
 
     // Initialize Session object
@@ -32,8 +32,8 @@ class Session {
     final variableName = getUserName(this.me);
     execute('options["me"] = $variableName;');
 
-    if (_signature != null) {
-      execute('options["signature"] = "$_signature";');
+    if (signature != null) {
+      execute('options["signature"] = "$signature";');
     }
 
     execute('const session = new Talk.Session(options);');
