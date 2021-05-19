@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import './session.dart';
 
-class ChatBox {
-  late Session session;
-  late String variableName;
+class UI {
+  Session session;
+  String variableName;
 
-  ChatBox({required this.session, required this.variableName});
+  UI({required this.session, required this.variableName});
 
   void destroy() {
     session.execute('$variableName.destroy();');
@@ -17,4 +17,9 @@ class ChatBox {
         '$variableName.mount(document.getElementById("talkjs-container"));');
     return session.chatUI;
   }
+}
+
+class ChatBox extends UI {
+  ChatBox({session, variableName})
+      : super(session: session, variableName: variableName);
 }
