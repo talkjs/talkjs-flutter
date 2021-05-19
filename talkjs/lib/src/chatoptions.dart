@@ -92,3 +92,11 @@ class ChatBoxOptions extends ChatOptions{
               dir: dir, showChatHeader: showChatHeader,
               messageField: messageField);
 }
+
+class InboxOptions extends ChatOptions {
+  InboxOptions({chatSubtitleMode, chatTitleMode, dir, showChatHeader,
+    messageField})
+      : super(chatSubtitleMode: chatSubtitleMode, chatTitleMode: chatTitleMode,
+              dir: dir, showChatHeader: showChatHeader,
+              messageField: messageField);
+}

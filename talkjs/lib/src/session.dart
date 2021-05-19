@@ -101,4 +101,11 @@ class Session {
 
     return ChatBox(session: this, variableName: 'chatBox');
   }
+
+  Inbox createInbox({InboxOptions? inboxOptions}) {
+    final options = inboxOptions ?? {};
+    execute('const inbox = session.createInbox(${json.encode(options)});');
+
+    return Inbox(session: this, variableName: 'inbox');
+  }
 }
