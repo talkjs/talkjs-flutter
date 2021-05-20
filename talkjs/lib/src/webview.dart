@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+/// Wrapper around the [WebView] widget.
 class ChatWebView extends StatefulWidget {
   final ChatWebViewState state;
 

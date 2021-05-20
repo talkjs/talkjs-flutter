@@ -10,7 +10,14 @@ export 'src/ui.dart';
 export 'src/user.dart';
 export 'src/webview.dart';
 
+/// The [Talk] object provides utility functions to help use TalkJS.
 class Talk {
+
+  /// Compute a Conversation ID based on participants' ids given.
+  ///
+  /// The order of the parameters does not matter.
+  /// Use this method if you want to simply create a conversation between two
+  /// users, not related to a particular product, order or transaction.
   static String oneOnOneId(String me, String other) {
     List ids = [me, other];
     ids.sort();
