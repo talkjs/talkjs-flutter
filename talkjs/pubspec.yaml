@@ -1,8 +1,8 @@
 name: talkjs
-description: A new Flutter package project.
+description: SDK for TalkJS
 version: 0.0.1
 author:
-homepage:
+homepage: https://talkjs.com
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
