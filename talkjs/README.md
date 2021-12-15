@@ -18,7 +18,7 @@ First, clone this repository on your computer.
 git clone https://github.com/talkjs/flutter-sdk-victor.git
 ```
 
-To add the package as a dependency, edit the dependencies section of  
+To add the package as a dependency, edit the dependencies section of
 your project's **pubspec.yaml** file in your Flutter project as follows:
 
 ```yaml
@@ -32,6 +32,12 @@ your system.
 
 Run the command: ```flutter pub get``` on the command line or through
 Android Studio's **Get dependencies** button.
+
+To debug on Android, put this line in the `android/app/src/main/AndroidManifest.xml` as a property of the `<application` tag:
+
+```xml
+        android:usesCleartextTraffic="true"
+```
 
 ## Getting Started
 
@@ -84,4 +90,4 @@ by the ```initChat``` function in the example above as part of an existing
 
 ## Documentation
 
-The SDK API reference can be found in **doc/api**. 
+The SDK API reference can be found in **doc/api**.

@@ -2,10 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
     <style>
-      * {
+      html {
         box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
       }
       html {
         height: 100%;
@@ -21,7 +24,7 @@
     </style>
     <script>
         (function(t,a,l,k,j,s){
-        s=a.createElement('script');s.async=1;s.src="https://cdn-whitehouse.talkjs.com/talk.js";a.head.appendChild(s)
+        s=a.createElement('script');s.async=1;s.src="http://192.168.122.116:50000/__assets/cdn/talk-bundle.js";a.head.appendChild(s)
         ;k=t.Promise;t.Talk={v:3,ready:{then:function(f){if(k)return new k(function(r,e){l.push([f,r,e])});l
         .push([f])},catch:function(){return k&&new k()},c:l}};})(window,document,[]);
       </script>

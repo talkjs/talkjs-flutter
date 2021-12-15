@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import './session.dart';
+import './conversation.dart';
 
 /// This class represents the various UI elements that TalkJS supports and the
 /// methods common to all.
@@ -18,10 +19,13 @@ abstract class _UI {
     session.execute('$variableName.destroy();');
   }
 
+  void select(ConversationBuilder conversation /* TODO: params */) {
+    session.execute('$variableName.select(${conversation.variableName});');
+  }
+
   /// Renders the UI and returns the Widget containing it.
   Widget mount() {
-    session.execute(
-        '$variableName.mount(document.getElementById("talkjs-container"));');
+    session.execute('$variableName.mount(document.getElementById("talkjs-container"));');
     return session.chatUI;
   }
 }

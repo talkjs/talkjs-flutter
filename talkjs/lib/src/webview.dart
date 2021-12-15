@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 
 /// Wrapper around the [WebView] widget.
 class ChatWebView extends StatefulWidget {
@@ -20,11 +21,14 @@ class ChatWebViewState extends State<ChatWebView> {
   ChatWebViewState(WebViewCreatedCallback webViewFn,
       PageFinishedCallback jsFn) {
     // Enable hybrid composition.
-    if (Platform.isAndroid) WebView.platform = SurfaceAndroidWebView();
+    if (Platform.isAndroid) {
+      WebView.platform = SurfaceAndroidWebView();
+    }
 
     this.webView = WebView(
       initialUrl: '',
       javascriptMode: JavascriptMode.unrestricted,
+      debuggingEnabled: !kReleaseMode,
       onWebViewCreated: webViewFn,
       onPageFinished: jsFn,
     );

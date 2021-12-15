@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 import '../talkjs.dart';
 
@@ -100,6 +101,11 @@ class Session {
   /// Evaluates the JavaScript statement given.
   void execute(String statement) {
     final controller = this._webViewController;
+
+    if (kDebugMode) {
+      print('📘 WebView DEBUG: $statement');
+    }
+
     if (controller != null) {
       controller.evaluateJavascript(statement);
     } else {
@@ -137,12 +143,30 @@ class Session {
   ///
   /// Call [createChatbox] on any page you want to show a [ChatBox] of a single
   /// conversation.
-  ChatBox createChatbox(
-      ConversationBuilder selectedConversation,
-      {ChatBoxOptions? chatBoxOptions}) {
-    final options = chatBoxOptions ?? {};
-    execute('const chatBox = session.createChatbox('
-        '${selectedConversation.variableName}, ${json.encode(options)});');
+  ChatBox createChatbox({ChatMode? chatSubtitleMode,
+      ChatMode? chatTitleMode,
+      TextDirection? dir,
+      MessageFieldOptions? messageField,
+      bool? showChatHeader,
+      TranslationToggle? showTranslationToggle,
+      String? theme,
+      TranslateConversations? translateConversations,
+      List<ConversationBuilder>? conversationsToTranslate,
+      List<String>? conversationIdsToTranslate,
+      }) {
+    final options = ChatBoxOptions(chatSubtitleMode: chatSubtitleMode,
+      chatTitleMode: chatTitleMode,
+      dir: dir,
+      messageField: messageField,
+      showChatHeader: showChatHeader,
+      showTranslationToggle: showTranslationToggle,
+      theme: theme,
+      translateConversations: translateConversations,
+      conversationsToTranslate: conversationsToTranslate,
+      conversationIdsToTranslate: conversationIdsToTranslate,
+    );
+
+    execute('const chatBox = session.createChatbox(${json.encode(options)});');
 
     return ChatBox(session: this, variableName: 'chatBox');
   }
