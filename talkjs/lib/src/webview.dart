@@ -26,7 +26,7 @@ class ChatWebViewState extends State<ChatWebView> {
     }
 
     this.webView = WebView(
-      initialUrl: '',
+      initialUrl: 'about:blank',
       javascriptMode: JavascriptMode.unrestricted,
       debuggingEnabled: !kReleaseMode,
       onWebViewCreated: webViewFn,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import './ui.dart';
 import './conversation.dart';
 
@@ -7,17 +9,12 @@ enum ChatMode { subject, participants }
 extension ChatModeString on ChatMode {
   /// Converts this enum's values to String.
   String getValue() {
-    late String result;
     switch (this) {
       case ChatMode.participants:
-        result = 'participants';
-        break;
+        return 'participants';
       case ChatMode.subject:
-        result = 'subject';
-        break;
+        return 'subject';
     }
-
-    return result;
   }
 }
 
@@ -32,17 +29,12 @@ enum TextDirection {
 extension TextDirectionString on TextDirection {
   /// Converts this enum's values to String.
   String getValue() {
-    late String result;
     switch (this) {
       case TextDirection.rtl:
-        result = 'rtl';
-        break;
+        return 'rtl';
       case TextDirection.ltr:
-        result = 'ltr';
-        break;
+        return 'ltr';
     }
-
-    return result;
   }
 }
 
@@ -82,7 +74,7 @@ class MessageFieldOptions {
   MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck});
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
+    final result = <String, dynamic>{};
 
     if (autofocus != null) {
       if (autofocus == true) {
@@ -111,8 +103,36 @@ class MessageFieldOptions {
 /// The possible values for showTranslationToggle
 enum TranslationToggle { off, on, auto }
 
+extension TranslationToggleValue on TranslationToggle {
+  /// Converts this enum's values to String.
+  dynamic getValue() {
+    switch (this) {
+      case TranslationToggle.off:
+        return false;
+      case TranslationToggle.on:
+        return true;
+      case TranslationToggle.auto:
+        return 'auto';
+    }
+  }
+}
+
 /// The possible values for translateConversations
 enum TranslateConversations { off, on, auto }
+
+extension TranslateConversationsValue on TranslateConversations {
+  /// Converts this enum's values to String.
+  dynamic getValue() {
+    switch (this) {
+      case TranslateConversations.off:
+        return false;
+      case TranslateConversations.on:
+        return true;
+      case TranslateConversations.auto:
+        return 'auto';
+    }
+  }
+}
 
 /// This class represents the various configuration options used to finetune the
 /// behaviour of UI elements.
@@ -173,8 +193,15 @@ abstract class _ChatOptions {
     this.conversationIdsToTranslate,
   });
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// This method is used instead of toJson, as we need to output valid JS
+  /// that is not valid JSON.
+  /// The toJson method is intentionally omitted, to produce an error if
+  /// someone tries to convert this object to JSON instead of using the
+  /// getJsonString method.
+  String getJsonString() {
+    final result = <String, dynamic>{};
 
     if (chatSubtitleMode != null) {
       result['chatSubtitleMode'] = chatSubtitleMode!.getValue();
@@ -198,17 +225,7 @@ abstract class _ChatOptions {
 
     // 'auto' gets the priority over the boolean value
     if (showTranslationToggle != null) {
-      switch (showTranslationToggle) {
-        case TranslationToggle.off:
-          result['showTranslationToggle'] = false;
-          break;
-        case TranslationToggle.on:
-          result['showTranslationToggle'] = true;
-          break;
-        case TranslationToggle.auto:
-          result['showTranslationToggle'] = 'auto';
-          break;
-      }
+      result['showTranslationToggle'] = showTranslationToggle!.getValue();
     }
 
     if (theme != null) {
@@ -219,10 +236,10 @@ abstract class _ChatOptions {
       // Highest priority: TranslateConversations.off
       if (translateConversations != TranslateConversations.off) {
         // High priority: conversationsToTranslate
-        // TODO -- This does not work yet, as it results in a string value enclosed by double quotes
+        // This results in a string value that will be parsed later
         result['translateConversations'] ??= '[' + conversationsToTranslate
           !.map((conversation) => conversation.variableName)
-          .join(', ')
+          .join(',')
           + ']';
       }
     }
@@ -237,10 +254,21 @@ abstract class _ChatOptions {
 
     // Low priority: translateConversations
     if (translateConversations != null) {
-      result['translateConversations'] ??= translateConversations;
+      result['translateConversations'] ??= translateConversations!.getValue();
     }
 
-    return result;
+    final jsonString = json.encode(result);
+
+    // Evil black magic that fixes the fact that the JSON value for the
+    // translateConversations property is a string, but we need
+    // its value without the surrounding " characters, which would not be
+    // valid JSON anymore.
+    // This removes the " characters if a string value starts with [ and ends
+    // with ], so that it becomes a list of identifiers.
+    return jsonString.replaceAllMapped(
+      RegExp(r'":"(\[[^"\]]*])"'),
+      (Match m) => '":${m[1]}'
+    );
   }
 }
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 /// A user of your app.
 ///
 /// TalkJS uses the [id] to uniquely identify this user. All other fields of a
@@ -46,21 +48,65 @@ class User {
   /// The default message a user sees when starting a chat with this person.
   String? welcomeMessage;
 
+  // To support creating users with only an id
+  bool _idOnly;
+
   User({required this.id, required this.name, this.email, this.phone,
     this.availabilityText, this.locale, this.photoUrl, this.role, this.custom,
     this.welcomeMessage
-  });
+  }) : this._idOnly = false;
 
-  Map<String, dynamic> toJson() => {
-    'id': id,
-    'name': name,
-    'email': email,
-    'phone': phone,
-    'availabilityText': availabilityText,
-    'locale': locale,
-    'photoUrl': photoUrl,
-    'role': role,
-    'welcomeMessage': welcomeMessage,
-    'custom': custom
-  };
+  User.fromId(this.id) : this.name = '', this._idOnly = true;
+
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// This method is used instead of toJson, as we need to output valid JS
+  /// that is not valid JSON.
+  /// The toJson method is intentionally omitted, to produce an error if
+  /// someone tries to convert this object to JSON instead of using the
+  /// getJsonString method.
+  String getJsonString() {
+    if (this._idOnly) {
+      return '"$id"';
+    } else {
+      final result = <String, dynamic>{};
+
+      result['id'] = id;
+      result['name'] = name;
+
+      if (email != null) {
+        result['email'] = email;
+      }
+
+      if (phone != null) {
+        result['phone'] = phone;
+      }
+
+      if (availabilityText != null) {
+        result['availabilityText'] = availabilityText;
+      }
+
+      if (locale != null) {
+        result['locale'] = locale;
+      }
+
+      if (photoUrl != null) {
+        result['photoUrl'] = photoUrl;
+      }
+
+      if (role != null) {
+        result['role'] = role;
+      }
+
+      if (welcomeMessage != null) {
+        result['welcomeMessage'] = welcomeMessage;
+      }
+
+      if (custom != null) {
+        result['custom'] = custom;
+      }
+
+      return json.encode(result);
+    }
+  }
 }

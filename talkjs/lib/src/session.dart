@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,8 +12,6 @@ import './conversation.dart';
 import './ui.dart';
 import './user.dart';
 import './webview.dart';
-
-const chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
 
 /// A session represents a currently active user.
 class Session {
@@ -45,19 +42,25 @@ class Session {
   /// Talk.User object.
   Map<String, String> _users = {};
 
+  // A counter to ensure that IDs are unique
+  int _idCounter = 0;
+
   Session({required this.appId, required this.me, this.signature}) {
     this.chatUI = ChatWebView(_webViewCreatedCallback, _onPageFinished);
 
     // Initialize Session object
-    final options = {'appId': appId};
+    final options = <String, dynamic>{};
+
+    options['appId'] = appId;
+
+    if (signature != null) {
+      options["signature"] = signature;
+    }
+
     execute('const options = ${json.encode(options)};');
 
     final variableName = getUserName(this.me);
     execute('options["me"] = $variableName;');
-
-    if (signature != null) {
-      execute('options["signature"] = "$signature";');
-    }
 
     execute('const session = new Talk.Session(options);');
   }
@@ -74,6 +77,17 @@ class Session {
 
   void _onPageFinished(String url) {
     if (url != 'about:blank') {
+      // Wait for TalkJS to be ready
+      // Not all WebViews support top level await, so it's better to use an
+      // async IIFE
+      final js = '(async function () { await Talk.ready; }());';
+
+      if (kDebugMode) {
+        print('📗 WebView DEBUG: $js');
+      }
+
+      this._webViewController!.evaluateJavascript(js);
+
       // Execute any pending instructions
       for (var statement in this._pending) {
         this._webViewController!.evaluateJavascript(statement);
@@ -81,17 +95,25 @@ class Session {
     }
   }
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// Return a string with a unique ID
+  String getUniqueId() {
+    final id = _idCounter;
+
+    _idCounter += 1;
+
+    return '_$id';
+  }
+
   /// Returns the JavaScript variable name of the Talk.User object associated
   /// with the given [User]
   String getUserName(User user) {
     if (_users[user.id] == null) {
-      // Generate random variable name
-      final rand = Random();
-      final characters = List.generate(
-          15, (index) => chars[rand.nextInt(chars.length)]);
-      final variableName = characters.join();
+      // Generate unique variable name
+      final variableName = 'user${getUniqueId()}';
 
-      execute('const $variableName = new Talk.User(${json.encode(me)});');
+      execute('const $variableName = new Talk.User(${user.getJsonString()});');
       _users[user.id] = variableName;
     }
 
@@ -133,9 +155,12 @@ class Session {
   /// Returns a [ConversationBuilder] that encapsulates a conversation between
   /// me (given in the constructor) and zero or more other participants.
   ConversationBuilder getOrCreateConversation(String conversationId) {
-    execute(
-        'const conversation = session.getOrCreateConversation("$conversationId")');
-    return ConversationBuilder(session: this, variableName: 'conversation');
+    // Generate unique variable name
+    final variableName = 'conversation${getUniqueId()}';
+
+    execute('const $variableName = session.getOrCreateConversation("$conversationId")');
+
+    return ConversationBuilder(session: this, variableName: variableName);
   }
 
   /// Creates a [ChatBox] UI which shows a single conversation, without means to
@@ -166,9 +191,11 @@ class Session {
       conversationIdsToTranslate: conversationIdsToTranslate,
     );
 
-    execute('const chatBox = session.createChatbox(${json.encode(options)});');
+    final variableName = 'chatBox${getUniqueId()}';
 
-    return ChatBox(session: this, variableName: 'chatBox');
+    execute('const $variableName = session.createChatbox(${options.getJsonString()});');
+
+    return ChatBox(session: this, variableName: variableName);
   }
 
   /// Creates an [Inbox] which aside from providing a conversation UI, it can
@@ -177,10 +204,13 @@ class Session {
   /// You typically want to call the [Inbox.mount] method after creating the
   /// [Inbox] to retrive the Widget needed to make it visible on your app.
   Inbox createInbox({InboxOptions? inboxOptions}) {
-    final options = inboxOptions ?? {};
-    execute('const inbox = session.createInbox(${json.encode(options)});');
+    final options = inboxOptions!; // TODO: change this to match the ChatBox
 
-    return Inbox(session: this, variableName: 'inbox');
+    final variableName = 'inbox${getUniqueId()}';
+
+    execute('const $variableName = session.createInbox(${options.getJsonString()});');
+
+    return Inbox(session: this, variableName: variableName);
   }
 
   /// Creates a [Popup] which is a well positioned box containing a conversation.
@@ -189,12 +219,14 @@ class Session {
   /// conversations.
   Popup createPopup(
       ConversationBuilder conversation, {PopupOptions? popupOptions}) {
-    final options = popupOptions ?? {};
-    final variableName = 'popup';
+    final options = popupOptions!; // TODO: change this to match the ChatBox
+
+    final variableName = 'popup${getUniqueId()}';
 
     execute('const $variableName = session.createPopup('
-      '${conversation.variableName}, ${json.encode(options)});');
+      '${conversation.variableName}, ${options.getJsonString()});');
 
     return Popup(session: this, variableName: variableName);
   }
 }
+
