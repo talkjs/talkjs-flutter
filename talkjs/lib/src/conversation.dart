@@ -3,6 +3,21 @@ import 'dart:convert';
 import './session.dart';
 import './user.dart';
 
+/// Possible values for participants' permissions
+enum ParticipantAccess { read, readWrite }
+
+extension ParticipantAccessString on ParticipantAccess {
+  /// Converts this enum's values to String.
+  String getValue() {
+    switch (this) {
+      case ParticipantAccess.read:
+        return 'Read';
+      case ParticipantAccess.readWrite:
+        return 'ReadWrite';
+    }
+  }
+}
+
 /// This represents a conversation that is about to be created, fetched, or
 /// updated.
 ///
@@ -24,117 +39,74 @@ class ConversationBuilder {
   /// The conversation subject which will be displayed in the chat header.
   String? subject;
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// The current active TalkJS session.
   Session session;
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// The JavaScript variable name for this object.
   String variableName;
 
+  /// Don't use the ConversationBuilder constructor directly.
+  // use session.getOrCreateConversation instead.
   ConversationBuilder({required this.session, required this.variableName,
     this.custom, this.welcomeMessages, this.photoUrl, this.subject,
   });
 
   /// Sends a text message in a given conversation.
-  void sendMessage(String text, MessageOptions options) {
-    session.execute(
-        '$variableName.sendMessage("$text", ${json.encode(options)});');
+  void sendMessage(String text, {Map<String, String>? custom}) {
+    final result = <String, dynamic>{};
+
+    if (custom != null) {
+      result['custom'] = custom;
+    }
+
+    session.execute('$variableName.sendMessage("$text", ${json.encode(result)});');
   }
 
   /// Used to set certain attributes for a specific conversation
-  void setAttributes(ConversationAttributes attributes) {
-    session.execute('$variableName.setAttributes(${json.encode(attributes)});');
+  void setAttributes({Map<String, String?>? custom, List<String>? welcomeMessages, String? photoUrl, String? subject}) {
+    final result = <String, dynamic>{};
+
+    if (custom != null) {
+      result['custom'] = custom;
+      this.custom = custom;
+    }
+
+    if (welcomeMessages != null) {
+      result['welcomeMessages'] = welcomeMessages;
+      this.welcomeMessages = welcomeMessages;
+    }
+
+    if (photoUrl != null) {
+      result['photoUrl'] = photoUrl;
+      this.photoUrl = photoUrl;
+    }
+
+    if (subject != null) {
+      result['subject'] = subject;
+      this.subject = subject;
+    }
+
+    session.execute('$variableName.setAttributes(${json.encode(result)});');
   }
 
   /// Sets a participant of the conversation.
-  void setParticipant(User user, {ParticipantSettings? participantSettings}) {
-    final userName = session.getUserName(user);
-    final settings = participantSettings ?? {};
-    session.execute(
-        '$variableName.setParticipant($userName, ${json.encode(settings)});');
-  }
-}
-
-class MessageOptions {
-  /// Custom data that you may wish to associate with a message.
-  ///
-  /// The custom data is sent back to you via webhooks and the REST API.
-  Map<String, String?>? custom;
-
-  MessageOptions({this.custom});
-
-  Map<String, dynamic> toJson() => {
-    'custom': custom ?? {}
-  };
-}
-
-/// Conversation attributes that can be set using
-/// [ConversationBuilder.setAttributes]
-class ConversationAttributes {
-  /// Custom metadata for a conversation.
-  Map<String, String?>? custom;
-
-  /// Messages sent at the beginning of a chat.
-  ///
-  /// The messages will appear as system messages.
-  List<String>? welcomeMessages;
-
-  /// The URL to a photo which will be shown as the photo for the conversation.
-  String? photoUrl;
-
-  /// The conversation subject which will be displayed in the chat header.
-  String? subject;
-
-  ConversationAttributes({this.custom, this.welcomeMessages, this.photoUrl,
-    this.subject
-  });
-
-  Map<String, dynamic> toJson() => {
-    'custom': custom,
-    'welcomeMessages': welcomeMessages,
-    'photoUrl': photoUrl,
-    'subject': subject
-  };
-}
-
-/// Possible values for participants' permissions
-enum Access { read, readWrite }
-
-extension StringConversion on Access {
-  /// Converts this enum's values to String.
-  String getValue() {
-    late String result;
-    switch (this) {
-      case Access.read:
-        result = 'Read';
-        break;
-      case Access.readWrite:
-        result = 'ReadWrite';
-        break;
-    }
-    return result;
-  }
-}
-
-class ParticipantSettings {
-  /// Specifies the participant's access permission for a conversation.
-  final Access? access;
-
-  /// Specifies the participants's notification settings.
-  final bool? notify;
-
-  const ParticipantSettings({this.access, this.notify});
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
+  void setParticipant(User user, {ParticipantAccess? access, bool? notify}) {
+    final userVariableName = session.getUserVariableName(user);
+    final result = <String, dynamic>{};
 
     if (access != null) {
-      result['access'] = access!.getValue();
+      result['access'] = access.getValue();
     }
 
     if (notify != null) {
       result['notify'] = notify;
     }
 
-    return result;
+    session.execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');
   }
 }
+

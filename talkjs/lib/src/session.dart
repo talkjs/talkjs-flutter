@@ -59,7 +59,7 @@ class Session {
 
     execute('const options = ${json.encode(options)};');
 
-    final variableName = getUserName(this.me);
+    final variableName = getUserVariableName(this.me);
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
@@ -108,7 +108,7 @@ class Session {
 
   /// Returns the JavaScript variable name of the Talk.User object associated
   /// with the given [User]
-  String getUserName(User user) {
+  String getUserVariableName(User user) {
     if (_users[user.id] == null) {
       // Generate unique variable name
       final variableName = 'user${getUniqueId()}';
