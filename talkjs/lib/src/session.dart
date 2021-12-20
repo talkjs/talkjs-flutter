@@ -212,21 +212,5 @@ class Session {
 
     return Inbox(session: this, variableName: variableName);
   }
-
-  /// Creates a [Popup] which is a well positioned box containing a conversation.
-  ///
-  /// It shows a single conversation, without means to switch between
-  /// conversations.
-  Popup createPopup(
-      ConversationBuilder conversation, {PopupOptions? popupOptions}) {
-    final options = popupOptions!; // TODO: change this to match the ChatBox
-
-    final variableName = 'popup${getUniqueId()}';
-
-    execute('const $variableName = session.createPopup('
-      '${conversation.variableName}, ${options.getJsonString()});');
-
-    return Popup(session: this, variableName: variableName);
-  }
 }
 

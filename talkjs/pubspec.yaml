@@ -12,7 +12,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  webview_flutter: ^2.0.4
+  webview_flutter: ^3.0.0
   crypto: ^3.0.1
 
 dev_dependencies:
