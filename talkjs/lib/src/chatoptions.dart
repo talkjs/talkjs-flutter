@@ -298,22 +298,3 @@ class ChatBoxOptions extends _ChatOptions{
       );
 }
 
-/// Options to configure the behaviour of the [Inbox].
-class InboxOptions extends _ChatOptions {
-  InboxOptions({chatSubtitleMode, chatTitleMode, dir, showChatHeader,
-    messageField})
-      : super(chatSubtitleMode: chatSubtitleMode, chatTitleMode: chatTitleMode,
-              dir: dir, showChatHeader: showChatHeader,
-              messageField: messageField);
-}
-
-/// Options to configure the behaviour of the [Popup].
-class PopupOptions extends _ChatOptions {
-  bool keepOpen;
-
-  PopupOptions({this.keepOpen = false, chatSubtitleMode, chatTitleMode, dir,
-    showChatHeader, messageField})
-      : super(chatSubtitleMode: chatSubtitleMode, chatTitleMode: chatTitleMode,
-      dir: dir, showChatHeader: showChatHeader,
-      messageField: messageField);
-}

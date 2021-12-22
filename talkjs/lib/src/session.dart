@@ -1,17 +1,11 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
-
-import '../talkjs.dart';
 
 import './chatoptions.dart';
 import './conversation.dart';
 import './ui.dart';
 import './user.dart';
-import './webview.dart';
 
 /// A session represents a currently active user.
 class Session {
@@ -20,9 +14,6 @@ class Session {
 
   /// The TalkJS [User] associated with the current user in your application.
   User me;
-
-  /// The widget for showing the various chat UI elements.
-  late Widget chatUI;
 
   /// A digital signature of the current [User.id]
   ///
@@ -33,21 +24,18 @@ class Session {
   String? signature;
 
   /// List of JavaScript statements that haven't been executed.
-  final List<String> _pending = [];
-
-  /// Used to control the underlying WebView
-  WebViewController? _webViewController;
+  final _pending = <String>[];
 
   /// A mapping of user ids to the variable name of the respective JavaScript
   /// Talk.User object.
-  Map<String, String> _users = {};
+  final _users = <String, String>{};
 
   // A counter to ensure that IDs are unique
   int _idCounter = 0;
 
-  Session({required this.appId, required this.me, this.signature}) {
-    this.chatUI = ChatWebView(_webViewCreatedCallback, _onPageFinished);
+  ChatBox? chatbox;
 
+  Session({required this.appId, required this.me, this.signature}) {
     // Initialize Session object
     final options = <String, dynamic>{};
 
@@ -65,35 +53,6 @@ class Session {
     execute('const session = new Talk.Session(options);');
   }
 
-  void _webViewCreatedCallback(WebViewController webViewController) async {
-    String htmlData = await rootBundle.loadString(
-        'packages/talkjs/assets/index.html');
-    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html',
-        encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(uri.toString());
-
-    this._webViewController = webViewController;
-  }
-
-  void _onPageFinished(String url) {
-    if (url != 'about:blank') {
-      // Wait for TalkJS to be ready
-      // Not all WebViews support top level await, so it's better to use an
-      // async IIFE
-      final js = '(async function () { await Talk.ready; }());';
-
-      if (kDebugMode) {
-        print('📗 WebView DEBUG: $js');
-      }
-
-      this._webViewController!.evaluateJavascript(js);
-
-      // Execute any pending instructions
-      for (var statement in this._pending) {
-        this._webViewController!.evaluateJavascript(statement);
-      }
-    }
-  }
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -106,6 +65,8 @@ class Session {
     return '_$id';
   }
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// Returns the JavaScript variable name of the Talk.User object associated
   /// with the given [User]
   String getUserVariableName(User user) {
@@ -120,19 +81,15 @@ class Session {
     return _users[user.id]!;
   }
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// Evaluates the JavaScript statement given.
   void execute(String statement) {
-    final controller = this._webViewController;
-
     if (kDebugMode) {
-      print('📘 WebView DEBUG: $statement');
+      print('📘 session.execute: $statement');
     }
 
-    if (controller != null) {
-      controller.evaluateJavascript(statement);
-    } else {
-      this._pending.add(statement);
-    }
+    this._pending.add(statement);
   }
 
   /// Disconnects all websockets, removes all UIs, and invalidates this session
@@ -193,24 +150,17 @@ class Session {
 
     final variableName = 'chatBox${getUniqueId()}';
 
-    execute('const $variableName = session.createChatbox(${options.getJsonString()});');
+    final chatbox = ChatBox(session: this, variableName: variableName);
 
-    return ChatBox(session: this, variableName: variableName);
-  }
+    // STEP 1: Tell the WebView of the ChatBox to do all that needs to be done
+    for (var statement in _pending) {
+      chatbox.execute(statement);
+    }
 
-  /// Creates an [Inbox] which aside from providing a conversation UI, it can
-  /// also show a user's other converations and switch between them.
-  ///
-  /// You typically want to call the [Inbox.mount] method after creating the
-  /// [Inbox] to retrive the Widget needed to make it visible on your app.
-  Inbox createInbox({InboxOptions? inboxOptions}) {
-    final options = inboxOptions!; // TODO: change this to match the ChatBox
+    // STEP 2: Tell the WebView of the ChatBox to create the ChatBox
+    chatbox.execute('const $variableName = session.createChatbox(${options.getJsonString()});');
 
-    final variableName = 'inbox${getUniqueId()}';
-
-    execute('const $variableName = session.createInbox(${options.getJsonString()});');
-
-    return Inbox(session: this, variableName: variableName);
+    return chatbox;
   }
 }
 

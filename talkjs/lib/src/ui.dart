@@ -1,56 +1,107 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+
+import 'package:webview_flutter/webview_flutter.dart';
 
 import './session.dart';
 import './conversation.dart';
+import './webview.dart';
 
-/// Encapsulates the message entry field tied to the currently selected conversation.
-class MessageField {
+/// A messaging UI for just a single conversation.
+///
+/// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
+/// There is no way for the user to switch between conversations
+class ChatBox {
+  /// Used to control the underlying WebView
+  WebViewController? _webViewController;
+
+  /// List of JavaScript statements that haven't been executed.
+  final List<String> _pending = [];
+
+  bool _mounted = false;
+
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// The current active TalkJS session.
   Session session;
 
-  /// The JavaScript variable name for this object.
-  String variableName;
-
-  MessageField({required this.session, required this.variableName});
-
-  /// Focuses the message entry field.
+  /// For internal use only. Implementation detail that may change anytime.
   ///
-  /// Note that on mobile devices, this will cause the on-screen keyboard to pop up, obscuring part
-  /// of the screen.
-  void focus() {
-    session.execute('$variableName.focus();');
-  }
-
-  /// Sets the message field to `text`.
-  ///
-  /// Useful if you want to guide your user with message suggestions. If you want to start a UI
-  /// with a given text showing immediately, call this method before calling Inbox.mount
-  void setText(String text) {
-    session.execute('$variableName.setText("$text");');
-  }
-
-  /// TODO: setVisible(visible: boolean | ConversationPredicate): void;
-}
-
-/// This class represents the various UI elements that TalkJS supports and the
-/// methods common to all.
-abstract class _UI {
-  /// The current active TalkJS session.
-  Session session;
-
   /// The JavaScript variable name for this object.
   String variableName;
 
   /// Encapsulates the message entry field tied to the currently selected conversation.
-  MessageField messageField;
+  late MessageField messageField;
 
-  _UI({required this.session, required this.variableName})
-    : this.messageField = MessageField(session: session, variableName: "$variableName.messageField");
+  ChatBox({required this.session, required this.variableName}) {
+    // TODO: It wouldn't be a bad idea to break the ChatBox<->MessageField circular reference
+    // at object destruction (if possible)
+    this.messageField = MessageField(chatbox: this, variableName: "$variableName.messageField");
+  }
+
+  void _webViewCreatedCallback(WebViewController webViewController) async {
+    String htmlData = await rootBundle.loadString('packages/talkjs/assets/index.html');
+    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
+    webViewController.loadUrl(uri.toString());
+
+    _webViewController = webViewController;
+  }
+
+  void _onPageFinished(String url) {
+    if (url != 'about:blank') {
+      // Wait for TalkJS to be ready
+      // Not all WebViews support top level await, so it's better to use an
+      // async IIFE
+      final js = '(async function () { await Talk.ready; }());';
+
+      if (kDebugMode) {
+        print('📗 chatbox._onPageFinished: $js');
+      }
+
+      _webViewController!.runJavascriptReturningResult(js);
+
+      // Execute any pending instructions
+      for (var statement in _pending) {
+        if (kDebugMode) {
+          print('📗 chatbox._onPageFinished _pending: $statement');
+        }
+
+        _webViewController!.runJavascriptReturningResult(statement);
+      }
+    }
+  }
+
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// Evaluates the JavaScript statement given.
+  void execute(String statement) {
+    final controller = _webViewController;
+
+    if (kDebugMode) {
+      print('📘 chatbox.execute: $statement');
+    }
+
+    if (controller != null) {
+      controller.runJavascriptReturningResult(statement);
+    } else {
+      this._pending.add(statement);
+    }
+  }
+
+  void disposeWebView() {
+    if (kDebugMode) {
+      print('📘 chatbox.disposeWebView');
+    }
+
+    _webViewController = null;
+  }
 
   /// Destroys this UI element and removes all event listeners it has running.
   void destroy() {
-    session.execute('$variableName.destroy();');
+    execute('$variableName.destroy();');
   }
 
   void select(ConversationBuilder? conversation, {bool? asGuest}) {
@@ -61,9 +112,9 @@ abstract class _UI {
     }
 
     if (conversation != null) {
-      session.execute('$variableName.select(${conversation.variableName}, ${json.encode(result)});');
+      execute('$variableName.select(${conversation.variableName}, ${json.encode(result)});');
     } else {
-      session.execute('$variableName.select(null, ${json.encode(result)});');
+      execute('$variableName.select(null, ${json.encode(result)});');
     }
   }
 
@@ -74,32 +125,53 @@ abstract class _UI {
       result['asGuest'] = asGuest;
     }
 
-    session.execute('$variableName.select(undefined, ${json.encode(result)});');
+    execute('$variableName.select(undefined, ${json.encode(result)});');
   }
 
   /// Renders the UI and returns the Widget containing it.
   Widget mount() {
-    session.execute('$variableName.mount(document.getElementById("talkjs-container"));');
+    assert(_webViewController == null);
 
-    return session.chatUI;
+    if (kDebugMode) {
+      print('📘 chatbox.mount');
+    }
+
+    if (!_mounted) {
+      execute('$variableName.mount(document.getElementById("talkjs-container"));');
+
+      _mounted = true;
+    }
+
+    return ChatWebView(this, _webViewCreatedCallback, _onPageFinished);
   }
 }
 
-/// A messaging UI for just a single conversation.
-///
-/// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
-/// There is no way for the user to switch between conversations
-class ChatBox extends _UI {
-  ChatBox({session, variableName})
-      : super(session: session, variableName: variableName);
-}
+/// Encapsulates the message entry field tied to the currently selected conversation.
+class MessageField {
+  /// The ChatBox associated with this message field
+  ChatBox chatbox;
 
-/// The main messaging UI component of TalkJS.
-///
-/// It shows a user's conversation history and it allows them to write messages.
-/// Create an Inbox through [Session.createInbox] and then call [mount] to show it.
-class Inbox extends _UI {
-  Inbox({session, variableName})
-      : super(session: session, variableName: variableName);
+  /// The JavaScript variable name for this object.
+  String variableName;
+
+  MessageField({required this.chatbox, required this.variableName});
+
+  /// Focuses the message entry field.
+  ///
+  /// Note that on mobile devices, this will cause the on-screen keyboard to pop up, obscuring part
+  /// of the screen.
+  void focus() {
+    chatbox.execute('$variableName.focus();');
+  }
+
+  /// Sets the message field to `text`.
+  ///
+  /// Useful if you want to guide your user with message suggestions. If you want to start a UI
+  /// with a given text showing immediately, call this method before calling Inbox.mount
+  void setText(String text) {
+    chatbox.execute('$variableName.setText("$text");');
+  }
+
+  /// TODO: setVisible(visible: boolean | ConversationPredicate): void;
 }
 

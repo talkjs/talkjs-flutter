@@ -55,6 +55,7 @@ class ConversationBuilder {
     this.custom, this.welcomeMessages, this.photoUrl, this.subject,
   });
 
+/* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
   /// Sends a text message in a given conversation.
   void sendMessage(String text, {Map<String, String>? custom}) {
     final result = <String, dynamic>{};
@@ -65,6 +66,7 @@ class ConversationBuilder {
 
     session.execute('$variableName.sendMessage("$text", ${json.encode(result)});');
   }
+*/
 
   /// Used to set certain attributes for a specific conversation
   void setAttributes({Map<String, String?>? custom, List<String>? welcomeMessages, String? photoUrl, String? subject}) {
