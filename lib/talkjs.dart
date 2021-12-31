@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart' show sha1;
 export 'src/chatoptions.dart';
 export 'src/conversation.dart';
 export 'src/session.dart';
-export 'src/ui.dart';
+export 'src/chatbox.dart';
 export 'src/user.dart';
 export 'src/webview.dart';
 

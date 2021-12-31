@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 
 import 'package:webview_flutter/webview_flutter.dart';
 
-import './ui.dart';
+import './chatbox.dart';
 
 /// Wrapper around the [WebView] widget.
 class ChatWebView extends StatefulWidget {

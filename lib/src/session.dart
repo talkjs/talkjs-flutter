@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 
 import './chatoptions.dart';
 import './conversation.dart';
-import './ui.dart';
+import './chatbox.dart';
 import './user.dart';
 
 /// A session represents a currently active user.

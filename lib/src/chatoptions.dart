@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import './ui.dart';
+import './chatbox.dart';
 import './conversation.dart';
 
 /// The possible values for the Chat modes
