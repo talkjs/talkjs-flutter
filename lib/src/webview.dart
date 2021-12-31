@@ -5,14 +5,13 @@ import 'package:flutter/foundation.dart' show kReleaseMode;
 
 import 'package:webview_flutter/webview_flutter.dart';
 
-import './chatbox.dart';
-
 /// Wrapper around the [WebView] widget.
 class ChatWebView extends StatefulWidget {
   final ChatWebViewState state;
 
-  ChatWebView(ChatBox chatbox, WebViewCreatedCallback webViewFn, PageFinishedCallback jsFn)
-      : state = ChatWebViewState(chatbox, webViewFn, jsFn);
+  ChatWebView(WebViewCreatedCallback webViewFn, PageFinishedCallback jsFn, {Key? key})
+      : state = ChatWebViewState(webViewFn, jsFn),
+      super(key: key);
 
   @override
   ChatWebViewState createState() => this.state;
@@ -20,9 +19,8 @@ class ChatWebView extends StatefulWidget {
 
 class ChatWebViewState extends State<ChatWebView> {
   late WebView webView;
-  ChatBox? chatbox;
 
-  ChatWebViewState(this.chatbox, WebViewCreatedCallback webViewFn,
+  ChatWebViewState(WebViewCreatedCallback webViewFn,
       PageFinishedCallback jsFn) {
     // Enable hybrid composition.
     if (Platform.isAndroid) {
@@ -47,14 +45,5 @@ class ChatWebViewState extends State<ChatWebView> {
   Widget build(BuildContext context) {
     return this.webView;
   }
-
-  @override
-  void dispose() {
-    super.dispose();
-
-    chatbox!.disposeWebView();
-
-    // Break circular reference
-    chatbox = null;
-  }
 }
+

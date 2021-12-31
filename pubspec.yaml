@@ -1,7 +1,6 @@
 name: talkjs
 description: SDK for TalkJS
 version: 0.0.1
-author:
 homepage: https://talkjs.com
 
 environment:
@@ -14,6 +13,7 @@ dependencies:
 
   webview_flutter: ^3.0.0
   crypto: ^3.0.1
+  provider: ^6.0.0
 
 dev_dependencies:
   flutter_test:

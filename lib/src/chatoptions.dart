@@ -176,7 +176,7 @@ abstract class _ChatOptions {
   TranslateConversations? translateConversations;
 
   /// This option specifies which conversations should be translated in this UI.
-  List<ConversationBuilder>? conversationsToTranslate;
+  List<Conversation>? conversationsToTranslate;
 
   /// This option specifies which conversation Ids should be translated in this UI.
   List<String>? conversationIdsToTranslate;
@@ -232,6 +232,7 @@ abstract class _ChatOptions {
       result['theme'] = theme;
     }
 
+/* TODO: Conversation.variableName is to be done
     if (conversationsToTranslate != null) {
       // Highest priority: TranslateConversations.off
       if (translateConversations != TranslateConversations.off) {
@@ -243,6 +244,7 @@ abstract class _ChatOptions {
           + ']';
       }
     }
+*/
 
     if (conversationIdsToTranslate != null) {
       // Highest priority: TranslateConversations.off

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import './session.dart';
 import './user.dart';
 
@@ -18,13 +16,27 @@ extension ParticipantAccessString on ParticipantAccess {
   }
 }
 
+// Participants are users + options relative to this conversation
+class Participant {
+  User user;
+
+  ParticipantAccess? access;
+
+  bool? notify;
+
+  Participant(this.user, {this.access, this.notify});
+}
+
 /// This represents a conversation that is about to be created, fetched, or
 /// updated.
 ///
 /// You can use this object to set up or modify a conversation before showing it.
 /// Note: any changes you make here will not be sent to TalkJS immediately.
 /// Instead, instantiate a TalkJS UI using methods such as [Session.createInbox].
-class ConversationBuilder {
+class Conversation {
+  /// The unique conversation identifier.
+  String id;
+
   /// Custom metadata for this conversation
   Map<String, String?>? custom;
 
@@ -39,20 +51,18 @@ class ConversationBuilder {
   /// The conversation subject which will be displayed in the chat header.
   String? subject;
 
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// The current active TalkJS session.
-  Session session;
-
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// The JavaScript variable name for this object.
-  String variableName;
+  // The participants for this conversation
+  List<Participant> participants;
 
   /// Don't use the ConversationBuilder constructor directly.
   // use session.getOrCreateConversation instead.
-  ConversationBuilder({required this.session, required this.variableName,
-    this.custom, this.welcomeMessages, this.photoUrl, this.subject,
+  Conversation({
+    required this.id,
+    this.custom,
+    this.welcomeMessages,
+    this.photoUrl,
+    this.subject,
+    this.participants = const <Participant>[],
   });
 
 /* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
@@ -66,7 +76,6 @@ class ConversationBuilder {
 
     session.execute('$variableName.sendMessage("$text", ${json.encode(result)});');
   }
-*/
 
   /// Used to set certain attributes for a specific conversation
   void setAttributes({Map<String, String?>? custom, List<String>? welcomeMessages, String? photoUrl, String? subject}) {
@@ -110,5 +119,6 @@ class ConversationBuilder {
 
     session.execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');
   }
+  */
 }
 
