@@ -122,3 +122,31 @@ class Conversation {
   */
 }
 
+class ConversationData {
+  /// The unique conversation identifier.
+  String id;
+
+  /// Custom metadata for this conversation
+  Map<String, String?>? custom;
+
+  /// Messages sent at the beginning of a chat.
+  ///
+  /// The messages will appear as system messages.
+  List<String>? welcomeMessages;
+
+  /// The URL to a photo which will be shown as the photo for the conversation.
+  String? photoUrl;
+
+  /// The conversation subject which will be displayed in the chat header.
+  String? subject;
+
+  ConversationData.fromJson(Map<String, dynamic> json)
+    : id = json['id'],
+    custom = json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
+    welcomeMessages = json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null,
+    photoUrl = json['photoUrl'],
+    subject = json['subject'];
+
+}
+
+

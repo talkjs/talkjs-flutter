@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode;
 
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -9,8 +9,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 class ChatWebView extends StatefulWidget {
   final ChatWebViewState state;
 
-  ChatWebView(WebViewCreatedCallback webViewFn, PageFinishedCallback jsFn, {Key? key})
-      : state = ChatWebViewState(webViewFn, jsFn),
+  ChatWebView(WebViewCreatedCallback webViewFn, PageFinishedCallback jsFn, Set<JavascriptChannel> javascriptChannels, {Key? key})
+      : state = ChatWebViewState(webViewFn, jsFn, javascriptChannels),
       super(key: key);
 
   @override
@@ -20,8 +20,7 @@ class ChatWebView extends StatefulWidget {
 class ChatWebViewState extends State<ChatWebView> {
   late WebView webView;
 
-  ChatWebViewState(WebViewCreatedCallback webViewFn,
-      PageFinishedCallback jsFn) {
+  ChatWebViewState(WebViewCreatedCallback webViewFn, PageFinishedCallback jsFn, Set<JavascriptChannel> javascriptChannels) {
     // Enable hybrid composition.
     if (Platform.isAndroid) {
       WebView.platform = SurfaceAndroidWebView();
@@ -30,9 +29,10 @@ class ChatWebViewState extends State<ChatWebView> {
     this.webView = WebView(
       initialUrl: 'about:blank',
       javascriptMode: JavascriptMode.unrestricted,
-      debuggingEnabled: !kReleaseMode,
+      debuggingEnabled: kDebugMode,
       onWebViewCreated: webViewFn,
       onPageFinished: jsFn,
+      javascriptChannels: javascriptChannels,
     );
   }
 

@@ -13,6 +13,23 @@ import './conversation.dart';
 import './webview.dart';
 import './chatoptions.dart';
 import './user.dart';
+import './message.dart';
+
+typedef BlurHandler = void Function();
+typedef FocusHandler = void Function();
+typedef SendMessageHandler = void Function(SendMessageEvent event);
+typedef TranslationToggledHandler = void Function();
+
+class SendMessageEvent {
+  ConversationData conversation;
+  User me;
+  SentMessage message;
+
+  SendMessageEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']),
+    me = User.fromJson(json['me']),
+    message = SentMessage.fromJson(json['message']);
+}
 
 /// A messaging UI for just a single conversation.
 ///
@@ -33,6 +50,11 @@ class ChatBox extends StatefulWidget {
   final Conversation? conversation;
   final bool? asGuest;
 
+  final BlurHandler? onBlur;
+  final FocusHandler? onFocus;
+  final SendMessageHandler? onSendMessage;
+  final TranslationToggledHandler? onTranslationToggled;
+
   const ChatBox({Key? key,
       this.chatSubtitleMode,
       this.chatTitleMode,
@@ -46,13 +68,17 @@ class ChatBox extends StatefulWidget {
       this.conversationIdsToTranslate,
       this.conversation,
       this.asGuest,
+      this.onBlur,
+      this.onFocus,
+      this.onSendMessage,
+      this.onTranslationToggled,
     }) : super(key: key);
 
   @override
-  State<ChatBox> createState() => _ChatBoxState();
+  State<ChatBox> createState() => ChatBoxState();
 }
 
-class _ChatBoxState extends State<ChatBox> {
+class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
   WebViewController? _webViewController;
 
@@ -84,7 +110,12 @@ class _ChatBoxState extends State<ChatBox> {
 
     execute('chatBox.mount(document.getElementById("talkjs-container"));');
 
-    return ChatWebView(_webViewCreatedCallback, _onPageFinished);
+    return ChatWebView(_webViewCreatedCallback, _onPageFinished, <JavascriptChannel>{
+      JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
+      JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
+      JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
+      JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
+    });
   }
 
   void _createSession(SessionState sessionState) {
@@ -119,7 +150,12 @@ class _ChatBoxState extends State<ChatBox> {
       conversationIdsToTranslate: widget.conversationIdsToTranslate,
     );
 
-    execute('const chatBox = session.createChatbox(${options.getJsonString()});');
+    execute('const chatBox = session.createChatbox(${options.getJsonString(this)});');
+
+    execute('chatBox.on("blur", (event) => JSCBlur.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("focus", (event) => JSCFocus.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("sendMessage", (event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("translationToggled", (event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
   }
 
   void _createConversation() {
@@ -156,7 +192,7 @@ class _ChatBoxState extends State<ChatBox> {
         print('📗 chatbox._onPageFinished: $js');
       }
 
-      _webViewController!.runJavascriptReturningResult(js);
+      _webViewController!.runJavascript(js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
@@ -164,9 +200,41 @@ class _ChatBoxState extends State<ChatBox> {
           print('📗 chatbox._onPageFinished _pending: $statement');
         }
 
-        _webViewController!.runJavascriptReturningResult(statement);
+        _webViewController!.runJavascript(statement);
       }
     }
+  }
+
+  void _jscBlur(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscBlur: ${message.message}');
+    }
+
+    widget.onBlur?.call();
+  }
+
+  void _jscFocus(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscFocus: ${message.message}');
+    }
+
+    widget.onFocus?.call();
+  }
+
+  void _jscSendMessage(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscSendMessage: ${message.message}');
+    }
+
+    widget.onSendMessage?.call(SendMessageEvent.fromJson(json.decode(message.message)));
+  }
+
+  void _jscTranslationToggled(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscTranslationToggled: ${message.message}');
+    }
+    // {"isEnabled":true,"conversation":{}}
+    widget.onTranslationToggled?.call();
   }
 
   /// For internal use only. Implementation detail that may change anytime.
@@ -259,7 +327,7 @@ class _ChatBoxState extends State<ChatBox> {
     }
 
     if (controller != null) {
-      controller.runJavascriptReturningResult(statement);
+      controller.runJavascript(statement);
     } else {
       this._pending.add(statement);
     }
@@ -300,7 +368,7 @@ class _ChatBoxState extends State<ChatBox> {
 /// Encapsulates the message entry field tied to the currently selected conversation.
 class MessageField {
   /// The ChatBox associated with this message field
-  _ChatBoxState chatbox;
+  ChatBoxState chatbox;
 
   /// The JavaScript variable name for this object.
   String variableName;

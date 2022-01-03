@@ -28,10 +28,10 @@ class User {
   List<String>? phone;
 
   /// The unique user identifier.
-  String id;
+  final String id;
 
   /// This user's name which will be displayed on the TalkJS UI
-  String name;
+  final String name;
 
   /// The language on the UI.
   ///
@@ -57,6 +57,19 @@ class User {
   }) : this._idOnly = false;
 
   User.fromId(this.id) : this.name = '', this._idOnly = true;
+
+  User.fromJson(Map<String, dynamic> json)
+    : availabilityText = json['availabilityText'],
+    custom = json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
+    email = json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
+    phone = json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
+    id = json['id'],
+    name = json['name'],
+    locale = json['locale'],
+    photoUrl = json['photoUrl'],
+    role = json['role'],
+    welcomeMessage = json['welcomeMessage'],
+    _idOnly = false;
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -110,3 +123,4 @@ class User {
     }
   }
 }
+

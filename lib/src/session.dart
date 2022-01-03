@@ -38,9 +38,7 @@ class Session extends StatelessWidget {
       // can own Counter's lifecycle, making sure to call `dispose`
       // when not needed anymore.
       create: (context) => SessionState(appId: appId, me: me, signature: signature),
-      child: Container(
-          child: child,
-      ),
+      child: child,
     );
   }
 }

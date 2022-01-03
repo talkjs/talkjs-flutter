@@ -200,7 +200,7 @@ abstract class _ChatOptions {
   /// The toJson method is intentionally omitted, to produce an error if
   /// someone tries to convert this object to JSON instead of using the
   /// getJsonString method.
-  String getJsonString() {
+  String getJsonString(ChatBoxState chatBox) {
     final result = <String, dynamic>{};
 
     if (chatSubtitleMode != null) {
@@ -232,19 +232,17 @@ abstract class _ChatOptions {
       result['theme'] = theme;
     }
 
-/* TODO: Conversation.variableName is to be done
     if (conversationsToTranslate != null) {
       // Highest priority: TranslateConversations.off
       if (translateConversations != TranslateConversations.off) {
         // High priority: conversationsToTranslate
         // This results in a string value that will be parsed later
         result['translateConversations'] ??= '[' + conversationsToTranslate
-          !.map((conversation) => conversation.variableName)
+          !.map((conversation) => chatBox.getConversationVariableName(conversation))
           .join(',')
           + ']';
       }
     }
-*/
 
     if (conversationIdsToTranslate != null) {
       // Highest priority: TranslateConversations.off
