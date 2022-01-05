@@ -21,19 +21,19 @@ typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 
 class SendMessageEvent {
-  ConversationData conversation;
-  User me;
-  SentMessage message;
+  final ConversationData conversation;
+  final UserData me;
+  final SentMessage message;
 
   SendMessageEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
-    me = User.fromJson(json['me']),
+    me = UserData.fromJson(json['me']),
     message = SentMessage.fromJson(json['message']);
 }
 
 class TranslationToggledEvent {
-  ConversationData conversation;
-  bool isEnabled;
+  final ConversationData conversation;
+  final bool isEnabled;
 
   TranslationToggledEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
@@ -92,7 +92,10 @@ class ChatBoxState extends State<ChatBox> {
   WebViewController? _webViewController;
 
   /// List of JavaScript statements that haven't been executed.
-  final List<String> _pending = [];
+  final _pending = <String>[];
+
+  // A counter to ensure that IDs are unique
+  int _idCounter = 0;
 
   /// A mapping of user ids to the variable name of the respective JavaScript
   /// Talk.User object.
@@ -101,9 +104,6 @@ class ChatBoxState extends State<ChatBox> {
   /// A mapping of conversation ids to the variable name of the respective JavaScript
   /// Talk.ConversationBuilder object.
   final _conversations = <String, String>{};
-
-  // A counter to ensure that IDs are unique
-  int _idCounter = 0;
 
   /// Encapsulates the message entry field tied to the currently selected conversation.
   // TODO: messageField still needs to be refactored
@@ -273,6 +273,7 @@ class ChatBoxState extends State<ChatBox> {
     return _users[user.id]!;
   }
 
+  /// For internal use only. Implementation detail that may change anytime.
   String getConversationVariableName(Conversation conversation) {
     if (_conversations[conversation.id] == null) {
       // STEP 1: Generate unique variable name

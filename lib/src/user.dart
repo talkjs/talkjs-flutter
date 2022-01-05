@@ -5,27 +5,27 @@ import 'dart:convert';
 /// TalkJS uses the [id] to uniquely identify this user. All other fields of a
 /// [User] are allowed to vary over time and the TalkJS database will update its
 /// fields accordingly.
-class User {
+class _BaseUser {
   /// The default message a user sees when starting a chat with this person.
   ///
   /// This acts similarly to [welcomeMessage] with the difference being that
   /// this appears as a system message.
-  String? availabilityText;
+  final String? availabilityText;
 
   /// Custom metadata for this user.
-  Map<String, String?>? custom;
+  final Map<String, String?>? custom;
 
   /// One or more email address belonging to this user.
   ///
   /// The email addresses will be used for [Email Notifications](https://talkjs.com/docs/Features/Notifications/Email_Notifications/index.html)
   /// if they are enabled.
-  List<String>? email;
+  final List<String>? email;
 
   /// One or more phone numbers belonging to this user.
   ///
   /// The phone numbers will be used for [SMS Notifications](https://talkjs.com/docs/Features/Notifications/SMS_Notifications.html).
   /// This feature requires standard plan and up.
-  List<String>? phone;
+  final List<String>? phone;
 
   /// The unique user identifier.
   final String id;
@@ -36,40 +36,35 @@ class User {
   /// The language on the UI.
   ///
   /// This field expects an [IETF language tag](https://www.w3.org/International/articles/language-tags/).
-  String? locale;
+  final String? locale;
 
   /// An optional URL to a photo which will be displayed as this user's avatar
-  String? photoUrl;
+  final String? photoUrl;
 
   /// This user's role which allows you to change the behaviour of TalkJS for
   /// different users.
-  String? role;
+  final String? role;
 
   /// The default message a user sees when starting a chat with this person.
-  String? welcomeMessage;
+  final String? welcomeMessage;
 
-  // To support creating users with only an id
-  bool _idOnly;
-
-  User({required this.id, required this.name, this.email, this.phone,
+  const _BaseUser({required this.id, required this.name, this.email, this.phone,
     this.availabilityText, this.locale, this.photoUrl, this.role, this.custom,
     this.welcomeMessage
-  }) : this._idOnly = false;
+  });
+}
 
-  User.fromId(this.id) : this.name = '', this._idOnly = true;
+class User extends _BaseUser {
+  // To support creating users with only an id
+  final bool _idOnly;
 
-  User.fromJson(Map<String, dynamic> json)
-    : availabilityText = json['availabilityText'],
-    custom = json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
-    email = json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
-    phone = json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
-    id = json['id'],
-    name = json['name'],
-    locale = json['locale'],
-    photoUrl = json['photoUrl'],
-    role = json['role'],
-    welcomeMessage = json['welcomeMessage'],
-    _idOnly = false;
+  const User({required String id, required String name, List<String>? email, List<String>? phone,
+    String? availabilityText, String? locale, String? photoUrl, String? role, Map<String, String?>? custom,
+    String? welcomeMessage
+  }) : _idOnly = false, super(id: id, name: name, email: email, phone: phone, availabilityText: availabilityText,
+        locale: locale, photoUrl: photoUrl, role: role, custom: custom, welcomeMessage: welcomeMessage);
+
+  const User.fromId(String id) : _idOnly = true, super(id: id, name: '');
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -122,5 +117,19 @@ class User {
       return json.encode(result);
     }
   }
+}
+
+class UserData extends _BaseUser {
+  UserData.fromJson(Map<String, dynamic> json)
+    : super(availabilityText: json['availabilityText'],
+    custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
+    email: json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
+    phone: json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
+    id: json['id'],
+    name: json['name'],
+    locale: json['locale'],
+    photoUrl: json['photoUrl'],
+    role: json['role'],
+    welcomeMessage: json['welcomeMessage']);
 }
 

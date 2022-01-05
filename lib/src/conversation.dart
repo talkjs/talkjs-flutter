@@ -33,7 +33,7 @@ class Participant {
 /// You can use this object to set up or modify a conversation before showing it.
 /// Note: any changes you make here will not be sent to TalkJS immediately.
 /// Instead, instantiate a TalkJS UI using methods such as [Session.createInbox].
-class Conversation {
+class _BaseConversation {
   /// The unique conversation identifier.
   String id;
 
@@ -51,19 +51,27 @@ class Conversation {
   /// The conversation subject which will be displayed in the chat header.
   String? subject;
 
-  // The participants for this conversation
-  List<Participant> participants;
-
-  /// Don't use the ConversationBuilder constructor directly.
-  // use session.getOrCreateConversation instead.
-  Conversation({
+  _BaseConversation({
     required this.id,
     this.custom,
     this.welcomeMessages,
     this.photoUrl,
     this.subject,
-    this.participants = const <Participant>[],
   });
+}
+
+class Conversation extends _BaseConversation {
+  // The participants for this conversation
+  List<Participant> participants;
+
+  Conversation({
+    required String id,
+    Map<String, String?>? custom,
+    List<String>? welcomeMessages,
+    String? photoUrl,
+    String? subject,
+    this.participants = const <Participant>[],
+  }) : super(id: id, custom: custom, welcomeMessages: welcomeMessages, photoUrl: photoUrl, subject: subject);
 
 /* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
   /// Sends a text message in a given conversation.
@@ -122,31 +130,12 @@ class Conversation {
   */
 }
 
-class ConversationData {
-  /// The unique conversation identifier.
-  String id;
-
-  /// Custom metadata for this conversation
-  Map<String, String?>? custom;
-
-  /// Messages sent at the beginning of a chat.
-  ///
-  /// The messages will appear as system messages.
-  List<String>? welcomeMessages;
-
-  /// The URL to a photo which will be shown as the photo for the conversation.
-  String? photoUrl;
-
-  /// The conversation subject which will be displayed in the chat header.
-  String? subject;
-
+class ConversationData extends _BaseConversation {
   ConversationData.fromJson(Map<String, dynamic> json)
-    : id = json['id'],
-    custom = json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
-    welcomeMessages = json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null,
-    photoUrl = json['photoUrl'],
-    subject = json['subject'];
-
+    : super(id: json['id'],
+    custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
+    welcomeMessages: json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null,
+    photoUrl: json['photoUrl'],
+    subject: json['subject']);
 }
-
 

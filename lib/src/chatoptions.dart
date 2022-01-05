@@ -134,9 +134,8 @@ extension TranslateConversationsValue on TranslateConversations {
   }
 }
 
-/// This class represents the various configuration options used to finetune the
-/// behaviour of UI elements.
-abstract class _ChatOptions {
+/// Options to configure the behaviour of the [ChatBox] UI.
+class ChatBoxOptions {
   /// Controls what text appears in the chat subtitle, right below the chat title.
   ///
   /// Defaults to [ChatMode.subject].
@@ -181,7 +180,7 @@ abstract class _ChatOptions {
   /// This option specifies which conversation Ids should be translated in this UI.
   List<String>? conversationIdsToTranslate;
 
-  _ChatOptions({this.chatSubtitleMode,
+  ChatBoxOptions({this.chatSubtitleMode,
     this.chatTitleMode,
     this.dir,
     this.messageField,
@@ -270,31 +269,5 @@ abstract class _ChatOptions {
       (Match m) => '":${m[1]}'
     );
   }
-}
-
-/// Options to configure the behaviour of the [ChatBox] UI.
-class ChatBoxOptions extends _ChatOptions{
-  ChatBoxOptions({chatSubtitleMode,
-      chatTitleMode,
-      dir,
-      messageField,
-      showChatHeader,
-      showTranslationToggle,
-      theme,
-      translateConversations,
-      conversationsToTranslate,
-      conversationIdsToTranslate,
-      })
-      : super(chatSubtitleMode: chatSubtitleMode,
-          chatTitleMode: chatTitleMode,
-          dir: dir,
-          messageField: messageField,
-          showChatHeader: showChatHeader,
-          showTranslationToggle: showTranslationToggle,
-          theme: theme,
-          translateConversations: translateConversations,
-          conversationsToTranslate: conversationsToTranslate,
-          conversationIdsToTranslate: conversationIdsToTranslate,
-      );
 }
 
