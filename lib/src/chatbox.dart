@@ -18,7 +18,7 @@ import './message.dart';
 typedef BlurHandler = void Function();
 typedef FocusHandler = void Function();
 typedef SendMessageHandler = void Function(SendMessageEvent event);
-typedef TranslationToggledHandler = void Function();
+typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 
 class SendMessageEvent {
   ConversationData conversation;
@@ -29,6 +29,15 @@ class SendMessageEvent {
     : conversation = ConversationData.fromJson(json['conversation']),
     me = User.fromJson(json['me']),
     message = SentMessage.fromJson(json['message']);
+}
+
+class TranslationToggledEvent {
+  ConversationData conversation;
+  bool isEnabled;
+
+  TranslationToggledEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']),
+    isEnabled = json['isEnabled'];
 }
 
 /// A messaging UI for just a single conversation.
@@ -233,8 +242,8 @@ class ChatBoxState extends State<ChatBox> {
     if (kDebugMode) {
       print('📗 chatbox._jscTranslationToggled: ${message.message}');
     }
-    // {"isEnabled":true,"conversation":{}}
-    widget.onTranslationToggled?.call();
+
+    widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message.message)));
   }
 
   /// For internal use only. Implementation detail that may change anytime.
