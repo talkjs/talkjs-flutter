@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 
 import './session.dart';
 import './conversation.dart';
-import './webview.dart';
 import './chatoptions.dart';
 import './user.dart';
 import './message.dart';
@@ -90,6 +89,7 @@ class ChatBox extends StatefulWidget {
 class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
   WebViewController? _webViewController;
+  bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -100,30 +100,72 @@ class ChatBoxState extends State<ChatBox> {
   /// A mapping of user ids to the variable name of the respective JavaScript
   /// Talk.User object.
   final _users = <String, String>{};
+  final _userObjs = <String, User>{};
 
   /// A mapping of conversation ids to the variable name of the respective JavaScript
   /// Talk.ConversationBuilder object.
   final _conversations = <String, String>{};
+  final _conversationObjs = <String, Conversation>{};
 
   /// Encapsulates the message entry field tied to the currently selected conversation.
   // TODO: messageField still needs to be refactored
   //late MessageField messageField;
 
+  /// Objects stored for comparing changes
+  ChatBoxOptions? _oldOptions;
+  bool? _oldAsGuest;
+  Conversation? _oldConversation;
+
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('📗 chatbox.build (_webViewCreated: $_webViewCreated)');
+    }
+
     final sessionState = context.read<SessionState>();
 
-    _createSession(sessionState);
-    _createChatBox();
-    _createConversation();
+    if (!_webViewCreated) {
+      // If it's the first time that the widget is built, then build everything
+      _webViewCreated = true;
 
-    execute('chatBox.mount(document.getElementById("talkjs-container"));');
+      execute('let chatBox;');
 
-    return ChatWebView(_webViewCreatedCallback, _onPageFinished, <JavascriptChannel>{
-      JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
-      JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
-      JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
-      JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
+      _createSession(sessionState);
+      _createChatBox();
+      _createConversation();
+
+      execute('chatBox.mount(document.getElementById("talkjs-container"));');
+    } else {
+      // If it's not the first time that the widget is built,
+      // then check what needs to be rebuilt
+
+      // TODO: If something has changed in the Session we should do something
+
+      final chatBoxRecreated = _checkRecreateChatBox();
+
+      if (chatBoxRecreated) {
+        _createConversation();
+      } else {
+        _checkRecreateConversation();
+      }
+
+      // Mount the chatbox only if it's new (else the existing chatbox has already been mounted)
+      if (chatBoxRecreated) {
+        execute('chatBox.mount(document.getElementById("talkjs-container"));');
+      }
+    }
+
+    return WebView(
+      initialUrl: 'about:blank',
+      javascriptMode: JavascriptMode.unrestricted,
+      debuggingEnabled: kDebugMode,
+      onWebViewCreated: _webViewCreatedCallback,
+      onPageFinished: _onPageFinished,
+      javascriptChannels: <JavascriptChannel>{
+        JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
+        JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
+        JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
+        JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
     });
   }
 
@@ -146,6 +188,28 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _createChatBox() {
+    _oldOptions = ChatBoxOptions(
+      chatSubtitleMode: widget.chatSubtitleMode,
+      chatTitleMode: widget.chatTitleMode,
+      dir: widget.dir,
+      messageField: widget.messageField,
+      showChatHeader: widget.showChatHeader,
+      showTranslationToggle: widget.showTranslationToggle,
+      theme: widget.theme,
+      translateConversations: widget.translateConversations,
+      conversationsToTranslate: widget.conversationsToTranslate,
+      conversationIdsToTranslate: widget.conversationIdsToTranslate,
+    );
+
+    execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
+
+    execute('chatBox.on("blur", (event) => JSCBlur.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("focus", (event) => JSCFocus.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("sendMessage", (event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
+    execute('chatBox.on("translationToggled", (event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+  }
+
+  bool _checkRecreateChatBox() {
     final options = ChatBoxOptions(
       chatSubtitleMode: widget.chatSubtitleMode,
       chatTitleMode: widget.chatTitleMode,
@@ -159,30 +223,48 @@ class ChatBoxState extends State<ChatBox> {
       conversationIdsToTranslate: widget.conversationIdsToTranslate,
     );
 
-    execute('const chatBox = session.createChatbox(${options.getJsonString(this)});');
+    if (options != _oldOptions) {
+      execute('chatBox.destroy();');
+      _createChatBox();
 
-    execute('chatBox.on("blur", (event) => JSCBlur.postMessage(JSON.stringify(event)));');
-    execute('chatBox.on("focus", (event) => JSCFocus.postMessage(JSON.stringify(event)));');
-    execute('chatBox.on("sendMessage", (event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
-    execute('chatBox.on("translationToggled", (event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+      return true;
+    } else {
+      return false;
+    }
   }
 
   void _createConversation() {
       final result = <String, dynamic>{};
 
-      if (widget.asGuest != null) {
-        result['asGuest'] = widget.asGuest;
+      _oldAsGuest = widget.asGuest;
+      if (_oldAsGuest != null) {
+        result['asGuest'] = _oldAsGuest;
       }
 
-      if (widget.conversation != null) {
-        execute('chatBox.select(${getConversationVariableName(widget.conversation!)}, ${json.encode(result)});');
+      _oldConversation = widget.conversation;
+      if (_oldConversation != null) {
+        execute('chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)});');
       } else {
         // TODO: null or undefined?
         execute('chatBox.select(null, ${json.encode(result)});');
       }
   }
 
+  bool _checkRecreateConversation() {
+    if ((widget.asGuest != _oldAsGuest) || (widget.conversation != _oldConversation)) {
+      _createConversation();
+
+      return true;
+    }
+
+    return false;
+  }
+
   void _webViewCreatedCallback(WebViewController webViewController) async {
+    if (kDebugMode) {
+      print('📗 chatbox._webViewCreatedCallback');
+    }
+
     String htmlData = await rootBundle.loadString('packages/talkjs/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
     webViewController.loadUrl(uri.toString());
@@ -191,6 +273,10 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _onPageFinished(String url) {
+    if (kDebugMode) {
+      print('📗 chatbox._onPageFinished');
+    }
+
     if (url != 'about:blank') {
       // Wait for TalkJS to be ready
       // Not all WebViews support top level await, so it's better to use an
@@ -266,8 +352,17 @@ class ChatBoxState extends State<ChatBox> {
       // Generate unique variable name
       final variableName = 'user${getUniqueId()}';
 
-      execute('const $variableName = new Talk.User(${user.getJsonString()});');
       _users[user.id] = variableName;
+
+      execute('let $variableName = new Talk.User(${user.getJsonString()});');
+
+      _userObjs[user.id] = User.of(user);
+    } else if (_userObjs[user.id] != user) {
+      final variableName = _users[user.id]!;
+
+      execute('$variableName = new Talk.User(${user.getJsonString()});');
+
+      _userObjs[user.id] = User.of(user);
     }
 
     return _users[user.id]!;
@@ -276,54 +371,70 @@ class ChatBoxState extends State<ChatBox> {
   /// For internal use only. Implementation detail that may change anytime.
   String getConversationVariableName(Conversation conversation) {
     if (_conversations[conversation.id] == null) {
-      // STEP 1: Generate unique variable name
       final variableName = 'conversation${getUniqueId()}';
 
-      execute('const $variableName = session.getOrCreateConversation("${conversation.id}")');
-
-      // STEP 2: Attributes
-      final attributes = <String, dynamic>{};
-
-      if (conversation.custom != null) {
-        attributes['custom'] = conversation.custom;
-      }
-
-      if (conversation.welcomeMessages != null) {
-        attributes['welcomeMessages'] = conversation.welcomeMessages;
-      }
-
-      if (conversation.photoUrl != null) {
-        attributes['photoUrl'] = conversation.photoUrl;
-      }
-
-      if (conversation.subject != null) {
-        attributes['subject'] = conversation.subject;
-      }
-
-      if (attributes.isNotEmpty) {
-        execute('$variableName.setAttributes(${json.encode(attributes)});');
-      }
-
-      // STEP 3: Participants
-      for (var participant in conversation.participants) {
-        final userVariableName = getUserVariableName(participant.user);
-        final result = <String, dynamic>{};
-
-        if (participant.access != null) {
-          result['access'] = participant.access!.getValue();
-        }
-
-        if (participant.notify != null) {
-          result['notify'] = participant.notify;
-        }
-
-        execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');
-      }
-
       _conversations[conversation.id] = variableName;
+
+      execute('let $variableName = session.getOrCreateConversation("${conversation.id}")');
+
+      _setConversationAttributes(variableName, conversation);
+      _setConversationParticipants(variableName, conversation);
+
+      _conversationObjs[conversation.id] = Conversation.of(conversation);
+    } else if (_conversationObjs[conversation.id] != conversation) {
+      final variableName = _conversations[conversation.id]!;
+
+      _setConversationAttributes(variableName, conversation);
+
+      if (!setEquals(conversation.participants, _conversationObjs[conversation.id]!.participants)) {
+        _setConversationParticipants(variableName, conversation);
+      }
+
+      _conversationObjs[conversation.id] = Conversation.of(conversation);
     }
 
     return _conversations[conversation.id]!;
+  }
+
+  void _setConversationAttributes(String variableName, Conversation conversation) {
+    final attributes = <String, dynamic>{};
+
+    if (conversation.custom != null) {
+      attributes['custom'] = conversation.custom;
+    }
+
+    if (conversation.welcomeMessages != null) {
+      attributes['welcomeMessages'] = conversation.welcomeMessages;
+    }
+
+    if (conversation.photoUrl != null) {
+      attributes['photoUrl'] = conversation.photoUrl;
+    }
+
+    if (conversation.subject != null) {
+      attributes['subject'] = conversation.subject;
+    }
+
+    if (attributes.isNotEmpty) {
+      execute('$variableName.setAttributes(${json.encode(attributes)});');
+    }
+  }
+
+  void _setConversationParticipants(String variableName, Conversation conversation) {
+    for (var participant in conversation.participants) {
+      final userVariableName = getUserVariableName(participant.user);
+      final result = <String, dynamic>{};
+
+      if (participant.access != null) {
+        result['access'] = participant.access!.getValue();
+      }
+
+      if (participant.notify != null) {
+        result['notify'] = participant.notify;
+      }
+
+      execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');
+    }
   }
 
   /// For internal use only. Implementation detail that may change anytime.
@@ -342,37 +453,6 @@ class ChatBoxState extends State<ChatBox> {
       this._pending.add(statement);
     }
   }
-
-  /// Destroys this UI element and removes all event listeners it has running.
-  void destroy() {
-    execute('chatBox.destroy();');
-  }
-
-/*
-  void select(ConversationBuilder? conversation, {bool? asGuest}) {
-    final result = <String, dynamic>{};
-
-    if (asGuest != null) {
-      result['asGuest'] = asGuest;
-    }
-
-    if (conversation != null) {
-      execute('chatBox.select(${conversation.variableName}, ${json.encode(result)});');
-    } else {
-      execute('chatBox.select(null, ${json.encode(result)});');
-    }
-  }
-
-  void selectLatestConversation({bool? asGuest}) {
-    final result = <String, dynamic>{};
-
-    if (asGuest != null) {
-      result['asGuest'] = asGuest;
-    }
-
-    execute('chatBox.select(undefined, ${json.encode(result)});');
-  }
-*/
 }
 
 /// Encapsulates the message entry field tied to the currently selected conversation.

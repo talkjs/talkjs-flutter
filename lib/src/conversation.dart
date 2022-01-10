@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
+
 import './session.dart';
 import './user.dart';
 
@@ -25,6 +29,37 @@ class Participant {
   bool? notify;
 
   Participant(this.user, {this.access, this.notify});
+
+  Participant.of(Participant other)
+    : user = User.of(other.user),
+    access = other.access,
+    notify = other.notify;
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is Participant)) {
+      return false;
+    }
+
+    if (user != other.user) {
+      return false;
+    }
+
+    if (access != other.access) {
+      return false;
+    }
+
+    if (notify != other.notify) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(user, access, notify);
 }
 
 /// This represents a conversation that is about to be created, fetched, or
@@ -62,7 +97,7 @@ class _BaseConversation {
 
 class Conversation extends _BaseConversation {
   // The participants for this conversation
-  List<Participant> participants;
+  Set<Participant> participants;
 
   Conversation({
     required String id,
@@ -70,8 +105,18 @@ class Conversation extends _BaseConversation {
     List<String>? welcomeMessages,
     String? photoUrl,
     String? subject,
-    this.participants = const <Participant>[],
+    this.participants = const <Participant>{},
   }) : super(id: id, custom: custom, welcomeMessages: welcomeMessages, photoUrl: photoUrl, subject: subject);
+
+  Conversation.of(Conversation other)
+    : participants = Set<Participant>.of(other.participants.map((participant) => Participant.of(participant))),
+    super(
+      id: other.id,
+      custom: other.custom != null ? Map<String, String?>.of(other.custom!) : null,
+      welcomeMessages: other.welcomeMessages != null ? List<String>.of(other.welcomeMessages!) : null,
+      photoUrl: other.photoUrl,
+      subject: other.subject
+    );
 
 /* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
   /// Sends a text message in a given conversation.
@@ -84,50 +129,45 @@ class Conversation extends _BaseConversation {
 
     session.execute('$variableName.sendMessage("$text", ${json.encode(result)});');
   }
-
-  /// Used to set certain attributes for a specific conversation
-  void setAttributes({Map<String, String?>? custom, List<String>? welcomeMessages, String? photoUrl, String? subject}) {
-    final result = <String, dynamic>{};
-
-    if (custom != null) {
-      result['custom'] = custom;
-      this.custom = custom;
-    }
-
-    if (welcomeMessages != null) {
-      result['welcomeMessages'] = welcomeMessages;
-      this.welcomeMessages = welcomeMessages;
-    }
-
-    if (photoUrl != null) {
-      result['photoUrl'] = photoUrl;
-      this.photoUrl = photoUrl;
-    }
-
-    if (subject != null) {
-      result['subject'] = subject;
-      this.subject = subject;
-    }
-
-    session.execute('$variableName.setAttributes(${json.encode(result)});');
-  }
-
-  /// Sets a participant of the conversation.
-  void setParticipant(User user, {ParticipantAccess? access, bool? notify}) {
-    final userVariableName = session.getUserVariableName(user);
-    final result = <String, dynamic>{};
-
-    if (access != null) {
-      result['access'] = access.getValue();
-    }
-
-    if (notify != null) {
-      result['notify'] = notify;
-    }
-
-    session.execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');
-  }
   */
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is Conversation)) {
+      return false;
+    }
+
+    if (!setEquals(participants, other.participants)) {
+      return false;
+    }
+
+    if (id != other.id) {
+      return false;
+    }
+
+    if (!mapEquals(custom, other.custom)) {
+      return false;
+    }
+
+    if (!listEquals(welcomeMessages, other.welcomeMessages)) {
+      return false;
+    }
+
+    if (photoUrl != other.photoUrl) {
+      return false;
+    }
+
+    if (subject != other.subject) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(participants, id, custom, welcomeMessages, photoUrl, subject);
 }
 
 class ConversationData extends _BaseConversation {

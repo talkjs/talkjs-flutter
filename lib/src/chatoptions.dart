@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 
 import './chatbox.dart';
 import './conversation.dart';
@@ -98,6 +101,36 @@ class MessageFieldOptions {
 
     return result;
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is MessageFieldOptions)) {
+      return false;
+    }
+
+    if (autofocus != other.autofocus) {
+      return false;
+    }
+
+    if (enterSendsMessage != other.enterSendsMessage) {
+      return false;
+    }
+
+    if (placeholder != other.placeholder) {
+      return false;
+    }
+
+    if (spellcheck != other.spellcheck) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(autofocus, enterSendsMessage, placeholder, spellcheck);
 }
 
 /// The possible values for showTranslationToggle
@@ -269,5 +302,70 @@ class ChatBoxOptions {
       (Match m) => '":${m[1]}'
     );
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is ChatBoxOptions)) {
+      return false;
+    }
+
+    if (chatSubtitleMode != other.chatSubtitleMode) {
+      return false;
+    }
+
+    if (chatTitleMode != other.chatTitleMode) {
+      return false;
+    }
+
+    if (dir != other.dir) {
+      return false;
+    }
+
+    if (messageField != other.messageField) {
+      return false;
+    }
+
+    if (showChatHeader != other.showChatHeader) {
+      return false;
+    }
+
+    if (showTranslationToggle != other.showTranslationToggle) {
+      return false;
+    }
+
+    if (theme != other.theme) {
+      return false;
+    }
+
+    if (translateConversations != other.translateConversations) {
+      return false;
+    }
+
+    if (!listEquals(conversationsToTranslate, other.conversationsToTranslate)) {
+      return false;
+    }
+
+    if (!listEquals(conversationIdsToTranslate, other.conversationIdsToTranslate)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    chatSubtitleMode,
+    chatTitleMode,
+    dir,
+    messageField,
+    showChatHeader,
+    showTranslationToggle,
+    theme,
+    translateConversations,
+    conversationsToTranslate,
+    conversationIdsToTranslate,
+  );
 }
 

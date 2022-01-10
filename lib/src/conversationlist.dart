@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 
 import './session.dart';
 import './conversation.dart';
-import './webview.dart';
 import './user.dart';
 import './chatbox.dart';
 
@@ -137,6 +136,7 @@ class ConversationList extends StatefulWidget {
 class ConversationListState extends State<ConversationList> {
   /// Used to control the underlying WebView
   WebViewController? _webViewController;
+  bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -150,17 +150,31 @@ class ConversationListState extends State<ConversationList> {
 
   @override
   Widget build(BuildContext context) {
+    if (kDebugMode) {
+      print('📗 conversationlist.build (_webViewCreated: $_webViewCreated)');
+    }
+
     final sessionState = context.read<SessionState>();
 
-    _createSession(sessionState);
-    _createConversationList();
+    if (!_webViewCreated) {
+      _webViewCreated = true;
 
-    execute('conversationList.mount(document.getElementById("talkjs-container"));');
+      _createSession(sessionState);
+      _createConversationList();
 
-    return ChatWebView(_webViewCreatedCallback, _onPageFinished, <JavascriptChannel>{
-      JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
-      JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
-      JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
+      execute('conversationList.mount(document.getElementById("talkjs-container"));');
+    }
+
+    return WebView(
+      initialUrl: 'about:blank',
+      javascriptMode: JavascriptMode.unrestricted,
+      debuggingEnabled: kDebugMode,
+      onWebViewCreated: _webViewCreatedCallback,
+      onPageFinished: _onPageFinished,
+      javascriptChannels: <JavascriptChannel>{
+        JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
+        JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
+        JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
     });
   }
 
@@ -197,6 +211,10 @@ class ConversationListState extends State<ConversationList> {
   }
 
   void _webViewCreatedCallback(WebViewController webViewController) async {
+    if (kDebugMode) {
+      print('📗 conversationlist._webViewCreatedCallback');
+    }
+
     String htmlData = await rootBundle.loadString('packages/talkjs/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
     webViewController.loadUrl(uri.toString());
@@ -205,6 +223,10 @@ class ConversationListState extends State<ConversationList> {
   }
 
   void _onPageFinished(String url) {
+    if (kDebugMode) {
+      print('📗 conversationlist._onPageFinished');
+    }
+
     if (url != 'about:blank') {
       // Wait for TalkJS to be ready
       // Not all WebViews support top level await, so it's better to use an

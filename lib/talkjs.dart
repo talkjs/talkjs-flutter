@@ -8,7 +8,6 @@ export 'src/conversation.dart';
 export 'src/session.dart';
 export 'src/chatbox.dart';
 export 'src/user.dart';
-export 'src/webview.dart';
 export 'src/conversationlist.dart';
 
 /// The [Talk] object provides utility functions to help use TalkJS.

@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 
 /// A user of your app.
 ///
@@ -66,6 +69,22 @@ class User extends _BaseUser {
 
   const User.fromId(String id) : _idOnly = true, super(id: id, name: '');
 
+  User.of(User other)
+  : _idOnly = other._idOnly,
+  super(
+    id: other.id,
+    name: other.name,
+    email: other.email != null ? List<String>.of(other.email!) : null,
+    phone: other.phone != null ? List<String>.of(other.phone!) : null,
+    availabilityText: other.availabilityText,
+    locale: other.locale,
+    photoUrl: other.photoUrl,
+    role: other.role,
+    custom: other.custom != null ? Map<String, String?>.of(other.custom!): null,
+    welcomeMessage: other.welcomeMessage,
+  );
+
+
   /// For internal use only. Implementation detail that may change anytime.
   ///
   /// This method is used instead of toJson, as we need to output valid JS
@@ -117,6 +136,76 @@ class User extends _BaseUser {
       return json.encode(result);
     }
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is User)) {
+      return false;
+    }
+
+    if (_idOnly != other._idOnly) {
+      return false;
+    }
+
+    if (availabilityText != other.availabilityText) {
+      return false;
+    }
+
+    if (!mapEquals(custom, other.custom)) {
+      return false;
+    }
+
+    if (!listEquals(email, other.email)) {
+      return false;
+    }
+
+    if (!listEquals(phone, other.phone)) {
+      return false;
+    }
+
+    if (id != other.id) {
+      return false;
+    }
+
+    if (name != other.name) {
+      return false;
+    }
+
+    if (locale != other.locale) {
+      return false;
+    }
+
+    if (photoUrl != other.photoUrl) {
+      return false;
+    }
+
+    if (role != other.role) {
+      return false;
+    }
+
+    if (welcomeMessage != other.welcomeMessage) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    _idOnly,
+    availabilityText,
+    custom,
+    email,
+    phone,
+    id,
+    name,
+    locale,
+    photoUrl,
+    role,
+    welcomeMessage,
+  );
 }
 
 class UserData extends _BaseUser {
