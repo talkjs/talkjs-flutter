@@ -37,7 +37,7 @@ class Session with ChangeNotifier {
 
   Session({required this.appId, this.signature});
 
-  User getOrCreateUser({
+  User getUser({
     required String id,
     required String name,
     List<String>? email,
@@ -64,7 +64,7 @@ class Session with ChangeNotifier {
 
   User getUserById(String id) => User.fromId(id, this);
 
-  Conversation getOrCreateConversation({
+  Conversation getConversation({
     required String id,
     Map<String, String?>? custom,
     List<String>? welcomeMessages,
