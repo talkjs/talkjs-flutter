@@ -1,16 +1,31 @@
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
-
 import './user.dart';
+import './conversation.dart';
 
 /// A session represents a currently active user.
-class Session extends StatelessWidget {
+class Session with ChangeNotifier {
   /// Your TalkJS AppId that can be found your TalkJS [dashboard](https://talkjs.com/dashboard).
   final String appId;
 
   /// The TalkJS [User] associated with the current user in your application.
-  final User me;
+  User? _me;
+
+  User get me {
+    if (_me == null) {
+      throw StateError('Set the me property before using the Session object');
+    } else {
+      return _me!;
+    }
+  }
+
+  set me(User user) {
+    if (_me != null) {
+      throw StateError('The me property has already been set for the Session object');
+    } else {
+      _me = user;
+    }
+  }
 
   /// A digital signature of the current [User.id]
   ///
@@ -20,45 +35,50 @@ class Session extends StatelessWidget {
   /// code.
   final String? signature;
 
-  /// The child widget
-  final Widget? child;
+  Session({required this.appId, this.signature});
 
-  Session({Key? key, required this.appId, required this.me, this.signature, this.child}) : super(key: key);
+  User getOrCreateUser({
+    required String id,
+    required String name,
+    List<String>? email,
+    List<String>? phone,
+    String? availabilityText,
+    String? locale,
+    String? photoUrl,
+    String? role,
+    Map<String, String?>? custom,
+    String? welcomeMessage,
+  }) => User(
+    session: this,
+    id: id,
+    name: name,
+    email: email,
+    phone: phone,
+    availabilityText: availabilityText,
+    locale: locale,
+    photoUrl: photoUrl,
+    role: role,
+    custom: custom,
+    welcomeMessage: welcomeMessage,
+  );
 
-  @override
-  Widget build(BuildContext context) {
-    // Provide the model to all widgets within the app. We're using
-    // ChangeNotifierProvider because that's a simple way to rebuild
-    // widgets when a model changes. We could also just use
-    // Provider, but then we would have to listen to Counter ourselves.
-    //
-    // Read Provider's docs to learn about all the available providers.
-    return ChangeNotifierProvider(
-      // Initialize the model in the builder. That way, Provider
-      // can own Counter's lifecycle, making sure to call `dispose`
-      // when not needed anymore.
-      create: (context) => SessionState(appId: appId, me: me, signature: signature),
-      child: child,
-    );
-  }
-}
+  User getUserById(String id) => User.fromId(id, this);
 
-/// Session state that is passed to child widgets
-class SessionState with ChangeNotifier {
-  /// Your TalkJS AppId that can be found your TalkJS [dashboard](https://talkjs.com/dashboard).
-  String appId;
-
-  /// The TalkJS [User] associated with the current user in your application.
-  User me;
-
-  /// A digital signature of the current [User.id]
-  ///
-  /// This is the HMAC-SHA256 hash of the current user id, signed with your
-  /// TalkJS secret key.
-  /// DO NOT embed your secret key within your mobile application / frontend
-  /// code.
-  String? signature;
-
-  SessionState({required this.appId, required this.me, this.signature});
+  Conversation getOrCreateConversation({
+    required String id,
+    Map<String, String?>? custom,
+    List<String>? welcomeMessages,
+    String? photoUrl,
+    String? subject,
+    Set<Participant> participants = const <Participant>{},
+  }) => Conversation(
+    session: this,
+    id: id,
+    custom: custom,
+    welcomeMessages: welcomeMessages,
+    photoUrl: photoUrl,
+    subject: subject,
+    participants: participants,
+  );
 }
 

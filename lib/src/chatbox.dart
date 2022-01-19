@@ -6,16 +6,12 @@ import 'package:flutter/foundation.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'package:provider/provider.dart';
-
 import './session.dart';
 import './conversation.dart';
 import './chatoptions.dart';
 import './user.dart';
 import './message.dart';
 
-typedef BlurHandler = void Function();
-typedef FocusHandler = void Function();
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 
@@ -44,43 +40,35 @@ class TranslationToggledEvent {
 /// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
 /// There is no way for the user to switch between conversations
 class ChatBox extends StatefulWidget {
-  final ChatMode? chatSubtitleMode;
-  final ChatMode? chatTitleMode;
+  final Session session;
+
   final TextDirection? dir;
   final MessageFieldOptions? messageField;
   final bool? showChatHeader;
   final TranslationToggle? showTranslationToggle;
   final String? theme;
   final TranslateConversations? translateConversations;
-  final List<Conversation>? conversationsToTranslate;
-  final List<String>? conversationIdsToTranslate;
 
   final Conversation? conversation;
   final bool? asGuest;
 
-  final BlurHandler? onBlur;
-  final FocusHandler? onFocus;
   final SendMessageHandler? onSendMessage;
   final TranslationToggledHandler? onTranslationToggled;
 
-  const ChatBox({Key? key,
-      this.chatSubtitleMode,
-      this.chatTitleMode,
-      this.dir,
-      this.messageField,
-      this.showChatHeader,
-      this.showTranslationToggle,
-      this.theme,
-      this.translateConversations,
-      this.conversationsToTranslate,
-      this.conversationIdsToTranslate,
-      this.conversation,
-      this.asGuest,
-      this.onBlur,
-      this.onFocus,
-      this.onSendMessage,
-      this.onTranslationToggled,
-    }) : super(key: key);
+  const ChatBox({
+    Key? key,
+    required this.session,
+    this.dir,
+    this.messageField,
+    this.showChatHeader,
+    this.showTranslationToggle,
+    this.theme,
+    this.translateConversations,
+    this.conversation,
+    this.asGuest,
+    this.onSendMessage,
+    this.onTranslationToggled,
+  }) : super(key: key);
 
   @override
   State<ChatBox> createState() => ChatBoxState();
@@ -122,15 +110,13 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox.build (_webViewCreated: $_webViewCreated)');
     }
 
-    final sessionState = context.read<SessionState>();
-
     if (!_webViewCreated) {
       // If it's the first time that the widget is built, then build everything
       _webViewCreated = true;
 
       execute('let chatBox;');
 
-      _createSession(sessionState);
+      _createSession();
       _createChatBox();
       _createConversation();
 
@@ -162,26 +148,24 @@ class ChatBoxState extends State<ChatBox> {
       onWebViewCreated: _webViewCreatedCallback,
       onPageFinished: _onPageFinished,
       javascriptChannels: <JavascriptChannel>{
-        JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
-        JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
         JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
         JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
     });
   }
 
-  void _createSession(SessionState sessionState) {
+  void _createSession() {
     // Initialize Session object
     final options = <String, dynamic>{};
 
-    options['appId'] = sessionState.appId;
+    options['appId'] = widget.session.appId;
 
-    if (sessionState.signature != null) {
-      options["signature"] = sessionState.signature;
+    if (widget.session.signature != null) {
+      options["signature"] = widget.session.signature;
     }
 
     execute('const options = ${json.encode(options)};');
 
-    final variableName = getUserVariableName(sessionState.me);
+    final variableName = getUserVariableName(widget.session.me);
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
@@ -189,38 +173,28 @@ class ChatBoxState extends State<ChatBox> {
 
   void _createChatBox() {
     _oldOptions = ChatBoxOptions(
-      chatSubtitleMode: widget.chatSubtitleMode,
-      chatTitleMode: widget.chatTitleMode,
       dir: widget.dir,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
       theme: widget.theme,
       translateConversations: widget.translateConversations,
-      conversationsToTranslate: widget.conversationsToTranslate,
-      conversationIdsToTranslate: widget.conversationIdsToTranslate,
     );
 
     execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
 
-    execute('chatBox.on("blur", (event) => JSCBlur.postMessage(JSON.stringify(event)));');
-    execute('chatBox.on("focus", (event) => JSCFocus.postMessage(JSON.stringify(event)));');
     execute('chatBox.on("sendMessage", (event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
     execute('chatBox.on("translationToggled", (event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
   }
 
   bool _checkRecreateChatBox() {
     final options = ChatBoxOptions(
-      chatSubtitleMode: widget.chatSubtitleMode,
-      chatTitleMode: widget.chatTitleMode,
       dir: widget.dir,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
       theme: widget.theme,
       translateConversations: widget.translateConversations,
-      conversationsToTranslate: widget.conversationsToTranslate,
-      conversationIdsToTranslate: widget.conversationIdsToTranslate,
     );
 
     if (options != _oldOptions) {
@@ -245,8 +219,11 @@ class ChatBoxState extends State<ChatBox> {
       if (_oldConversation != null) {
         execute('chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)});');
       } else {
-        // TODO: null or undefined?
-        execute('chatBox.select(null, ${json.encode(result)});');
+        if (result.isNotEmpty) {
+          execute('chatBox.select(undefined, ${json.encode(result)});');
+        } else {
+          execute('chatBox.select(undefined);');
+        }
       }
   }
 
@@ -298,22 +275,6 @@ class ChatBoxState extends State<ChatBox> {
         _webViewController!.runJavascript(statement);
       }
     }
-  }
-
-  void _jscBlur(JavascriptMessage message) {
-    if (kDebugMode) {
-      print('📗 chatbox._jscBlur: ${message.message}');
-    }
-
-    widget.onBlur?.call();
-  }
-
-  void _jscFocus(JavascriptMessage message) {
-    if (kDebugMode) {
-      print('📗 chatbox._jscFocus: ${message.message}');
-    }
-
-    widget.onFocus?.call();
   }
 
   void _jscSendMessage(JavascriptMessage message) {

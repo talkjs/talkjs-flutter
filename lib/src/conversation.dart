@@ -22,13 +22,13 @@ extension ParticipantAccessString on ParticipantAccess {
 
 // Participants are users + options relative to this conversation
 class Participant {
-  User user;
+  final User user;
 
-  ParticipantAccess? access;
+  final ParticipantAccess? access;
 
-  bool? notify;
+  final bool? notify;
 
-  Participant(this.user, {this.access, this.notify});
+  const Participant(this.user, {this.access, this.notify});
 
   Participant.of(Participant other)
     : user = User.of(other.user),
@@ -70,23 +70,23 @@ class Participant {
 /// Instead, instantiate a TalkJS UI using methods such as [Session.createInbox].
 class _BaseConversation {
   /// The unique conversation identifier.
-  String id;
+  final String id;
 
   /// Custom metadata for this conversation
-  Map<String, String?>? custom;
+  final Map<String, String?>? custom;
 
   /// Messages sent at the beginning of a chat.
   ///
   /// The messages will appear as system messages.
-  List<String>? welcomeMessages;
+  final List<String>? welcomeMessages;
 
   /// The URL to a photo which will be shown as the photo for the conversation.
-  String? photoUrl;
+  final String? photoUrl;
 
   /// The conversation subject which will be displayed in the chat header.
-  String? subject;
+  final String? subject;
 
-  _BaseConversation({
+  const _BaseConversation({
     required this.id,
     this.custom,
     this.welcomeMessages,
@@ -97,19 +97,32 @@ class _BaseConversation {
 
 class Conversation extends _BaseConversation {
   // The participants for this conversation
-  Set<Participant> participants;
+  final Set<Participant> participants;
 
-  Conversation({
+  // To tie the conversation to a session
+  final Session _session;
+
+  const Conversation({
+    required Session session,
     required String id,
     Map<String, String?>? custom,
     List<String>? welcomeMessages,
     String? photoUrl,
     String? subject,
-    this.participants = const <Participant>{},
-  }) : super(id: id, custom: custom, welcomeMessages: welcomeMessages, photoUrl: photoUrl, subject: subject);
+    required this.participants,
+  })
+    : _session = session,
+    super(
+      id: id,
+      custom: custom,
+      welcomeMessages: welcomeMessages,
+      photoUrl: photoUrl,
+      subject: subject,
+    );
 
   Conversation.of(Conversation other)
-    : participants = Set<Participant>.of(other.participants.map((participant) => Participant.of(participant))),
+    : _session = other._session,
+    participants = Set<Participant>.of(other.participants.map((participant) => Participant.of(participant))),
     super(
       id: other.id,
       custom: other.custom != null ? Map<String, String?>.of(other.custom!) : null,
@@ -140,6 +153,10 @@ class Conversation extends _BaseConversation {
       return false;
     }
 
+    if (_session != other._session) {
+      return false;
+    }
+
     if (!setEquals(participants, other.participants)) {
       return false;
     }
@@ -167,7 +184,7 @@ class Conversation extends _BaseConversation {
     return true;
   }
 
-  int get hashCode => hashValues(participants, id, custom, welcomeMessages, photoUrl, subject);
+  int get hashCode => hashValues(_session, participants, id, custom, welcomeMessages, photoUrl, subject);
 }
 
 class ConversationData extends _BaseConversation {

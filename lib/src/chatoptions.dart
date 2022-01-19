@@ -1,32 +1,14 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
-
 import './chatbox.dart';
-import './conversation.dart';
-
-/// The possible values for the Chat modes
-enum ChatMode { subject, participants }
-
-extension ChatModeString on ChatMode {
-  /// Converts this enum's values to String.
-  String getValue() {
-    switch (this) {
-      case ChatMode.participants:
-        return 'participants';
-      case ChatMode.subject:
-        return 'subject';
-    }
-  }
-}
 
 /// The values that dictate the chat direction.
 enum TextDirection {
   /// right-to-left
   rtl,
   /// left-to-right
-  ltr
+  ltr,
 }
 
 extension TextDirectionString on TextDirection {
@@ -51,7 +33,7 @@ class MessageFieldOptions {
   /// effects.
   /// If you need more control, consider setting [autofocus] to false and
   /// calling focus() at appropriate times.
-  bool? autofocus; // Convert to "smart"
+  final bool? autofocus; // Convert to "smart"
 
   /// If set to true, pressing the enter key sends the message
   /// (if there is text in the message field).
@@ -59,22 +41,22 @@ class MessageFieldOptions {
   /// When set to false, the only way to send a message is by clicking or
   /// touching the "Send" button.
   /// Defaults to true.
-  bool? enterSendsMessage;
+  final bool? enterSendsMessage;
 
   /// The text displayed in the message field when the user hasn't started
   /// typing anything.
-  String? placeholder;
+  final String? placeholder;
 
   /// This enables spell checking.
   ///
   /// Note that setting this to true may also enable autocorrect on some mobile
   /// devices.
   /// Defaults to false
-  bool? spellcheck;
+  final bool? spellcheck;
 
   /// TODO: visible
 
-  MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck});
+  const MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck});
 
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
@@ -169,60 +151,41 @@ extension TranslateConversationsValue on TranslateConversations {
 
 /// Options to configure the behaviour of the [ChatBox] UI.
 class ChatBoxOptions {
-  /// Controls what text appears in the chat subtitle, right below the chat title.
-  ///
-  /// Defaults to [ChatMode.subject].
-  ChatMode? chatSubtitleMode;
-
-  /// Controls what text appears in the chat title, in the header above the messages.
-  ///
-  /// Defaults to [ChatMode.participants].
-  ChatMode? chatTitleMode;
-
   /// Controls the text direction (for supporting right-to-left languages such
   /// as Arabic and Hebrew).
   ///
   /// Defaults to [TextDirection.rtl].
-  TextDirection? dir;
+  final TextDirection? dir;
 
   /// Settings that affect the behavior of the message field
-  MessageFieldOptions? messageField;
+  final MessageFieldOptions? messageField;
 
   /// TODO: messageFilter
 
   /// Used to control if the Chat Header is displayed in the UI.
   ///
   /// Defaults to true.
-  bool? showChatHeader;
+  final bool? showChatHeader;
 
   /// Set this to on to show a translation toggle in all conversations.
   /// Set this to auto to show a translation toggle in conversations where there are participants with different locales.
-  TranslationToggle? showTranslationToggle;
+  final TranslationToggle? showTranslationToggle;
 
   /// Overrides the theme used for this chat UI.
-  String? theme;
+  final String? theme;
 
   /// TODO: thirdparties
 
   /// Enables conversation translation with Google Translate.
-  TranslateConversations? translateConversations;
+  final TranslateConversations? translateConversations;
 
-  /// This option specifies which conversations should be translated in this UI.
-  List<Conversation>? conversationsToTranslate;
-
-  /// This option specifies which conversation Ids should be translated in this UI.
-  List<String>? conversationIdsToTranslate;
-
-  ChatBoxOptions({this.chatSubtitleMode,
-    this.chatTitleMode,
+  const ChatBoxOptions({
     this.dir,
     this.messageField,
     this.showChatHeader,
     this.showTranslationToggle,
     this.theme,
     this.translateConversations,
-    this.conversationsToTranslate,
-    this.conversationIdsToTranslate,
   });
 
   /// For internal use only. Implementation detail that may change anytime.
@@ -234,14 +197,6 @@ class ChatBoxOptions {
   /// getJsonString method.
   String getJsonString(ChatBoxState chatBox) {
     final result = <String, dynamic>{};
-
-    if (chatSubtitleMode != null) {
-      result['chatSubtitleMode'] = chatSubtitleMode!.getValue();
-    }
-
-    if (chatTitleMode != null) {
-      result['chatTitleMode'] = chatTitleMode!.getValue();
-    }
 
     if (dir != null) {
       result['dir'] = dir!.getValue();
@@ -264,43 +219,11 @@ class ChatBoxOptions {
       result['theme'] = theme;
     }
 
-    if (conversationsToTranslate != null) {
-      // Highest priority: TranslateConversations.off
-      if (translateConversations != TranslateConversations.off) {
-        // High priority: conversationsToTranslate
-        // This results in a string value that will be parsed later
-        result['translateConversations'] ??= '[' + conversationsToTranslate
-          !.map((conversation) => chatBox.getConversationVariableName(conversation))
-          .join(',')
-          + ']';
-      }
-    }
-
-    if (conversationIdsToTranslate != null) {
-      // Highest priority: TranslateConversations.off
-      if (translateConversations != TranslateConversations.off) {
-        // Medium priority: conversationIdsToTranslate
-        result['translateConversations'] ??= conversationIdsToTranslate;
-      }
-    }
-
-    // Low priority: translateConversations
     if (translateConversations != null) {
-      result['translateConversations'] ??= translateConversations!.getValue();
+      result['translateConversations'] = translateConversations!.getValue();
     }
 
-    final jsonString = json.encode(result);
-
-    // Evil black magic that fixes the fact that the JSON value for the
-    // translateConversations property is a string, but we need
-    // its value without the surrounding " characters, which would not be
-    // valid JSON anymore.
-    // This removes the " characters if a string value starts with [ and ends
-    // with ], so that it becomes a list of identifiers.
-    return jsonString.replaceAllMapped(
-      RegExp(r'":"(\[[^"\]]*])"'),
-      (Match m) => '":${m[1]}'
-    );
+    return json.encode(result);
   }
 
   bool operator ==(Object other) {
@@ -309,14 +232,6 @@ class ChatBoxOptions {
     }
 
     if (!(other is ChatBoxOptions)) {
-      return false;
-    }
-
-    if (chatSubtitleMode != other.chatSubtitleMode) {
-      return false;
-    }
-
-    if (chatTitleMode != other.chatTitleMode) {
       return false;
     }
 
@@ -344,28 +259,16 @@ class ChatBoxOptions {
       return false;
     }
 
-    if (!listEquals(conversationsToTranslate, other.conversationsToTranslate)) {
-      return false;
-    }
-
-    if (!listEquals(conversationIdsToTranslate, other.conversationIdsToTranslate)) {
-      return false;
-    }
-
     return true;
   }
 
   int get hashCode => hashValues(
-    chatSubtitleMode,
-    chatTitleMode,
     dir,
     messageField,
     showChatHeader,
     showTranslationToggle,
     theme,
     translateConversations,
-    conversationsToTranslate,
-    conversationIdsToTranslate,
   );
 }
 

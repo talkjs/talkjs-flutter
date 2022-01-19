@@ -6,12 +6,9 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 
 import 'package:webview_flutter/webview_flutter.dart';
 
-import 'package:provider/provider.dart';
-
 import './session.dart';
 import './conversation.dart';
 import './user.dart';
-import './chatbox.dart';
 
 typedef SelectConversationHandler = void Function(SelectConversationEvent event);
 
@@ -26,36 +23,10 @@ class SelectConversationEvent {
     others = json['others'].map<UserData>((user) => UserData.fromJson(user)).toList();
 }
 
-/// The possible values for the Chat modes
-enum ConversationTitleMode { subject, participants, auto }
-
-extension ConversationTitleModeString on ConversationTitleMode {
-  /// Converts this enum's values to String.
-  String getValue() {
-    switch (this) {
-      case ConversationTitleMode.participants:
-        return 'participants';
-      case ConversationTitleMode.subject:
-        return 'subject';
-      case ConversationTitleMode.auto:
-        return 'auto';
-    }
-  }
-}
-
 class ConversationListOptions {
   /// Controls if the feed header containing the toggle to enable desktop notifications is shown.
   /// Defaults to true.
-  bool? showFeedHeader;
-
-  /// Controls how a chat is displayed in the feed of chats.
-  ///
-  /// Note: when set to `"subject"` but a conversation has no subject set, then
-  /// TalkJS falls back to `"participants"`.
-  ///
-  /// When not set, defaults to `"auto"`, which means that in group conversations
-  /// that have a subject set, the subject is displayed and otherwise the participants.
-  ConversationTitleMode? feedConversationTitleMode;
+  final bool? showFeedHeader;
 
   /// Controls whether the user navigating between conversation should count
   /// as steps in the browser history. Defaults to true, which means that if the user
@@ -81,9 +52,9 @@ class ConversationListOptions {
   //bool? showMobileBackButton;
 
   /// Overrides the theme used for this chat UI.
-  String? theme;
+  final String? theme;
 
-  ConversationListOptions({this.showFeedHeader, this.feedConversationTitleMode, this.theme});
+  const ConversationListOptions({this.showFeedHeader, this.theme});
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -98,10 +69,6 @@ class ConversationListOptions {
       result['showFeedHeader'] = showFeedHeader;
     }
 
-    if (feedConversationTitleMode != null) {
-      result['feedConversationTitleMode'] = feedConversationTitleMode!.getValue();
-    }
-
     if (theme != null) {
       result['theme'] = theme;
     }
@@ -111,23 +78,21 @@ class ConversationListOptions {
 }
 
 class ConversationList extends StatefulWidget {
+  final Session session;
+
   final bool? showFeedHeader;
-  final ConversationTitleMode? feedConversationTitleMode;
 
   final String? theme;
 
-  final BlurHandler? onBlur;
-  final FocusHandler? onFocus;
   final SelectConversationHandler? onSelectConversation;
 
-  const ConversationList({Key? key,
-      this.showFeedHeader,
-      this.feedConversationTitleMode,
-      this.theme,
-      this.onBlur,
-      this.onFocus,
-      this.onSelectConversation,
-    }) : super(key: key);
+  const ConversationList({
+    Key? key,
+    required this.session,
+    this.showFeedHeader,
+    this.theme,
+    this.onSelectConversation,
+  }) : super(key: key);
 
   @override
   State<ConversationList> createState() => ConversationListState();
@@ -154,12 +119,10 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist.build (_webViewCreated: $_webViewCreated)');
     }
 
-    final sessionState = context.read<SessionState>();
-
     if (!_webViewCreated) {
       _webViewCreated = true;
 
-      _createSession(sessionState);
+      _createSession();
       _createConversationList();
 
       execute('conversationList.mount(document.getElementById("talkjs-container"));');
@@ -172,25 +135,23 @@ class ConversationListState extends State<ConversationList> {
       onWebViewCreated: _webViewCreatedCallback,
       onPageFinished: _onPageFinished,
       javascriptChannels: <JavascriptChannel>{
-        JavascriptChannel(name: 'JSCBlur', onMessageReceived: _jscBlur),
-        JavascriptChannel(name: 'JSCFocus', onMessageReceived: _jscFocus),
         JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
     });
   }
 
-  void _createSession(SessionState sessionState) {
+  void _createSession() {
     // Initialize Session object
     final options = <String, dynamic>{};
 
-    options['appId'] = sessionState.appId;
+    options['appId'] = widget.session.appId;
 
-    if (sessionState.signature != null) {
-      options["signature"] = sessionState.signature;
+    if (widget.session.signature != null) {
+      options["signature"] = widget.session.signature;
     }
 
     execute('const options = ${json.encode(options)};');
 
-    final variableName = getUserVariableName(sessionState.me);
+    final variableName = getUserVariableName(widget.session.me);
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
@@ -199,15 +160,15 @@ class ConversationListState extends State<ConversationList> {
   void _createConversationList() {
     final options = ConversationListOptions(
       showFeedHeader: widget.showFeedHeader,
-      feedConversationTitleMode: widget.feedConversationTitleMode,
       theme: widget.theme,
     );
 
     execute('const conversationList = session.createInbox(${options.getJsonString(this)});');
 
-    execute('conversationList.on("blur", (event) => JSCBlur.postMessage(JSON.stringify(event)));');
-    execute('conversationList.on("focus", (event) => JSCFocus.postMessage(JSON.stringify(event)));');
-    execute('conversationList.on("selectConversation", (event) => JSCSelectConversation.postMessage(JSON.stringify(event)));');
+    execute('''conversationList.on("selectConversation", (event) => {
+      event.preventDefault();
+      JSCSelectConversation.postMessage(JSON.stringify(event));
+    }); ''');
   }
 
   void _webViewCreatedCallback(WebViewController webViewController) async {
@@ -250,28 +211,10 @@ class ConversationListState extends State<ConversationList> {
     }
   }
 
-  void _jscBlur(JavascriptMessage message) {
-    if (kDebugMode) {
-      print('📗 conversationlist._jscBlur: ${message.message}');
-    }
-
-    widget.onBlur?.call();
-  }
-
-  void _jscFocus(JavascriptMessage message) {
-    if (kDebugMode) {
-      print('📗 conversationlist._jscFocus: ${message.message}');
-    }
-
-    widget.onFocus?.call();
-  }
-
   void _jscSelectConversation(JavascriptMessage message) {
     if (kDebugMode) {
       print('📗 conversationlist._jscSelectConversation: ${message.message}');
     }
-
-    execute('conversationList.select(null);');
 
     widget.onSelectConversation?.call(SelectConversationEvent.fromJson(json.decode(message.message)));
   }

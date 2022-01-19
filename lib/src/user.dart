@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
+import './session.dart';
+
 /// A user of your app.
 ///
 /// TalkJS uses the [id] to uniquely identify this user. All other fields of a
@@ -51,9 +53,17 @@ class _BaseUser {
   /// The default message a user sees when starting a chat with this person.
   final String? welcomeMessage;
 
-  const _BaseUser({required this.id, required this.name, this.email, this.phone,
-    this.availabilityText, this.locale, this.photoUrl, this.role, this.custom,
-    this.welcomeMessage
+  const _BaseUser({
+    required this.id,
+    required this.name,
+    this.email,
+    this.phone,
+    this.availabilityText,
+    this.locale,
+    this.photoUrl,
+    this.role,
+    this.custom,
+    this.welcomeMessage,
   });
 }
 
@@ -61,29 +71,54 @@ class User extends _BaseUser {
   // To support creating users with only an id
   final bool _idOnly;
 
-  const User({required String id, required String name, List<String>? email, List<String>? phone,
-    String? availabilityText, String? locale, String? photoUrl, String? role, Map<String, String?>? custom,
-    String? welcomeMessage
-  }) : _idOnly = false, super(id: id, name: name, email: email, phone: phone, availabilityText: availabilityText,
-        locale: locale, photoUrl: photoUrl, role: role, custom: custom, welcomeMessage: welcomeMessage);
+  // To tie the user to a session
+  final Session _session;
 
-  const User.fromId(String id) : _idOnly = true, super(id: id, name: '');
+  const User({
+    required Session session,
+    required String id,
+    required String name,
+    List<String>? email,
+    List<String>? phone,
+    String? availabilityText,
+    String? locale,
+    String? photoUrl,
+    String? role,
+    Map<String, String?>? custom,
+    String? welcomeMessage,
+  })
+    : _session = session,
+    _idOnly = false,
+    super(
+      id: id,
+      name: name,
+      email: email,
+      phone: phone,
+      availabilityText: availabilityText,
+      locale: locale,
+      photoUrl: photoUrl,
+      role: role,
+      custom: custom,
+      welcomeMessage: welcomeMessage,
+    );
+
+  const User.fromId(String id, Session session) : _session = session, _idOnly = true, super(id: id, name: '');
 
   User.of(User other)
-  : _idOnly = other._idOnly,
-  super(
-    id: other.id,
-    name: other.name,
-    email: other.email != null ? List<String>.of(other.email!) : null,
-    phone: other.phone != null ? List<String>.of(other.phone!) : null,
-    availabilityText: other.availabilityText,
-    locale: other.locale,
-    photoUrl: other.photoUrl,
-    role: other.role,
-    custom: other.custom != null ? Map<String, String?>.of(other.custom!): null,
-    welcomeMessage: other.welcomeMessage,
-  );
-
+    : _session = other._session,
+    _idOnly = other._idOnly,
+    super(
+      id: other.id,
+      name: other.name,
+      email: other.email != null ? List<String>.of(other.email!) : null,
+      phone: other.phone != null ? List<String>.of(other.phone!) : null,
+      availabilityText: other.availabilityText,
+      locale: other.locale,
+      photoUrl: other.photoUrl,
+      role: other.role,
+      custom: other.custom != null ? Map<String, String?>.of(other.custom!): null,
+      welcomeMessage: other.welcomeMessage,
+    );
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -146,6 +181,10 @@ class User extends _BaseUser {
       return false;
     }
 
+    if (_session != other._session) {
+      return false;
+    }
+
     if (_idOnly != other._idOnly) {
       return false;
     }
@@ -194,6 +233,7 @@ class User extends _BaseUser {
   }
 
   int get hashCode => hashValues(
+    _session,
     _idOnly,
     availabilityText,
     custom,
@@ -211,14 +251,15 @@ class User extends _BaseUser {
 class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
     : super(availabilityText: json['availabilityText'],
-    custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
-    email: json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
-    phone: json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
-    id: json['id'],
-    name: json['name'],
-    locale: json['locale'],
-    photoUrl: json['photoUrl'],
-    role: json['role'],
-    welcomeMessage: json['welcomeMessage']);
+      custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
+      email: json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
+      phone: json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
+      id: json['id'],
+      name: json['name'],
+      locale: json['locale'],
+      photoUrl: json['photoUrl'],
+      role: json['role'],
+      welcomeMessage: json['welcomeMessage'],
+    );
 }
 
