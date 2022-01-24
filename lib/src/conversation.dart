@@ -184,7 +184,16 @@ class Conversation extends _BaseConversation {
     return true;
   }
 
-  int get hashCode => hashValues(_session, participants, id, custom, welcomeMessages, photoUrl, subject);
+  int get hashCode => hashValues(
+    _session,
+    hashList(participants),
+    id,
+    (custom != null ? hashList(custom!.keys) : custom),
+    (custom != null ? hashList(custom!.values) : custom),
+    (welcomeMessages != null ? hashList(welcomeMessages) : welcomeMessages),
+    photoUrl,
+    subject,
+  );
 }
 
 class ConversationData extends _BaseConversation {
