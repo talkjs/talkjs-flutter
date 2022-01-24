@@ -48,6 +48,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggle? showTranslationToggle;
   final String? theme;
   final TranslateConversations? translateConversations;
+  final List<String> highlightedWords;
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -64,6 +65,7 @@ class ChatBox extends StatefulWidget {
     this.showTranslationToggle,
     this.theme,
     this.translateConversations,
+    this.highlightedWords = const <String>[],
     this.conversation,
     this.asGuest,
     this.onSendMessage,
@@ -101,6 +103,7 @@ class ChatBoxState extends State<ChatBox> {
 
   /// Objects stored for comparing changes
   ChatBoxOptions? _oldOptions;
+  List<String> _oldHighlightedWords = [];
   bool? _oldAsGuest;
   Conversation? _oldConversation;
 
@@ -118,6 +121,7 @@ class ChatBoxState extends State<ChatBox> {
 
       _createSession();
       _createChatBox();
+      _setHighlightedWords();
       _createConversation();
 
       execute('chatBox.mount(document.getElementById("talkjs-container"));');
@@ -130,8 +134,10 @@ class ChatBoxState extends State<ChatBox> {
       final chatBoxRecreated = _checkRecreateChatBox();
 
       if (chatBoxRecreated) {
+        _setHighlightedWords();
         _createConversation();
       } else {
+        _checkHighlightedWords();
         _checkRecreateConversation();
       }
 
@@ -230,6 +236,22 @@ class ChatBoxState extends State<ChatBox> {
   bool _checkRecreateConversation() {
     if ((widget.asGuest != _oldAsGuest) || (widget.conversation != _oldConversation)) {
       _createConversation();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void _setHighlightedWords() {
+      _oldHighlightedWords = List<String>.of(widget.highlightedWords);
+
+      execute('chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)});');
+  }
+
+  bool _checkHighlightedWords() {
+    if (!listEquals(widget.highlightedWords, _oldHighlightedWords)) {
+      _setHighlightedWords();
 
       return true;
     }
