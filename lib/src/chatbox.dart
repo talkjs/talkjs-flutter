@@ -48,7 +48,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggle? showTranslationToggle;
   final String? theme;
   final TranslateConversations? translateConversations;
-  final List<String> highlightedWords;
+  final List<String> highlightedWords = const <String>[];
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -65,7 +65,7 @@ class ChatBox extends StatefulWidget {
     this.showTranslationToggle,
     this.theme,
     this.translateConversations,
-    this.highlightedWords = const <String>[],
+    //this.highlightedWords = const <String>[], // Commented out due to bug #1953
     this.conversation,
     this.asGuest,
     this.onSendMessage,
