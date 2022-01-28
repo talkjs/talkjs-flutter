@@ -9,6 +9,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import './session.dart';
 import './conversation.dart';
 import './user.dart';
+import './predicate.dart';
 
 typedef SelectConversationHandler = void Function(SelectConversationEvent event);
 
@@ -35,16 +36,6 @@ class ConversationListOptions {
   ///
   /// NOT NEEDED FOR FLUTTER?
   //bool? useBrowserHistory;
-
-  /// Used to control which conversations are shown in the conversation feed, depending on access
-  /// level, custom conversation attributes or message read status.
-  ///
-  /// See ConversationPredicate for all available options.
-  ///
-  /// You can also modify the filter on the fly using {@link Inbox.setFeedFilter}.
-  ///
-  /// TODO: NOT YET IMPLEMENTED FOR FLUTTER
-  //ConversationPredicate? feedFilter;
 
   /// Whether to show a "Back" button at the top of the chat screen on mobile devices.
   ///
@@ -73,6 +64,8 @@ class ConversationListOptions {
       result['theme'] = theme;
     }
 
+    conversationList.setExtraOptions(result);
+
     return json.encode(result);
   }
 }
@@ -84,6 +77,8 @@ class ConversationList extends StatefulWidget {
 
   final String? theme;
 
+  final ConversationPredicate feedFilter;
+
   final SelectConversationHandler? onSelectConversation;
 
   const ConversationList({
@@ -91,6 +86,7 @@ class ConversationList extends StatefulWidget {
     required this.session,
     this.showFeedHeader,
     this.theme,
+    this.feedFilter = const ConversationPredicate(),
     this.onSelectConversation,
   }) : super(key: key);
 
@@ -113,6 +109,9 @@ class ConversationListState extends State<ConversationList> {
   /// Talk.User object.
   final _users = <String, String>{};
 
+  /// Objects stored for comparing changes
+  ConversationPredicate _oldFeedFilter = const ConversationPredicate();
+
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
@@ -124,8 +123,15 @@ class ConversationListState extends State<ConversationList> {
 
       _createSession();
       _createConversationList();
+      // feedFilter is set as an option for the inbox
 
       execute('conversationList.mount(document.getElementById("talkjs-container"));');
+    } else {
+      // If it's not the first time that the widget is built,
+      // then check what needs to be rebuilt
+
+      // TODO: If something has changed in the Session we should do something
+      _checkFeedFilter();
     }
 
     return WebView(
@@ -163,12 +169,30 @@ class ConversationListState extends State<ConversationList> {
       theme: widget.theme,
     );
 
+    _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
+
     execute('const conversationList = session.createInbox(${options.getJsonString(this)});');
 
     execute('''conversationList.on("selectConversation", (event) => {
       event.preventDefault();
       JSCSelectConversation.postMessage(JSON.stringify(event));
     }); ''');
+  }
+
+  void _setFeedFilter() {
+      _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
+
+      execute('conversationList.setFeedFilter(${json.encode(_oldFeedFilter)});');
+  }
+
+  bool _checkFeedFilter() {
+    if (widget.feedFilter != _oldFeedFilter) {
+      _setFeedFilter();
+
+      return true;
+    }
+
+    return false;
   }
 
   void _webViewCreatedCallback(WebViewController webViewController) async {
@@ -244,6 +268,14 @@ class ConversationListState extends State<ConversationList> {
     }
 
     return _users[user.id]!;
+  }
+
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// Sets the options for ConversationListOptions for the properties where there exists
+  /// both a declarative option and an imperative method
+  void setExtraOptions(Map<String, dynamic> result) {
+    result['feedFilter'] = widget.feedFilter;
   }
 
   /// For internal use only. Implementation detail that may change anytime.

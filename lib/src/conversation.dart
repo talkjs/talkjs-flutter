@@ -125,8 +125,8 @@ class Conversation extends _BaseConversation {
     participants = Set<Participant>.of(other.participants.map((participant) => Participant.of(participant))),
     super(
       id: other.id,
-      custom: other.custom != null ? Map<String, String?>.of(other.custom!) : null,
-      welcomeMessages: other.welcomeMessages != null ? List<String>.of(other.welcomeMessages!) : null,
+      custom: (other.custom != null ? Map<String, String?>.of(other.custom!) : null),
+      welcomeMessages: (other.welcomeMessages != null ? List<String>.of(other.welcomeMessages!) : null),
       photoUrl: other.photoUrl,
       subject: other.subject
     );
@@ -199,8 +199,8 @@ class Conversation extends _BaseConversation {
 class ConversationData extends _BaseConversation {
   ConversationData.fromJson(Map<String, dynamic> json)
     : super(id: json['id'],
-    custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
-    welcomeMessages: json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null,
+    custom: (json['custom'] != null ? Map<String, String?>.from(json['custom']) : null),
+    welcomeMessages: (json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null),
     photoUrl: json['photoUrl'],
     subject: json['subject']);
 }

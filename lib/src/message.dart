@@ -41,11 +41,11 @@ class SentMessage {
   SentMessage.fromJson(Map<String, dynamic> json)
     : id = json['id'],
     conversationId = json['conversationId'],
-    type = json['type'] == 'UserMessage' ? MessageType.UserMessage : MessageType.SystemMessage,
+    type = (json['type'] == 'UserMessage' ? MessageType.UserMessage : MessageType.SystemMessage),
     readBy = List<String>.from(json['readBy']),
     senderId = json['senderId'],
     text = json['text'],
-    attachment = json['attachment'] != null ? Attachment.fromJson(json['attachment']) : null,
-    location = json['location'] != null ? List<double>.from(json['location']) : null;
+    attachment = (json['attachment'] != null ? Attachment.fromJson(json['attachment']) : null),
+    location = (json['location'] != null ? List<double>.from(json['location']) : null);
 }
 

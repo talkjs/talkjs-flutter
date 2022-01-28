@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 
 class FieldPredicate<T> {
   final String _operand;
@@ -9,6 +12,11 @@ class FieldPredicate<T> {
   FieldPredicate.notEquals(T value) : _operand = '!=', _value = value.toString();
   FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => value.toString()).toList();
   FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => value.toString()).toList();
+
+  FieldPredicate.of(FieldPredicate<T> other)
+    : _operand = other._operand,
+    _value = other._value,
+    _values = (other._values != null ? List<String>.of(other._values!) : null);
 
   @override
   String toString() {
@@ -30,6 +38,36 @@ class FieldPredicate<T> {
 
     return result;
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is FieldPredicate<T>)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (_value != other._value) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    _operand,
+    _value,
+    (_values != null ? hashList(_values) : _values),
+  );
 }
 
 class CustomFieldPredicate extends FieldPredicate<String> {
@@ -41,6 +79,8 @@ class CustomFieldPredicate extends FieldPredicate<String> {
   CustomFieldPredicate.notOneOf(List<String> values) : super.notOneOf(values);
   CustomFieldPredicate.exists() : _exists = true, super.equals('');
   CustomFieldPredicate.notExists() : _exists = false, super.notEquals('');
+
+  CustomFieldPredicate.of(CustomFieldPredicate other) : _exists = other._exists, super.of(other);
 
   @override
   String toString() {
@@ -63,6 +103,41 @@ class CustomFieldPredicate extends FieldPredicate<String> {
       return '!exists';
     }
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is CustomFieldPredicate)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (_value != other._value) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    if (_exists != other._exists) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    _operand,
+    _value,
+    (_values != null ? hashList(_values) : _values),
+    _exists,
+  );
 }
 
 class ConversationAccessLevel {
@@ -90,6 +165,11 @@ class ConversationPredicate {
 
   const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages});
 
+  ConversationPredicate.of(ConversationPredicate other)
+    : access = (other.access != null ? FieldPredicate<ConversationAccessLevel>.of(other.access!) : null),
+    custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
+    hasUnreadMessages = other.hasUnreadMessages;
+
   @override
   String toString() {
     return json.encode(this);
@@ -112,6 +192,37 @@ class ConversationPredicate {
 
     return result;
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is ConversationPredicate)) {
+      return false;
+    }
+
+    if (access != other.access) {
+      return false;
+    }
+
+    if (!mapEquals(custom, other.custom)) {
+      return false;
+    }
+
+    if (hasUnreadMessages != other.hasUnreadMessages) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    access,
+    (custom != null ? hashList(custom!.keys) : custom),
+    (custom != null ? hashList(custom!.values) : custom),
+    hasUnreadMessages,
+  );
 }
 
 class MessageOrigin {
@@ -148,6 +259,12 @@ class SenderPredicate {
 
   const SenderPredicate({this.id, this.custom, this.locale, this.role});
 
+  SenderPredicate.of(SenderPredicate other)
+    : id = (other.id != null ? FieldPredicate<String>.of(other.id!) : null),
+    custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
+    locale = (other.locale != null ? FieldPredicate<String>.of(other.locale!) : null),
+    role = (other.role != null ? FieldPredicate<String>.of(other.role!) : null);
+
   @override
   String toString() {
     return json.encode(this);
@@ -174,6 +291,42 @@ class SenderPredicate {
 
     return result;
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is SenderPredicate)) {
+      return false;
+    }
+
+    if (id != other.id) {
+      return false;
+    }
+
+    if (!mapEquals(custom, other.custom)) {
+      return false;
+    }
+
+    if (locale != other.locale) {
+      return false;
+    }
+
+    if (role != other.role) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    id,
+    (custom != null ? hashList(custom!.keys) : custom),
+    (custom != null ? hashList(custom!.values) : custom),
+    locale,
+    role,
+  );
 }
 
 class MessagePredicate {
@@ -191,6 +344,12 @@ class MessagePredicate {
   final FieldPredicate<MessageType>? type;
 
   const MessagePredicate({this.custom, this.origin, this.sender, this.type});
+
+  MessagePredicate.of(MessagePredicate other)
+    : custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
+    origin = (other.origin != null ? FieldPredicate<MessageOrigin>.of(other.origin!) : null),
+    sender = (other.sender != null ? SenderPredicate.of(other.sender!) : null),
+    type = (other.type != null ? FieldPredicate<MessageType>.of(other.type!) : null);
 
   @override
   String toString() {
@@ -218,5 +377,41 @@ class MessagePredicate {
 
     return result;
   }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is MessagePredicate)) {
+      return false;
+    }
+
+    if (!mapEquals(custom, other.custom)) {
+      return false;
+    }
+
+    if (origin != other.origin) {
+      return false;
+    }
+
+    if (sender != other.sender) {
+      return false;
+    }
+
+    if (type != other.type) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => hashValues(
+    (custom != null ? hashList(custom!.keys) : custom),
+    (custom != null ? hashList(custom!.values) : custom),
+    origin,
+    sender,
+    type,
+  );
 }
 

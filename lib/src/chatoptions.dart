@@ -223,6 +223,8 @@ class ChatBoxOptions {
       result['translateConversations'] = translateConversations!.getValue();
     }
 
+    chatBox.setExtraOptions(result);
+
     return json.encode(result);
   }
 

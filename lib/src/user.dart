@@ -110,13 +110,13 @@ class User extends _BaseUser {
     super(
       id: other.id,
       name: other.name,
-      email: other.email != null ? List<String>.of(other.email!) : null,
-      phone: other.phone != null ? List<String>.of(other.phone!) : null,
+      email: (other.email != null ? List<String>.of(other.email!) : null),
+      phone: (other.phone != null ? List<String>.of(other.phone!) : null),
       availabilityText: other.availabilityText,
       locale: other.locale,
       photoUrl: other.photoUrl,
       role: other.role,
-      custom: other.custom != null ? Map<String, String?>.of(other.custom!): null,
+      custom: (other.custom != null ? Map<String, String?>.of(other.custom!) : null),
       welcomeMessage: other.welcomeMessage,
     );
 
@@ -252,9 +252,9 @@ class User extends _BaseUser {
 class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
     : super(availabilityText: json['availabilityText'],
-      custom: json['custom'] != null ? Map<String, String?>.from(json['custom']) : null,
-      email: json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null,
-      phone: json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null,
+      custom: (json['custom'] != null ? Map<String, String?>.from(json['custom']) : null),
+      email: (json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null),
+      phone: (json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null),
       id: json['id'],
       name: json['name'],
       locale: json['locale'],

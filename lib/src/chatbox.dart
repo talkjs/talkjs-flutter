@@ -11,6 +11,7 @@ import './conversation.dart';
 import './chatoptions.dart';
 import './user.dart';
 import './message.dart';
+import './predicate.dart';
 
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
@@ -49,6 +50,7 @@ class ChatBox extends StatefulWidget {
   final String? theme;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords = const <String>[];
+  final MessagePredicate messageFilter;
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -66,6 +68,7 @@ class ChatBox extends StatefulWidget {
     this.theme,
     this.translateConversations,
     //this.highlightedWords = const <String>[], // Commented out due to bug #1953
+    this.messageFilter = const MessagePredicate(),
     this.conversation,
     this.asGuest,
     this.onSendMessage,
@@ -104,6 +107,7 @@ class ChatBoxState extends State<ChatBox> {
   /// Objects stored for comparing changes
   ChatBoxOptions? _oldOptions;
   List<String> _oldHighlightedWords = [];
+  MessagePredicate _oldMessageFilter = const MessagePredicate();
   bool? _oldAsGuest;
   Conversation? _oldConversation;
 
@@ -121,7 +125,7 @@ class ChatBoxState extends State<ChatBox> {
 
       _createSession();
       _createChatBox();
-      _setHighlightedWords();
+      // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
 
       execute('chatBox.mount(document.getElementById("talkjs-container"));');
@@ -134,9 +138,10 @@ class ChatBoxState extends State<ChatBox> {
       final chatBoxRecreated = _checkRecreateChatBox();
 
       if (chatBoxRecreated) {
-        _setHighlightedWords();
+      // messageFilter and highlightedWords are set as options for the chatbox
         _createConversation();
       } else {
+        _checkMessageFilter();
         _checkHighlightedWords();
         _checkRecreateConversation();
       }
@@ -186,6 +191,9 @@ class ChatBoxState extends State<ChatBox> {
       theme: widget.theme,
       translateConversations: widget.translateConversations,
     );
+
+    _oldHighlightedWords = List<String>.of(widget.highlightedWords);
+    _oldMessageFilter = MessagePredicate.of(widget.messageFilter);
 
     execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
 
@@ -252,6 +260,22 @@ class ChatBoxState extends State<ChatBox> {
   bool _checkHighlightedWords() {
     if (!listEquals(widget.highlightedWords, _oldHighlightedWords)) {
       _setHighlightedWords();
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void _setMessageFilter() {
+      _oldMessageFilter = MessagePredicate.of(widget.messageFilter);
+
+      execute('chatBox.setMessageFilter(${json.encode(_oldMessageFilter)});');
+  }
+
+  bool _checkMessageFilter() {
+    if (widget.messageFilter != _oldMessageFilter) {
+      _setMessageFilter();
 
       return true;
     }
@@ -422,6 +446,15 @@ class ChatBoxState extends State<ChatBox> {
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
+  /// Sets the options for ChatBoxOptions for the properties where there exists
+  /// both a declarative option and an imperative method
+  void setExtraOptions(Map<String, dynamic> result) {
+    result['highlightedWords'] = widget.highlightedWords;
+    result['messageFilter'] = widget.messageFilter;
+  }
+
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
   /// Evaluates the JavaScript statement given.
   void execute(String statement) {
     final controller = _webViewController;
@@ -436,34 +469,5 @@ class ChatBoxState extends State<ChatBox> {
       this._pending.add(statement);
     }
   }
-}
-
-/// Encapsulates the message entry field tied to the currently selected conversation.
-class MessageField {
-  /// The ChatBox associated with this message field
-  ChatBoxState chatbox;
-
-  /// The JavaScript variable name for this object.
-  String variableName;
-
-  MessageField({required this.chatbox, required this.variableName});
-
-  /// Focuses the message entry field.
-  ///
-  /// Note that on mobile devices, this will cause the on-screen keyboard to pop up, obscuring part
-  /// of the screen.
-  void focus() {
-    chatbox.execute('$variableName.focus();');
-  }
-
-  /// Sets the message field to `text`.
-  ///
-  /// Useful if you want to guide your user with message suggestions. If you want to start a UI
-  /// with a given text showing immediately, call this method before calling Inbox.mount
-  void setText(String text) {
-    chatbox.execute('$variableName.setText("$text");');
-  }
-
-  /// TODO: setVisible(visible: boolean | ConversationPredicate): void;
 }
 
