@@ -83,17 +83,6 @@ class CustomFieldPredicate extends FieldPredicate<String> {
   CustomFieldPredicate.of(CustomFieldPredicate other) : _exists = other._exists, super.of(other);
 
   @override
-  String toString() {
-    if (_exists == null) {
-      return super.toString();
-    } else if (_exists!) {
-      return 'exists';
-    } else {
-      return '!exists';
-    }
-  }
-
-  @override
   dynamic toJson() {
     if (_exists == null) {
       return super.toJson();
