@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:talkjs/talkjs.dart';
@@ -204,6 +206,46 @@ void main() {
         type: FieldPredicate.notEquals(MessageType.systemMessage),
       )
     , true);
+  });
+
+  test('test ConversationPredicate string', () {
+    expect(
+      json.encode(ConversationPredicate(
+        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        custom: {
+          'seller': CustomFieldPredicate.exists(),
+          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+          'visibility': CustomFieldPredicate.equals('visible'),
+        },
+        hasUnreadMessages: false,
+      )),
+      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false}'
+    );
+  });
+
+  test('test MessagePredicate string', () {
+    expect(
+      json.encode(MessagePredicate(
+        custom: {
+          'seller': CustomFieldPredicate.exists(),
+          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+          'visibility': CustomFieldPredicate.equals('visible'),
+        },
+        origin: FieldPredicate.equals(MessageOrigin.web),
+        sender: SenderPredicate(
+          id: FieldPredicate.notEquals('INVALID_ID'),
+          custom: {
+            'seller': CustomFieldPredicate.exists(),
+            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+            'visibility': CustomFieldPredicate.equals('visible'),
+          },
+          locale: FieldPredicate.notOneOf(['it', 'fr']),
+          role: FieldPredicate.notEquals('admin'),
+        ),
+        type: FieldPredicate.notEquals(MessageType.systemMessage),
+      )),
+      '{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]}'
+    );
   });
 }
 
