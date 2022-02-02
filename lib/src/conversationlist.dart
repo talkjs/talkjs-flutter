@@ -200,7 +200,7 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._webViewCreatedCallback');
     }
 
-    String htmlData = await rootBundle.loadString('packages/talkjs/assets/index.html');
+    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
     webViewController.loadUrl(uri.toString());
 

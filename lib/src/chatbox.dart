@@ -174,9 +174,12 @@ class ChatBoxState extends State<ChatBox> {
       options["signature"] = widget.session.signature;
     }
 
-    options["me"] = getUserVariableName(widget.session.me);
+    execute('const options = ${json.encode(options)};');
 
-    execute('const session = new Talk.Session(${json.encode(options)});');
+    final variableName = getUserVariableName(widget.session.me);
+    execute('options["me"] = $variableName;');
+
+    execute('const session = new Talk.Session(options);');
   }
 
   void _createChatBox() {
@@ -285,7 +288,7 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
-    String htmlData = await rootBundle.loadString('packages/talkjs/assets/index.html');
+    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
     webViewController.loadUrl(uri.toString());
 

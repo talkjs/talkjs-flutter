@@ -1,93 +1,64 @@
-# TalkJS
+# TalkJS Flutter SDK
 
-Flutter SDK for [TalkJS](https://talkjs.com)
+Official TalkJS SDK for Flutter
+
+**What is TalkJS?**
+
+TalkJS lets you add user-to-user chat to your marketplace, on-demand app, or
+social platform.
+For more information, visit
+[talkjs.com](https://talkjs.com/?ref=jssdk-npm-readme).
+
+![Screenshots of TalkJS running on various devices](https://talkjs.com/images/devices_home.jpg)
+
+Don't hesitate to
+[let us know](https://talkjs.com/?chat)
+if you have any questions about TalkJS.
 
 ## Requirements
 
-- Dart sdk: ">=2.12.0 <3.0.0"
-- Flutter: ">=1.17.0"
+- Dart sdk: ">=2.15.0 <3.0.0"
+- Flutter: ">=2.8.1"
 - Android: `minSDKVersion 19`
 
 ## Installation
 
-Assumption: You have an existing Flutter Project. You can follow this [guide](https://flutter.dev/docs/get-started/test-drive#create-app)
-on how to create a new Flutter Project.
-
-First, clone this repository on your computer.
-```sh
-git clone https://github.com/talkjs/flutter-sdk-victor.git
-```
-
-To add the package as a dependency, edit the dependencies section of
-your project's **pubspec.yaml** file in your Flutter project as follows:
+Edit the dependencies section of your project's `pubspec.yaml` file in your
+Flutter project as follows:
 
 ```yaml
 dependencies:
-  talkjs:
-    path: {path to directory containing this repository}/flutter-sdk-victor/talkjs
+  talkjs_flutter: ^0.1.0
 ```
 
-The path specified should be an absolute path from the root directory of
-your system.
+Run the command: `flutter pub get` on the command line or through Android
+Studio's **Get dependencies** button.
 
-Run the command: ```flutter pub get``` on the command line or through
-Android Studio's **Get dependencies** button.
 
-To debug on Android, put this line in the `android/app/src/main/AndroidManifest.xml` as a property of the `<application` tag:
+## Usage
 
-```xml
-        android:usesCleartextTraffic="true"
-```
-
-## Getting Started
-
-If you used the [guide](https://flutter.dev/docs/get-started/test-drive#create-app)
-mentioned above to create a new Flutter project, replace everything in
-**lib/main.dart** with the following code:
+Import TalkJS in your project source files.
 
 ```dart
-import 'package:flutter/material.dart';
-import 'package:talkjs/talkjs.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'TalkJS Demo',
-      home: Scaffold(
-        body: initChat()
-      )
-    );
-  }
-
-  Widget initChat() {
-    final me = User(id: '123456', name: 'Alice');
-    final other = User(id: '654321', name: 'Sebastian');
-
-    final session = Session(appId: 'YOUR_APP_ID', me: me);
-    final conversation = session.getOrCreateConversation(
-        Talk.oneOnOneId(me.id, other.id)
-    );
-
-    conversation.setParticipant(me);
-    conversation.setParticipant(other);
-
-    final chatBox = session.createChatbox(conversation);
-    return chatBox.mount();
-  }
-}
+import 'package:talkjs_flutter/talkjs.dart';
 ```
 
-Replace ```YOUR_APP_ID``` with the App ID on the TalkJS [Dashboard](https://talkjs.com/dashboard/login.)
+Then follow our
+[Flutter guide](https://talkjs.com/docs/Getting_Started/Frameworks/Flutter/)
+to start using TalkJS in your project.
 
-For users with an existing Flutter project, you can use the ```Widget``` returned
-by the ```initChat``` function in the example above as part of an existing
-```Widget``` definition or a navigation route
+## TalkJS is fully forward compatible
+We promise to never break API compatibility.
+We may at times deprecate methods or fields, but we will never remove them.
+If something that used to work stops working, then that's a bug.
+Please [report it](https://talkjs.com/?chat) and we'll fix it asap.
 
-## Documentation
+The package is being released in a beta state.
+The reason for this is that there are things that one can do with the TalkJS
+JavaScript SDK that aren't possible with the Flutter SDK.
+We will release v1.0.0 of this package once the two SDKs are similar in terms
+of features.
+This however does not take away from our commitment to always maintain backward
+compatibility.
+So you can be assured that the package is stable for production use.
 
-The SDK API reference can be found in **doc/api**.

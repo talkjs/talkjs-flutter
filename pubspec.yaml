@@ -1,4 +1,4 @@
-name: talkjs
+name: talkjs_flutter
 description: Official TalkJS SDK for Flutter
 version: 0.1.0
 homepage: https://talkjs.com
@@ -24,7 +24,7 @@ dev_dependencies:
 # The following section is specific to Flutter.
 flutter:
   assets:
-    - packages/talkjs/assets/index.html
+    - packages/talkjs_flutter/assets/index.html
 
   # To add assets to your package, add an assets section, like this:
   # assets:
