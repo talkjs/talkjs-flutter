@@ -174,12 +174,9 @@ class ChatBoxState extends State<ChatBox> {
       options["signature"] = widget.session.signature;
     }
 
-    execute('const options = ${json.encode(options)};');
+    options["me"] = getUserVariableName(widget.session.me);
 
-    final variableName = getUserVariableName(widget.session.me);
-    execute('options["me"] = $variableName;');
-
-    execute('const session = new Talk.Session(options);');
+    execute('const session = new Talk.Session(${json.encode(options)});');
   }
 
   void _createChatBox() {
