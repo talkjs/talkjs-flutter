@@ -11,17 +11,6 @@ enum TextDirection {
   ltr,
 }
 
-extension TextDirectionString on TextDirection {
-  /// Converts this enum's values to String.
-  String getValue() {
-    switch (this) {
-      case TextDirection.rtl:
-        return 'rtl';
-      case TextDirection.ltr:
-        return 'ltr';
-    }
-  }
-}
 
 /// Settings that affect the behavior of the message field
 class MessageFieldOptions {
@@ -199,7 +188,7 @@ class ChatBoxOptions {
     final result = <String, dynamic>{};
 
     if (dir != null) {
-      result['dir'] = dir!.getValue();
+      result['dir'] = dir!.name;
     }
 
     if (messageField != null) {
