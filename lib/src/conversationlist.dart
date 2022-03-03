@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +11,7 @@ import './session.dart';
 import './conversation.dart';
 import './user.dart';
 import './predicate.dart';
+import './chatbox.dart';
 
 typedef SelectConversationHandler = void Function(SelectConversationEvent event);
 
@@ -80,6 +82,7 @@ class ConversationList extends StatefulWidget {
   final ConversationPredicate feedFilter;
 
   final SelectConversationHandler? onSelectConversation;
+  final LoadingStateHandler? onLoadingStateChanged;
 
   const ConversationList({
     Key? key,
@@ -88,6 +91,7 @@ class ConversationList extends StatefulWidget {
     this.theme,
     this.feedFilter = const ConversationPredicate(),
     this.onSelectConversation,
+    this.onLoadingStateChanged,
   }) : super(key: key);
 
   @override
@@ -121,6 +125,10 @@ class ConversationListState extends State<ConversationList> {
     if (!_webViewCreated) {
       _webViewCreated = true;
 
+      // Here a Timer is needed, as we can't change the widget's state while the widget
+      // is being constructed, and the callback may very possibly change the state
+      Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
+
       _createSession();
       _createConversationList();
       // feedFilter is set as an option for the inbox
@@ -142,6 +150,7 @@ class ConversationListState extends State<ConversationList> {
       onPageFinished: _onPageFinished,
       javascriptChannels: <JavascriptChannel>{
         JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
+        JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
     });
   }
 
@@ -161,6 +170,23 @@ class ConversationListState extends State<ConversationList> {
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
+
+    execute('''
+      const observer = new MutationObserver((mutations) => {
+        for (let mutation of mutations) {
+          for (let node of mutation.addedNodes) {
+            if (node.nodeName.toLowerCase().indexOf('iframe') >= 0) {
+              observer.disconnect();
+              node.addEventListener('load', () => {
+                JSCLoadingState.postMessage('loaded');
+              });
+            }
+          }
+        }
+      });
+
+      observer.observe(document.getElementById('talkjs-container'), {childList: true});
+    ''');
   }
 
   void _createConversationList() {
@@ -241,6 +267,14 @@ class ConversationListState extends State<ConversationList> {
     }
 
     widget.onSelectConversation?.call(SelectConversationEvent.fromJson(json.decode(message.message)));
+  }
+
+  void _jscLoadingState(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 conversationlist._jscLoadingState: ${message.message}');
+    }
+
+    widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
   /// For internal use only. Implementation detail that may change anytime.
