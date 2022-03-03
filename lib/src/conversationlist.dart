@@ -133,7 +133,7 @@ class ConversationListState extends State<ConversationList> {
       _createConversationList();
       // feedFilter is set as an option for the inbox
 
-      execute('conversationList.mount(document.getElementById("talkjs-container"));');
+      execute('conversationList.mount(document.getElementById("talkjs-container")).then(() => JSCLoadingState.postMessage("loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -170,23 +170,6 @@ class ConversationListState extends State<ConversationList> {
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
-
-    execute('''
-      const observer = new MutationObserver((mutations) => {
-        for (let mutation of mutations) {
-          for (let node of mutation.addedNodes) {
-            if (node.nodeName.toLowerCase().indexOf('iframe') >= 0) {
-              observer.disconnect();
-              node.addEventListener('load', () => {
-                JSCLoadingState.postMessage('loaded');
-              });
-            }
-          }
-        }
-      });
-
-      observer.observe(document.getElementById('talkjs-container'), {childList: true});
-    ''');
   }
 
   void _createConversationList() {
