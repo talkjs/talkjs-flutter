@@ -17,6 +17,7 @@ import './predicate.dart';
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 typedef LoadingStateHandler = void Function(LoadingState state);
+typedef MessageActionHandler = void Function(MessageActionEvent event);
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -40,6 +41,15 @@ class TranslationToggledEvent {
 
 enum LoadingState { loading, loaded }
 
+class MessageActionEvent {
+  final String action;
+  final Message message;
+
+  MessageActionEvent.fromJson(Map<String, dynamic> json)
+    : action = json['action'],
+    message = Message.fromJson(json['message']);
+}
+
 /// A messaging UI for just a single conversation.
 ///
 /// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
@@ -62,6 +72,7 @@ class ChatBox extends StatefulWidget {
   final SendMessageHandler? onSendMessage;
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
+  final Map<String, MessageActionHandler>? onCustomMessageAction;
 
   const ChatBox({
     Key? key,
@@ -79,6 +90,7 @@ class ChatBox extends StatefulWidget {
     this.onSendMessage,
     this.onTranslationToggled,
     this.onLoadingStateChanged,
+    this.onCustomMessageAction,
   }) : super(key: key);
 
   @override
@@ -116,6 +128,7 @@ class ChatBoxState extends State<ChatBox> {
   MessagePredicate _oldMessageFilter = const MessagePredicate();
   bool? _oldAsGuest;
   Conversation? _oldConversation;
+  Set<String> _oldCustomActions = {};
 
   @override
   Widget build(BuildContext context) {
@@ -151,6 +164,7 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
         _createConversation();
       } else {
+        _checkActionHandlers();
         _checkMessageFilter();
         _checkHighlightedWords();
         _checkRecreateConversation();
@@ -172,6 +186,7 @@ class ChatBoxState extends State<ChatBox> {
         JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
         JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
         JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
+        JavascriptChannel(name: 'JSCCustomMessageAction', onMessageReceived: _jscCustomMessageAction),
     });
   }
 
@@ -208,8 +223,17 @@ class ChatBoxState extends State<ChatBox> {
 
     execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
 
-    execute('chatBox.on("sendMessage", (event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
-    execute('chatBox.on("translationToggled", (event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+    execute('chatBox.onSendMessage((event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
+    execute('chatBox.onTranslationToggled((event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+
+    if (widget.onCustomMessageAction != null) {
+      _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
+      for (var action in _oldCustomActions) {
+        execute('chatBox.onCustomMessageAction("$action", (event) => JSCCustomMessageAction.postMessage(JSON.stringify(["$action", event])));');
+      }
+    } else {
+      _oldCustomActions = {};
+    }
   }
 
   bool _checkRecreateChatBox() {
@@ -227,6 +251,34 @@ class ChatBoxState extends State<ChatBox> {
       _createChatBox();
 
       return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool _checkActionHandlers() {
+    // If there are no handlers specified, then we don't need to create new handlers
+    if (widget.onCustomMessageAction == null) {
+      return false;
+    }
+
+    var customActions = Set<String>.of(widget.onCustomMessageAction!.keys);
+
+    if (!setEquals(customActions, _oldCustomActions)) {
+      var retval = false;
+
+      // Register only the new event handlers
+      for (var action in customActions) {
+        if (!_oldCustomActions.contains(action)) {
+          _oldCustomActions.add(action);
+
+          execute('chatBox.onCustomMessageAction("$action", (event) => JSCCustomMessageAction.postMessage(JSON.stringify(["$action", event])));');
+
+          retval = true;
+        }
+      }
+
+      return retval;
     } else {
       return false;
     }
@@ -356,6 +408,17 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
+  }
+
+  void _jscCustomMessageAction(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscCustomMessageAction: ${message.message}');
+    }
+
+    List<dynamic> jsonMessage = json.decode(message.message);
+    String action = jsonMessage[0];
+
+    widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage[1]));
   }
 
   /// For internal use only. Implementation detail that may change anytime.

@@ -182,7 +182,7 @@ class ConversationListState extends State<ConversationList> {
 
     execute('const conversationList = session.createInbox(${options.getJsonString(this)});');
 
-    execute('''conversationList.on("selectConversation", (event) => {
+    execute('''conversationList.onSelectConversation((event) => {
       event.preventDefault();
       JSCSelectConversation.postMessage(JSON.stringify(event));
     }); ''');
