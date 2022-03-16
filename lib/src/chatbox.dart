@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -15,6 +16,7 @@ import './predicate.dart';
 
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
+typedef LoadingStateHandler = void Function(LoadingState state);
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -35,6 +37,8 @@ class TranslationToggledEvent {
     : conversation = ConversationData.fromJson(json['conversation']),
     isEnabled = json['isEnabled'];
 }
+
+enum LoadingState { loading, loaded }
 
 /// A messaging UI for just a single conversation.
 ///
@@ -57,6 +61,7 @@ class ChatBox extends StatefulWidget {
 
   final SendMessageHandler? onSendMessage;
   final TranslationToggledHandler? onTranslationToggled;
+  final LoadingStateHandler? onLoadingStateChanged;
 
   const ChatBox({
     Key? key,
@@ -73,6 +78,7 @@ class ChatBox extends StatefulWidget {
     this.asGuest,
     this.onSendMessage,
     this.onTranslationToggled,
+    this.onLoadingStateChanged,
   }) : super(key: key);
 
   @override
@@ -121,6 +127,10 @@ class ChatBoxState extends State<ChatBox> {
       // If it's the first time that the widget is built, then build everything
       _webViewCreated = true;
 
+      // Here a Timer is needed, as we can't change the widget's state while the widget
+      // is being constructed, and the callback may very possibly change the state
+      Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
+
       execute('let chatBox;');
 
       _createSession();
@@ -128,7 +138,7 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
 
-      execute('chatBox.mount(document.getElementById("talkjs-container"));');
+      execute('chatBox.mount(document.getElementById("talkjs-container")).then(() => JSCLoadingState.postMessage("loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -161,6 +171,7 @@ class ChatBoxState extends State<ChatBox> {
       javascriptChannels: <JavascriptChannel>{
         JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
         JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
+        JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
     });
   }
 
@@ -337,6 +348,14 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message.message)));
+  }
+
+  void _jscLoadingState(JavascriptMessage message) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscLoadingState: ${message.message}');
+    }
+
+    widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
   /// For internal use only. Implementation detail that may change anytime.
