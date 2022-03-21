@@ -145,6 +145,11 @@ class ChatBoxState extends State<ChatBox> {
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
 
       execute('let chatBox;');
+      execute('''
+        function customMessageActionHandler(event) {
+          JSCCustomMessageAction.postMessage(JSON.stringify(event));
+        }
+      ''');
 
       _createSession();
       _createChatBox();
@@ -229,7 +234,7 @@ class ChatBoxState extends State<ChatBox> {
     if (widget.onCustomMessageAction != null) {
       _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
       for (var action in _oldCustomActions) {
-        execute('chatBox.onCustomMessageAction("$action", (event) => JSCCustomMessageAction.postMessage(JSON.stringify(["$action", event])));');
+        execute('chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
       }
     } else {
       _oldCustomActions = {};
@@ -268,11 +273,15 @@ class ChatBoxState extends State<ChatBox> {
       var retval = false;
 
       // Register only the new event handlers
+      //
+      // Possible memory leak: old event handlers are not getting unregistered
+      // This should not be a big problem in practice, as it is *very* rare that
+      // custom message handlers are being constantly changed
       for (var action in customActions) {
         if (!_oldCustomActions.contains(action)) {
           _oldCustomActions.add(action);
 
-          execute('chatBox.onCustomMessageAction("$action", (event) => JSCCustomMessageAction.postMessage(JSON.stringify(["$action", event])));');
+          execute('chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
 
           retval = true;
         }
@@ -415,10 +424,10 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._jscCustomMessageAction: ${message.message}');
     }
 
-    List<dynamic> jsonMessage = json.decode(message.message);
-    String action = jsonMessage[0];
+    Map<String, dynamic> jsonMessage = json.decode(message.message);
+    String action = jsonMessage['action'];
 
-    widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage[1]));
+    widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
   }
 
   /// For internal use only. Implementation detail that may change anytime.
