@@ -3,7 +3,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -151,7 +152,11 @@ class ConversationListState extends State<ConversationList> {
       javascriptChannels: <JavascriptChannel>{
         JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
         JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
-    });
+      },
+      gestureRecognizers: {
+        Factory(() => VerticalDragGestureRecognizer()),
+      },
+    );
   }
 
   void _createSession() {
