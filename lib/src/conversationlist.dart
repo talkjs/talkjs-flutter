@@ -154,6 +154,7 @@ class ConversationListState extends State<ConversationList> {
         JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
       },
       gestureRecognizers: {
+        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
         Factory(() => VerticalDragGestureRecognizer()),
       },
     );

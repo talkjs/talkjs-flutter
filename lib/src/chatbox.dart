@@ -195,6 +195,7 @@ class ChatBoxState extends State<ChatBox> {
         JavascriptChannel(name: 'JSCCustomMessageAction', onMessageReceived: _jscCustomMessageAction),
       },
       gestureRecognizers: {
+        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
     );
