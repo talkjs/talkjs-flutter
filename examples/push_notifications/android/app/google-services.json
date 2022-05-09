@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "702426237969",
+    "project_id": "talkjs-push-example",
+    "storage_bucket": "talkjs-push-example.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:702426237969:android:b0330a88566853f1c2f5b0",
+        "android_client_info": {
+          "package_name": "com.talkjs.flutter_push_example"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "702426237969-1dn9ib9qp98bet5v9l0udmkgqk38lkto.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBy7woousbi-QN3jpB1UV4neGFn56uLN7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "702426237969-1dn9ib9qp98bet5v9l0udmkgqk38lkto.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

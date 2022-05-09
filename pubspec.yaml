@@ -13,6 +13,9 @@ dependencies:
 
   webview_flutter: ^3.0.0
   crypto: ^3.0.1
+  firebase_core: ^1.16.0
+  firebase_messaging: ^11.3.0
+  flutter_local_notifications: ^9.5.0
 
 dev_dependencies:
   flutter_test:
