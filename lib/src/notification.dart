@@ -1,14 +1,11 @@
+import 'dart:core';
 import 'dart:typed_data';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:ui';
+import 'dart:convert';
+import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-enum AndroidImportance {
-  HIGH,
-  DEFAULT,
-  LOW,
-  MIN,
-  NONE,
-}
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 
 enum AndroidVisibility {
   /// Show the notification on all lockscreens, but conceal sensitive or private information on secure lockscreens.
@@ -21,14 +18,52 @@ enum AndroidVisibility {
   SECRET,
 }
 
+extension VisibilityToLocalNotification on AndroidVisibility {
+  NotificationVisibility toLocalNotification() {
+    switch (this) {
+      case AndroidVisibility.PRIVATE:
+        return NotificationVisibility.private;
+      case AndroidVisibility.PUBLIC:
+        return NotificationVisibility.public;
+      case AndroidVisibility.SECRET:
+        return NotificationVisibility.secret;
+    }
+  }
+}
+
+enum AndroidImportance {
+  HIGH,
+  DEFAULT,
+  LOW,
+  MIN,
+  NONE,
+}
+
+extension ImportanceToLocalNotification on AndroidImportance {
+  Importance toLocalNotification() {
+    switch (this) {
+      case AndroidImportance.HIGH:
+        return Importance.high;
+      case AndroidImportance.DEFAULT:
+        return Importance.defaultImportance;
+      case AndroidImportance.LOW:
+        return Importance.low;
+      case AndroidImportance.MIN:
+        return Importance.min;
+      case AndroidImportance.NONE:
+        return Importance.none;
+    }
+  }
+}
+
 class AndroidChannel {
   final String channelId;
   final String channelName;
   final bool? badge;
   final String? channelDescription;
   final bool? lights;
-  final String? lightColor;
-  final bool? bypassDnd;
+  final Color? lightColor;
+  final bool? bypassDnd; // ?
   final String? playSound;
   final AndroidImportance? importance;
   final AndroidVisibility? visibility;
@@ -64,87 +99,237 @@ class IOSPermissions {
   });
 }
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // If you're going to use other Firebase services in the background, such as Firestore,
-  // make sure you call `initializeApp` before using other Firebase services.
-  //await Firebase.initializeApp(
-  //  //options: currentPlatform, // TODO
-  //);
+String? fcmToken;
 
+final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+AndroidChannel? _androidChannel;
+final _activeNotifications = <String, List<String>>{};
+int _nextId = 0;
+final _showIdFromNotificationId = <String, int>{};
 
-  print("📘 Handling a background message: ${message.messageId}");
-
-  print('📘 Message data: ${message.data}');
-
-  if (message.notification != null) {
-    print('📘 Message also contained a notification: ${message.notification}');
+Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
+  if (url == null) {
+    return null;
   }
+
+  // TODO: maybe we can keep a cache in case _androidBitmapFromUrl gets called
+  // multiple times with the same URL
+  final response = await http.get(Uri.parse(url));
+  print("📘 _androidBitmapFromUrl ($url): ${response}");
+  return ByteArrayAndroidBitmap(response.bodyBytes);
 }
 
-Future<void> registerAndroidPushNotificationHandlers(FirebaseOptions currentPlatform, AndroidChannel androidChannel) async {
-  // TODO: Should the Firebase initialization be done here or in the client app?
-  await Firebase.initializeApp(
-    options: currentPlatform,
-  );
+Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
+  if (url == null) {
+    return null;
+  }
 
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  // TODO: maybe we can keep a cache in case _androidIconFromUrl gets called
+  // multiple times with the same URL
+  final response = await http.get(Uri.parse(url));
+  print("📘 _androidIconFromUrl ($url): ${response}");
+  return ByteArrayAndroidIcon(response.bodyBytes);
+}
 
-  /*
-  const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'high_importance_channel', // id
-    'High Importance Notifications', // title
-    'This channel is used for important notifications.', // description
-    importance: Importance.max,
-  );
+Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
+  print("📘 Handling a background message: ${firebaseMessage.messageId}");
 
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-    FlutterLocalNotificationsPlugin();
+  print('📘 Message data: ${firebaseMessage.data}');
 
-  await flutterLocalNotificationsPlugin
-    .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-    ?.createNotificationChannel(channel);
-  */
+  if (firebaseMessage.notification != null) {
+    print('📘 Message also contained a notification: ${firebaseMessage.notification}');
+  }
 
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    print('📘 Got a message whilst in the foreground!');
-    print('📘 Message data: ${message.data}');
+  final data = firebaseMessage.data;
+  StyleInformation styleInformation;
+  styleInformation = MessagingStyleInformation(Person(name: 'me'));
+  int showId;
+  if (data['talkjs'] is String) {
+    print("📘 _onFCMBackgroundMessage: data['talkjs'] is String");
+    final Map<String, dynamic> talkjsData = json.decode(data['talkjs']);
+    final String notificationId = talkjsData['conversation']['id'];
 
-    if (message.notification != null) {
-      print('📘 Message also contained a notification: ${message.notification}');
+    if (!_showIdFromNotificationId.containsKey(notificationId)) {
+      _showIdFromNotificationId[notificationId] = _nextId;
+      _nextId += 1;
     }
 
-    /*
-    RemoteNotification notification = message.notification;
-    AndroidNotification android = message.notification?.android;
+    showId = _showIdFromNotificationId[notificationId]!;
 
-    // If `onMessage` is triggered with a notification, construct our own
-    // local notification to show to users using the created channel.
-    if (notification != null && android != null) {
-      flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            channel.description,
-            icon: android?.smallIcon,
-            // other properties...
+    final timestamp = DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
+
+    final activeNotifications = _activeNotifications[notificationId];
+
+    if (activeNotifications == null) {
+      print("📘 _onFCMBackgroundMessage: activeNotifications == null");
+      _activeNotifications[notificationId] = [data['talkjs']];
+
+      final attachment = talkjsData['message']['attachment'];
+
+      if (attachment != null) {
+        print("📘 _onFCMBackgroundMessage: attachment != null");
+        final picture = await _androidBitmapFromUrl(attachment['url']);
+        if (picture != null) {
+          print("📘 _onFCMBackgroundMessage: picture != null");
+          styleInformation = BigPictureStyleInformation(picture);
+        } else {
+          print("📘 _onFCMBackgroundMessage: picture == null");
+        }
+      } else {
+        print("📘 _onFCMBackgroundMessage: attachment == null");
+        final sender = talkjsData['sender'];
+        styleInformation = MessagingStyleInformation(
+          Person(
+            name: 'me',
           ),
-        )
+          groupConversation: talkjsData['conversation']['participants'].length > 2,
+          messages: [
+            Message(
+              talkjsData['message']['text'],
+              timestamp,
+              Person(
+                icon: await _androidIconFromUrl(sender['photoUrl']),
+                key: sender['id'],
+                name: sender['name'],
+              ),
+            ),
+          ],
+        );
+      }
+    } else {
+      print("📘 _onFCMBackgroundMessage: activeNotifications != null");
+      final messages = <Message>[];
+      for (final talkjsString in activeNotifications) {
+        final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
+        final messageTimestamp = DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
+        final messageSender = talkjsData['sender'];
+
+        messages.add(
+          Message(
+            messageTalkjsData['message']['text'],
+            messageTimestamp,
+            Person(
+              icon: await _androidIconFromUrl(messageSender['photoUrl']),
+              key: messageSender['id'],
+              name: messageSender['name'],
+            ),
+          ),
+        );
+      }
+
+      final sender = talkjsData['sender'];
+
+      messages.add(
+        Message(
+          talkjsData['message']['text'],
+          timestamp,
+          Person(
+            icon: await _androidIconFromUrl(sender['photoUrl']),
+            key: sender['id'],
+            name: sender['name'],
+          ),
+        ),
+      );
+
+      styleInformation = MessagingStyleInformation(
+        Person(
+          name: 'me',
+        ),
+        groupConversation: talkjsData['conversation']['participants'].length > 2,
+        messages: messages,
       );
     }
-    */
-  });
+  } else {
+    print("📘 _onFCMBackgroundMessage: data['talkjs'] is NOT String");
+    showId = _nextId;
+    _nextId += 1;
 
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    styleInformation = DefaultStyleInformation(false, false);
+  }
+
+  RawResourceAndroidNotificationSound? sound;
+  if ((_androidChannel!.playSound is String) && _androidChannel!.playSound!.isNotEmpty) {
+    sound = RawResourceAndroidNotificationSound(_androidChannel!.playSound);
+  }
+
+  final platformChannelSpecifics = NotificationDetails(
+    android: AndroidNotificationDetails(
+      _androidChannel!.channelId,
+      _androidChannel!.channelName,
+      channelDescription: _androidChannel!.channelDescription,
+      importance: _androidChannel!.importance?.toLocalNotification() ?? Importance.high,
+      sound: sound,
+      enableVibration: _androidChannel!.vibrate ?? true,
+      vibrationPattern: _androidChannel!.vibrationPattern,
+      channelShowBadge: _androidChannel!.badge ?? true,
+      enableLights: _androidChannel!.lights ?? false,
+      ledColor: _androidChannel!.lightColor,
+      visibility: _androidChannel!.visibility?.toLocalNotification(),
+      styleInformation: styleInformation,
+    ),
+  );
+
+  await _flutterLocalNotificationsPlugin.show(
+    showId,  // id
+    data['title'],  // title
+    data['message'], // body
+    platformChannelSpecifics, // notificationDetails
+    payload: data['talkjs'],
+  );
+}
+
+void _onFCMTokenRefresh(String token) {
+  print('📘 Firebase onTokenRefresh: $token');
+
+  fcmToken = token;
+}
+
+Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChannel) async {
+  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+
+  FirebaseMessaging.onMessage.listen(_onFCMBackgroundMessage);  // Only for testing
 
   // Get the token each time the application loads
-  String? token = await FirebaseMessaging.instance.getToken();
-  print('📘 Firebase token: $token');
+  fcmToken = await FirebaseMessaging.instance.getToken();
+  print('📘 Firebase token: $fcmToken');
 
-  // Any time the token refreshes, store this in the database too.
-  //FirebaseMessaging.instance.onTokenRefresh.listen(saveTokenToDatabase);
+  // Update the token each time it refreshes
+  FirebaseMessaging.instance.onTokenRefresh.listen(_onFCMTokenRefresh);
+
+  await _flutterLocalNotificationsPlugin.initialize(InitializationSettings(
+    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+  ));
+
+  _androidChannel = androidChannel;
+
+  // TODO: Handle already existing notifications
+  try {
+    final activeNotifications = await _flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.getActiveNotifications();
+
+    /*
+    for (final displayedNotification in activeNotifications) {
+      const notification = displayedNotification.notification;
+
+      if (JSON.stringify(notification.data) !== '{}') {
+        let activeNotifications = this.#activeNotifications[notification.id!];
+        if (!activeNotifications) {
+          activeNotifications = [];
+          this.#activeNotifications[notification.id!] = activeNotifications;
+        }
+
+        const talkjs = JSON.parse(notification.data!.talkjs);
+        activeNotifications.push({
+          sender: talkjs.sender,
+          message: talkjs.message,
+        });
+      }
+    }
+    */
+  } on PlatformException {
+    // PlatformException is raised on Android < 6.0
+    // Simply ignoring this part
+  }
 }
 

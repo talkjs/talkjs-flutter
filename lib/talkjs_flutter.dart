@@ -2,7 +2,6 @@ library talkjs;
 
 import 'dart:convert' show json, utf8;
 import 'package:crypto/crypto.dart' show sha1;
-import 'package:firebase_core/firebase_core.dart';
 import 'src/notification.dart';
 
 export 'src/chatoptions.dart';
@@ -34,8 +33,8 @@ class Talk {
   }
 }
 
-void registerPushNotificationHandlers({FirebaseOptions? currentPlatform, AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) {
-  if ((currentPlatform != null) && (androidChannel != null)) {
-    registerAndroidPushNotificationHandlers(currentPlatform, androidChannel);
+Future<void> registerPushNotificationHandlers({AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
+  if (androidChannel != null) {
+    await registerAndroidPushNotificationHandlers(androidChannel);
   }
 }

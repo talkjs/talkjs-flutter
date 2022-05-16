@@ -1,8 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:talkjs_flutter/talkjs_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  await registerPushNotificationHandlers(
+    androidChannel: const AndroidChannel(
+      channelId: 'com.talkjs.flutter_push_example.messages',
+      channelName: 'Messages',
+    ),
+  );
+
   runApp(const MyApp());
 }
 
@@ -12,14 +25,6 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    registerPushNotificationHandlers(
-      currentPlatform: DefaultFirebaseOptions.currentPlatform,
-      androidChannel: const AndroidChannel(
-        channelId: 'com.talkjs.flutter_push_example.messages',
-        channelName: 'Messages',
-      ),
-    );
-
     //final session = Session(appId: 'Hku1c4Pt');
     final session = Session(appId: 'tuM9UrY8'); // For local testing
 
