@@ -13,6 +13,7 @@ import './conversation.dart';
 import './user.dart';
 import './predicate.dart';
 import './chatbox.dart';
+import './notification.dart';
 
 typedef SelectConversationHandler = void Function(SelectConversationEvent event);
 
@@ -176,6 +177,17 @@ class ConversationListState extends State<ConversationList> {
     execute('options["me"] = $variableName;');
 
     execute('const session = new Talk.Session(options);');
+
+    // TODO: This part has to be moved in the Session once we have the data layer SDK ready
+    if (widget.session.enablePushNotifications) {
+      if (fcmToken != null) {
+        execute('session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
+      }
+    } else {
+      if (fcmToken != null) {
+        execute('session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
+      }
+    }
   }
 
   void _createConversationList() {

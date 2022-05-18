@@ -287,6 +287,8 @@ void _onFCMTokenRefresh(String token) {
   print('📘 Firebase onTokenRefresh: $token');
 
   fcmToken = token;
+
+  // TODO: Update the token on the Talkjs server once we have the data layer SDK ready
 }
 
 Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChannel) async {

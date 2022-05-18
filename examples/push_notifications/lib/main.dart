@@ -25,8 +25,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    //final session = Session(appId: 'Hku1c4Pt');
-    final session = Session(appId: 'tuM9UrY8'); // For local testing
+    final session = Session(appId: 'Hku1c4Pt', enablePushNotifications: true);
+    //final session = Session(appId: 'tuM9UrY8', enablePushNotifications: true); // For local testing
 
     final me = session.getUser(
       id: '123456',
