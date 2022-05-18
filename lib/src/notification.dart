@@ -2,7 +2,7 @@ import 'dart:core';
 import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:convert';
-import 'package:flutter/services.dart';
+import 'dart:isolate';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -106,6 +106,7 @@ AndroidChannel? _androidChannel;
 final _activeNotifications = <String, List<String>>{};
 int _nextId = 0;
 final _showIdFromNotificationId = <String, int>{};
+final _receivePort = ReceivePort();
 
 Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
   if (url == null) {
@@ -115,7 +116,7 @@ Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
   // TODO: maybe we can keep a cache in case _androidBitmapFromUrl gets called
   // multiple times with the same URL
   final response = await http.get(Uri.parse(url));
-  print("📘 _androidBitmapFromUrl ($url): ${response}");
+  print("📘 _androidBitmapFromUrl ($url): $response");
   return ByteArrayAndroidBitmap(response.bodyBytes);
 }
 
@@ -127,7 +128,7 @@ Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
   // TODO: maybe we can keep a cache in case _androidIconFromUrl gets called
   // multiple times with the same URL
   final response = await http.get(Uri.parse(url));
-  print("📘 _androidIconFromUrl ($url): ${response}");
+  print("📘 _androidIconFromUrl ($url): $response");
   return ByteArrayAndroidIcon(response.bodyBytes);
 }
 
@@ -139,6 +140,13 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   if (firebaseMessage.notification != null) {
     print('📘 Message also contained a notification: ${firebaseMessage.notification}');
   }
+
+  // onBackgroundMessage runs on a separate isolate, so we're passing the message to the main isolate
+  IsolateNameServer.lookupPortByName('talkjsFCMPort')?.send(firebaseMessage);
+}
+
+Future<void> _onReceiveMessageFromPort(RemoteMessage firebaseMessage) async {
+  print("📘 _onReceiveMessageFromPort: ${firebaseMessage.messageId}");
 
   final data = firebaseMessage.data;
   StyleInformation styleInformation;
@@ -198,6 +206,7 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
       }
     } else {
       print("📘 _onFCMBackgroundMessage: activeNotifications != null");
+      activeNotifications.add(data['talkjs']);
       final messages = <Message>[];
       for (final talkjsString in activeNotifications) {
         final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
@@ -216,20 +225,6 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
           ),
         );
       }
-
-      final sender = talkjsData['sender'];
-
-      messages.add(
-        Message(
-          talkjsData['message']['text'],
-          timestamp,
-          Person(
-            icon: await _androidIconFromUrl(sender['photoUrl']),
-            key: sender['id'],
-            name: sender['name'],
-          ),
-        ),
-      );
 
       styleInformation = MessagingStyleInformation(
         Person(
@@ -278,6 +273,16 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   );
 }
 
+void _onSelectNotification(String? payload) {
+  print('📘 _onSelectNotification: $payload');
+
+  if (payload != null) {
+    final Map<String, dynamic> talkjsData = json.decode(payload);
+    final String notificationId = talkjsData['conversation']['id'];
+    _activeNotifications.remove(notificationId);
+  }
+}
+
 void _onFCMTokenRefresh(String token) {
   print('📘 Firebase onTokenRefresh: $token');
 
@@ -285,10 +290,6 @@ void _onFCMTokenRefresh(String token) {
 }
 
 Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChannel) async {
-  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
-
-  FirebaseMessaging.onMessage.listen(_onFCMBackgroundMessage);  // Only for testing
-
   // Get the token each time the application loads
   fcmToken = await FirebaseMessaging.instance.getToken();
   print('📘 Firebase token: $fcmToken');
@@ -296,40 +297,31 @@ Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChann
   // Update the token each time it refreshes
   FirebaseMessaging.instance.onTokenRefresh.listen(_onFCMTokenRefresh);
 
-  await _flutterLocalNotificationsPlugin.initialize(InitializationSettings(
-    android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-  ));
+  await _flutterLocalNotificationsPlugin.initialize(
+    InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+    onSelectNotification: _onSelectNotification,
+  );
 
   _androidChannel = androidChannel;
 
   // TODO: Handle already existing notifications
+  /* Already existing notifications cannot be handled at the moment because
+   * the ActiveNotification class doesn't have enough information
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.getActiveNotifications();
-
-    /*
-    for (final displayedNotification in activeNotifications) {
-      const notification = displayedNotification.notification;
-
-      if (JSON.stringify(notification.data) !== '{}') {
-        let activeNotifications = this.#activeNotifications[notification.id!];
-        if (!activeNotifications) {
-          activeNotifications = [];
-          this.#activeNotifications[notification.id!] = activeNotifications;
-        }
-
-        const talkjs = JSON.parse(notification.data!.talkjs);
-        activeNotifications.push({
-          sender: talkjs.sender,
-          message: talkjs.message,
-        });
-      }
-    }
-    */
   } on PlatformException {
     // PlatformException is raised on Android < 6.0
     // Simply ignoring this part
   }
+  */
+
+  IsolateNameServer.registerPortWithName(_receivePort.sendPort, 'talkjsFCMPort');
+  _receivePort.listen((message) async => await _onReceiveMessageFromPort(message));
+
+  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
 }
 
