@@ -224,9 +224,17 @@ class ChatBoxState extends State<ChatBox> {
       if (fcmToken != null) {
         execute('session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
       }
+
+      if (apnsToken != null) {
+        execute('session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
+      }
     } else {
       if (fcmToken != null) {
         execute('session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
+      }
+
+      if (apnsToken != null) {
+        execute('session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
       }
     }
   }

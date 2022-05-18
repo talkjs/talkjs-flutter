@@ -139,6 +139,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_apns_only:
+    dependency: transitive
+    description:
+      name: flutter_apns_only
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.5.2"
   flutter_lints:
     dependency: "direct dev"
     description:

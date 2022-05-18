@@ -6,6 +6,7 @@ import 'dart:isolate';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_apns_only/flutter_apns_only.dart';
 
 enum AndroidVisibility {
   /// Show the notification on all lockscreens, but conceal sensitive or private information on secure lockscreens.
@@ -87,19 +88,20 @@ class AndroidChannel {
 }
 
 class IOSPermissions {
-  final bool? alert;
-  final bool? badge;
-  final bool? sound;
-  final bool? critical;
+  final bool alert;
+  final bool badge;
+  final bool sound;
+  final bool? critical; // ?
   const IOSPermissions({
-    this.alert,
-    this.badge,
-    this.sound,
+    this.alert = true,
+    this.badge = true,
+    this.sound = true,
     this.critical,
   });
 }
 
 String? fcmToken;
+String? apnsToken;
 
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 AndroidChannel? _androidChannel;
@@ -325,5 +327,39 @@ Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChann
   _receivePort.listen((message) async => await _onReceiveMessageFromPort(message));
 
   FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+}
+
+Future<void> _onPush(String name, ApnsRemoteMessage message) async {
+  final payload = message.payload;
+  print('📘 _onPush $name: ${payload["notification"]?["title"]}');
+
+  final action = UNNotificationAction.getIdentifier(payload['data']);
+
+  if (action != null && action != UNNotificationAction.defaultIdentifier) {
+    print('📘 _onPush action: $action');
+  }
+}
+
+Future<void> registerIOSPushNotificationHandlers(IOSPermissions iosPermissions) async {
+  final connector = ApnsPushConnectorOnly();
+
+  connector.configureApns(
+    onLaunch: (data) => _onPush('onLaunch', data),
+    onResume: (data) => _onPush('onResume', data),
+    onMessage: (data) => _onPush('onMessage', data),
+    onBackgroundMessage: (data) => _onPush('onBackgroundMessage', data),
+  );
+
+  connector.token.addListener(() {
+    print('📘 apns token refresh: ${connector.token.value}');
+
+    apnsToken = connector.token.value;
+  });
+
+  connector.requestNotificationPermissions(IosNotificationSettings(
+    sound: iosPermissions.sound,
+    alert: iosPermissions.alert,
+    badge: iosPermissions.badge,
+  ));
 }
 

@@ -1,6 +1,7 @@
 library talkjs;
 
 import 'dart:convert' show json, utf8;
+import 'dart:io' show Platform;
 import 'package:crypto/crypto.dart' show sha1;
 import 'src/notification.dart';
 
@@ -34,7 +35,15 @@ class Talk {
 }
 
 Future<void> registerPushNotificationHandlers({AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
-  if (androidChannel != null) {
-    await registerAndroidPushNotificationHandlers(androidChannel);
+  if (Platform.isAndroid) {
+    if (androidChannel != null) {
+      await registerAndroidPushNotificationHandlers(androidChannel);
+    }
+  }
+
+  if (Platform.isIOS) {
+    if (iosPermissions != null) {
+      await registerIOSPushNotificationHandlers(iosPermissions);
+    }
   }
 }
