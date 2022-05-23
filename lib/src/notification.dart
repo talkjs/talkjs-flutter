@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'dart:convert';
 import 'dart:isolate';
+import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
@@ -275,7 +276,9 @@ Future<void> _onReceiveMessageFromPort(RemoteMessage firebaseMessage) async {
   );
 }
 
-void _onSelectNotification(String? payload) {
+void _onSelectNotification(NotificationResponse details) {
+  final payload = details.payload;
+
   print('📘 _onSelectNotification: $payload');
 
   if (payload != null) {
@@ -305,23 +308,43 @@ Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChann
     InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     ),
-    onSelectNotification: _onSelectNotification,
+    onDidReceiveNotificationResponse: _onSelectNotification,
   );
 
   _androidChannel = androidChannel;
 
-  // TODO: Handle already existing notifications
-  /* Already existing notifications cannot be handled at the moment because
-   * the ActiveNotification class doesn't have enough information
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.getActiveNotifications();
+
+      if (activeNotifications != null) {
+        for (final displayedNotification in activeNotifications) {
+          if (displayedNotification.payload != null) {
+            final Map<String, dynamic> talkjsData = json.decode(displayedNotification.payload!);
+
+            if ((talkjsData['conversation'] != null) && (talkjsData['conversation']['id'] != null)) {
+              print('📘 Existing notification: ${displayedNotification.payload}');
+              final String notificationId = talkjsData['conversation']['id'];
+
+              if (!_showIdFromNotificationId.containsKey(notificationId)) {
+                _showIdFromNotificationId[notificationId] = _nextId;
+                _nextId += 1;
+              }
+
+              if (_activeNotifications[notificationId] == null) {
+                _activeNotifications[notificationId] = [displayedNotification.payload!];
+              } else {
+                _activeNotifications[notificationId]!.add(displayedNotification.payload!);
+              }
+            }
+          }
+        }
+      }
   } on PlatformException {
     // PlatformException is raised on Android < 6.0
     // Simply ignoring this part
   }
-  */
 
   IsolateNameServer.registerPortWithName(_receivePort.sendPort, 'talkjsFCMPort');
   _receivePort.listen((message) async => await _onReceiveMessageFromPort(message));
