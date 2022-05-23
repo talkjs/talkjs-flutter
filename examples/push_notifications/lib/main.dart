@@ -14,6 +14,11 @@ Future<void> main() async {
       channelId: 'com.talkjs.flutter_push_example.messages',
       channelName: 'Messages',
     ),
+    iosPermissions: const IOSPermissions(
+      sound: true,
+      badge: true,
+      alert: true,
+    ),
   );
 
   runApp(const MyApp());
