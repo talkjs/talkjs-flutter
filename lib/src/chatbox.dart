@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:talkjs_webview_flutter/webview_flutter.dart';
 
 import './session.dart';
 import './conversation.dart';
