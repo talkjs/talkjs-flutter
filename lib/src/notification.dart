@@ -65,8 +65,7 @@ class AndroidChannel {
   final String? channelDescription;
   final bool? lights;
   final Color? lightColor;
-  final bool? bypassDnd; // ?
-  final String? playSound;
+  final String playSound;
   final AndroidImportance? importance;
   final AndroidVisibility? visibility;
   final bool? vibrate;
@@ -79,8 +78,7 @@ class AndroidChannel {
     this.channelDescription,
     this.lights,
     this.lightColor,
-    this.bypassDnd,
-    this.playSound,
+    this.playSound = 'default',
     this.importance,
     this.visibility,
     this.vibrate,
@@ -92,12 +90,10 @@ class IOSPermissions {
   final bool alert;
   final bool badge;
   final bool sound;
-  final bool? critical; // ?
   const IOSPermissions({
     this.alert = true,
     this.badge = true,
     this.sound = true,
-    this.critical,
   });
 }
 
@@ -245,8 +241,12 @@ Future<void> _onReceiveMessageFromPort(RemoteMessage firebaseMessage) async {
     styleInformation = DefaultStyleInformation(false, false);
   }
 
+  // We default to not playing sounds, unless a non-empty string is provided
+  final playSound = _androidChannel!.playSound.isNotEmpty;
   RawResourceAndroidNotificationSound? sound;
-  if ((_androidChannel!.playSound is String) && _androidChannel!.playSound!.isNotEmpty) {
+
+  // We use the string 'default' for the default sound (for compatibility with the React Natve SDK)
+  if (playSound && (_androidChannel!.playSound != 'default')) {
     sound = RawResourceAndroidNotificationSound(_androidChannel!.playSound);
   }
 
@@ -256,6 +256,7 @@ Future<void> _onReceiveMessageFromPort(RemoteMessage firebaseMessage) async {
       _androidChannel!.channelName,
       channelDescription: _androidChannel!.channelDescription,
       importance: _androidChannel!.importance?.toLocalNotification() ?? Importance.high,
+      playSound: playSound,
       sound: sound,
       enableVibration: _androidChannel!.vibrate ?? true,
       vibrationPattern: _androidChannel!.vibrationPattern,
