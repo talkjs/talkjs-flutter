@@ -13,7 +13,7 @@ import './conversation.dart';
 import './user.dart';
 import './predicate.dart';
 import './chatbox.dart';
-import './notification.dart';
+import './webview_common.dart';
 
 typedef SelectConversationHandler = void Function(SelectConversationEvent event);
 
@@ -131,7 +131,7 @@ class ConversationListState extends State<ConversationList> {
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
 
-      _createSession();
+      createSession(execute: execute, session: widget.session, variableName: getUserVariableName(widget.session.me));
       _createConversationList();
       // feedFilter is set as an option for the inbox
 
@@ -159,43 +159,6 @@ class ConversationListState extends State<ConversationList> {
         Factory(() => VerticalDragGestureRecognizer()),
       },
     );
-  }
-
-  void _createSession() {
-    // Initialize Session object
-    final options = <String, dynamic>{};
-
-    options['appId'] = widget.session.appId;
-
-    if (widget.session.signature != null) {
-      options["signature"] = widget.session.signature;
-    }
-
-    execute('const options = ${json.encode(options)};');
-
-    final variableName = getUserVariableName(widget.session.me);
-    execute('options["me"] = $variableName;');
-
-    execute('const session = new Talk.Session(options);');
-
-    // TODO: This part has to be moved in the Session once we have the data layer SDK ready
-    if (widget.session.enablePushNotifications) {
-      if (fcmToken != null) {
-        execute('session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-      }
-
-      if (apnsToken != null) {
-        execute('session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-      }
-    } else {
-      if (fcmToken != null) {
-        execute('session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-      }
-
-      if (apnsToken != null) {
-        execute('session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-      }
-    }
   }
 
   void _createConversationList() {

@@ -106,17 +106,32 @@ final _activeNotifications = <String, List<String>>{};
 int _nextId = 0;
 final _showIdFromNotificationId = <String, int>{};
 final _receivePort = ReceivePort();
+final _imageCache = <String, Uint8List>{};
+
+Future<Uint8List> _imageDataFromUrl(String url) async {
+  // Use the cached image
+  if (_imageCache.containsKey(url)) {
+    print("📘 _imageDataFromUrl ($url): Using cached image");
+    return _imageCache[url]!;
+  }
+
+  final response = await http.get(Uri.parse(url));
+  print("📘 _imageDataFromUrl ($url): $response");
+
+  // Cache the response only if the HTTP request was successful
+  if (response.statusCode < 400) {
+    _imageCache[url] = response.bodyBytes;
+  }
+
+  return response.bodyBytes;
+}
 
 Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
   if (url == null) {
     return null;
   }
 
-  // TODO: maybe we can keep a cache in case _androidBitmapFromUrl gets called
-  // multiple times with the same URL
-  final response = await http.get(Uri.parse(url));
-  print("📘 _androidBitmapFromUrl ($url): $response");
-  return ByteArrayAndroidBitmap(response.bodyBytes);
+  return ByteArrayAndroidBitmap(await _imageDataFromUrl(url));
 }
 
 Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
@@ -124,11 +139,7 @@ Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
     return null;
   }
 
-  // TODO: maybe we can keep a cache in case _androidIconFromUrl gets called
-  // multiple times with the same URL
-  final response = await http.get(Uri.parse(url));
-  print("📘 _androidIconFromUrl ($url): $response");
-  return ByteArrayAndroidIcon(response.bodyBytes);
+  return ByteArrayAndroidIcon(await _imageDataFromUrl(url));
 }
 
 Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {

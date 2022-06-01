@@ -14,7 +14,7 @@ import './chatoptions.dart';
 import './user.dart';
 import './message.dart';
 import './predicate.dart';
-import './notification.dart';
+import './webview_common.dart';
 
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
@@ -153,7 +153,7 @@ class ChatBoxState extends State<ChatBox> {
         }
       ''');
 
-      _createSession();
+      createSession(execute: execute, session: widget.session, variableName: getUserVariableName(widget.session.me));
       _createChatBox();
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
@@ -200,43 +200,6 @@ class ChatBoxState extends State<ChatBox> {
         Factory(() => VerticalDragGestureRecognizer()),
       },
     );
-  }
-
-  void _createSession() {
-    // Initialize Session object
-    final options = <String, dynamic>{};
-
-    options['appId'] = widget.session.appId;
-
-    if (widget.session.signature != null) {
-      options["signature"] = widget.session.signature;
-    }
-
-    execute('const options = ${json.encode(options)};');
-
-    final variableName = getUserVariableName(widget.session.me);
-    execute('options["me"] = $variableName;');
-
-    execute('const session = new Talk.Session(options);');
-
-    // TODO: This part has to be moved in the Session once we have the data layer SDK ready
-    if (widget.session.enablePushNotifications) {
-      if (fcmToken != null) {
-        execute('session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-      }
-
-      if (apnsToken != null) {
-        execute('session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-      }
-    } else {
-      if (fcmToken != null) {
-        execute('session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-      }
-
-      if (apnsToken != null) {
-        execute('session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-      }
-    }
   }
 
   void _createChatBox() {
