@@ -35,7 +35,9 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
-  Session({required this.appId, this.signature});
+  final bool enablePushNotifications;
+
+  Session({required this.appId, this.signature, this.enablePushNotifications = false});
 
   User getUser({
     required String id,

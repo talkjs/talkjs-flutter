@@ -51,12 +51,19 @@ packages:
     source: hosted
     version: "1.16.0"
   crypto:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: crypto
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.0.2"
+  cupertino_icons:
+    dependency: "direct main"
+    description:
+      name: cupertino_icons
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.4"
   dbus:
     dependency: transitive
     description:
@@ -133,14 +140,21 @@ packages:
     source: sdk
     version: "0.0.0"
   flutter_apns_only:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_apns_only
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.2"
+  flutter_lints:
+    dependency: "direct dev"
+    description:
+      name: flutter_lints
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.4"
   flutter_local_notifications:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_local_notifications
       url: "https://pub.dartlang.org"
@@ -171,7 +185,7 @@ packages:
     source: sdk
     version: "0.0.0"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -191,6 +205,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.6.4"
+  lints:
+    dependency: transitive
+    description:
+      name: lints
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.1"
   matcher:
     dependency: transitive
     description:
@@ -280,8 +301,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
-  talkjs_webview_flutter:
+  talkjs_flutter:
     dependency: "direct main"
+    description:
+      path: "../.."
+      relative: true
+    source: path
+    version: "0.2.1"
+  talkjs_webview_flutter:
+    dependency: transitive
     description:
       name: talkjs_webview_flutter
       url: "https://pub.dartlang.org"
@@ -342,7 +370,7 @@ packages:
       name: webview_flutter_wkwebview
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.7.1"
+    version: "2.7.4"
   xdg_directories:
     dependency: transitive
     description:

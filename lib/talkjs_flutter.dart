@@ -1,7 +1,9 @@
 library talkjs;
 
 import 'dart:convert' show json, utf8;
+import 'dart:io' show Platform;
 import 'package:crypto/crypto.dart' show sha1;
+import 'src/notification.dart';
 
 export 'src/chatoptions.dart';
 export 'src/conversation.dart';
@@ -10,6 +12,7 @@ export 'src/chatbox.dart';
 export 'src/user.dart';
 export 'src/conversationlist.dart';
 export 'src/predicate.dart';
+export 'src/notification.dart';
 
 /// The [Talk] object provides utility functions to help use TalkJS.
 class Talk {
@@ -28,5 +31,15 @@ class Talk {
 
     final hash = digest.toString().toLowerCase();
     return hash.substring(0, 20);
+  }
+}
+
+Future<void> registerPushNotificationHandlers({AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
+  if ((Platform.isAndroid) && (androidChannel != null)) {
+    await registerAndroidPushNotificationHandlers(androidChannel);
+  }
+
+  if ((Platform.isIOS) && (iosPermissions != null)) {
+    await registerIOSPushNotificationHandlers(iosPermissions);
   }
 }
