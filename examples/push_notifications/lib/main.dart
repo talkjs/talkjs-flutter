@@ -9,7 +9,7 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  await registerPushNotificationHandlers(
+  await Talk.registerPushNotificationHandlers(
     androidChannel: const AndroidChannel(
       channelId: 'com.talkjs.flutter_push_example.messages',
       channelName: 'Messages',

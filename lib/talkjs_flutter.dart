@@ -32,14 +32,14 @@ class Talk {
     final hash = digest.toString().toLowerCase();
     return hash.substring(0, 20);
   }
-}
 
-Future<void> registerPushNotificationHandlers({AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
-  if ((Platform.isAndroid) && (androidChannel != null)) {
-    await registerAndroidPushNotificationHandlers(androidChannel);
-  }
+  static Future<void> registerPushNotificationHandlers({AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
+    if ((Platform.isAndroid) && (androidChannel != null)) {
+      await registerAndroidPushNotificationHandlers(androidChannel);
+    }
 
-  if ((Platform.isIOS) && (iosPermissions != null)) {
-    await registerIOSPushNotificationHandlers(iosPermissions);
+    if ((Platform.isIOS) && (iosPermissions != null)) {
+      await registerIOSPushNotificationHandlers(iosPermissions);
+    }
   }
 }
