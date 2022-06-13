@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Added explicit support for Android and iOS in pubspec.yaml
+
 ## 0.3.0
 
 - Add support for push notification on both Android and iOS.
