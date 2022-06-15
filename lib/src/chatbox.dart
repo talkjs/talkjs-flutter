@@ -517,12 +517,7 @@ class ChatBoxState extends State<ChatBox> {
       }
 
       if (participant.notify != null) {
-        result['notify'] = participant.notify;
-      }
-
-      // This overrides the deprecated `notify` property if provided
-      if (participant.notification != null) {
-        result['notify'] = participant.notification!.getValue();
+        result['notify'] = participant.notify!.getValue();
       }
 
       execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');

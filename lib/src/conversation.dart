@@ -43,18 +43,14 @@ class Participant {
 
   final ParticipantAccess? access;
 
-  /// Deprecated. Use the notification property instead
-  final bool? notify;
+  final ParticipantNotification? notify;
 
-  final ParticipantNotification? notification;
-
-  const Participant(this.user, {this.access, this.notify, this.notification});
+  const Participant(this.user, {this.access, this.notify});
 
   Participant.of(Participant other)
     : user = User.of(other.user),
     access = other.access,
-    notify = other.notify,
-    notification = other.notification;
+    notify = other.notify;
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -77,14 +73,10 @@ class Participant {
       return false;
     }
 
-    if (notification != other.notification) {
-      return false;
-    }
-
     return true;
   }
 
-  int get hashCode => hashValues(user, access, notify, notification);
+  int get hashCode => hashValues(user, access, notify);
 }
 
 /// This represents a conversation that is about to be created, fetched, or
