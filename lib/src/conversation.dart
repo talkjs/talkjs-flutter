@@ -20,20 +20,41 @@ extension ParticipantAccessString on ParticipantAccess {
   }
 }
 
+/// Possible values for participants' notifications
+enum ParticipantNotification { off, on, mentionsOnly }
+
+extension ParticipantNotificationString on ParticipantNotification {
+  /// Converts this enum's values to String.
+  dynamic getValue() {
+    switch (this) {
+      case ParticipantNotification.off:
+        return false;
+      case ParticipantNotification.on:
+        return true;
+      case ParticipantNotification.mentionsOnly:
+        return 'MentionsOnly';
+    }
+  }
+}
+
 // Participants are users + options relative to this conversation
 class Participant {
   final User user;
 
   final ParticipantAccess? access;
 
+  /// Deprecated. Use the notification property instead
   final bool? notify;
 
-  const Participant(this.user, {this.access, this.notify});
+  final ParticipantNotification? notification;
+
+  const Participant(this.user, {this.access, this.notify, this.notification});
 
   Participant.of(Participant other)
     : user = User.of(other.user),
     access = other.access,
-    notify = other.notify;
+    notify = other.notify,
+    notification = other.notification;
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -56,10 +77,14 @@ class Participant {
       return false;
     }
 
+    if (notification != other.notification) {
+      return false;
+    }
+
     return true;
   }
 
-  int get hashCode => hashValues(user, access, notify);
+  int get hashCode => hashValues(user, access, notify, notification);
 }
 
 /// This represents a conversation that is about to be created, fetched, or
