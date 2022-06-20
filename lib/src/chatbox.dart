@@ -517,7 +517,7 @@ class ChatBoxState extends State<ChatBox> {
       }
 
       if (participant.notify != null) {
-        result['notify'] = participant.notify;
+        result['notify'] = participant.notify!.getValue();
       }
 
       execute('$variableName.setParticipant($userVariableName, ${json.encode(result)});');

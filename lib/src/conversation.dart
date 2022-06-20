@@ -20,13 +20,30 @@ extension ParticipantAccessString on ParticipantAccess {
   }
 }
 
+/// Possible values for participants' notifications
+enum ParticipantNotification { off, on, mentionsOnly }
+
+extension ParticipantNotificationString on ParticipantNotification {
+  /// Converts this enum's values to String.
+  dynamic getValue() {
+    switch (this) {
+      case ParticipantNotification.off:
+        return false;
+      case ParticipantNotification.on:
+        return true;
+      case ParticipantNotification.mentionsOnly:
+        return 'MentionsOnly';
+    }
+  }
+}
+
 // Participants are users + options relative to this conversation
 class Participant {
   final User user;
 
   final ParticipantAccess? access;
 
-  final bool? notify;
+  final ParticipantNotification? notify;
 
   const Participant(this.user, {this.access, this.notify});
 
