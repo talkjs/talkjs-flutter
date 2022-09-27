@@ -75,6 +75,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final NavigationDelegate? navigationDelegate;
 
   const ChatBox({
     Key? key,
@@ -93,6 +94,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.navigationDelegate,
   }) : super(key: key);
 
   @override
@@ -199,6 +201,7 @@ class ChatBoxState extends State<ChatBox> {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
+      navigationDelegate: widget.navigationDelegate,
     );
   }
 
