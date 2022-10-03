@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 import 'package:talkjs_webview_flutter/webview_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -145,6 +146,9 @@ class ChatBoxState extends State<ChatBox> {
       // Here a Timer is needed, as we can't change the widget's state while the widget
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
+
+      // Request the microphone permission, to be able to record voice messages
+      Permission.microphone.request();
 
       execute('let chatBox;');
       execute('''

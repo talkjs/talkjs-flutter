@@ -22,6 +22,7 @@ dependencies:
   flutter_local_notifications: ^9.6.0
   http: ^0.13.4
   flutter_apns_only: ^1.5.2
+  permission_handler: ^10.0.2
 
 dev_dependencies:
   flutter_test:

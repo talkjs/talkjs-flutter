@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
@@ -63,10 +62,10 @@ class FieldPredicate<T> {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? hashList(_values) : _values),
+    (_values != null ? Object.hashAll(_values!) : _values),
   );
 }
 
@@ -121,10 +120,10 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? hashList(_values) : _values),
+    (_values != null ? Object.hashAll(_values!) : _values),
     _exists,
   );
 }
@@ -206,10 +205,10 @@ class ConversationPredicate {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     access,
-    (custom != null ? hashList(custom!.keys) : custom),
-    (custom != null ? hashList(custom!.values) : custom),
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
     hasUnreadMessages,
   );
 }
@@ -309,10 +308,10 @@ class SenderPredicate {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     id,
-    (custom != null ? hashList(custom!.keys) : custom),
-    (custom != null ? hashList(custom!.values) : custom),
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
     locale,
     role,
   );
@@ -395,9 +394,9 @@ class MessagePredicate {
     return true;
   }
 
-  int get hashCode => hashValues(
-    (custom != null ? hashList(custom!.keys) : custom),
-    (custom != null ? hashList(custom!.values) : custom),
+  int get hashCode => Object.hash(
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
     origin,
     sender,
     type,

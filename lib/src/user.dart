@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 
@@ -232,14 +231,14 @@ class User extends _BaseUser {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     _session,
     _idOnly,
     availabilityText,
-    (custom != null ? hashList(custom!.keys) : custom),
-    (custom != null ? hashList(custom!.values) : custom),
-    (email != null ? hashList(email) : email),
-    (phone != null ? hashList(phone) : phone),
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (email != null ? Object.hashAll(email!) : email),
+    (phone != null ? Object.hashAll(phone!) : phone),
     id,
     name,
     locale,
