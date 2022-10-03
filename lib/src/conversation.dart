@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 
 import './session.dart';
@@ -76,7 +74,7 @@ class Participant {
     return true;
   }
 
-  int get hashCode => hashValues(user, access, notify);
+  int get hashCode => Object.hash(user, access, notify);
 }
 
 /// This represents a conversation that is about to be created, fetched, or
@@ -201,13 +199,13 @@ class Conversation extends _BaseConversation {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     _session,
-    hashList(participants),
+    Object.hashAll(participants),
     id,
-    (custom != null ? hashList(custom!.keys) : custom),
-    (custom != null ? hashList(custom!.values) : custom),
-    (welcomeMessages != null ? hashList(welcomeMessages) : welcomeMessages),
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (welcomeMessages != null ? Object.hashAll(welcomeMessages!) : welcomeMessages),
     photoUrl,
     subject,
   );
