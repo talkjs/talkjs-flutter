@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 
 import './chatbox.dart';
 
@@ -101,7 +100,7 @@ class MessageFieldOptions {
     return true;
   }
 
-  int get hashCode => hashValues(autofocus, enterSendsMessage, placeholder, spellcheck);
+  int get hashCode => Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck);
 }
 
 /// The possible values for showTranslationToggle
@@ -253,7 +252,7 @@ class ChatBoxOptions {
     return true;
   }
 
-  int get hashCode => hashValues(
+  int get hashCode => Object.hash(
     dir,
     messageField,
     showChatHeader,
