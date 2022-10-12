@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
-import 'package:talkjs_webview_flutter/webview_flutter.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -101,7 +102,7 @@ class ChatBox extends StatefulWidget {
 
 class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
-  WebViewController? _webViewController;
+  InAppWebViewController? _webViewController;
   bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
@@ -142,6 +143,10 @@ class ChatBoxState extends State<ChatBox> {
       // If it's the first time that the widget is built, then build everything
       _webViewCreated = true;
 
+      if (Platform.isAndroid) {
+        AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+      }
+
       // Here a Timer is needed, as we can't change the widget's state while the widget
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
@@ -149,7 +154,7 @@ class ChatBoxState extends State<ChatBox> {
       execute('let chatBox;');
       execute('''
         function customMessageActionHandler(event) {
-          JSCCustomMessageAction.postMessage(JSON.stringify(event));
+          window.flutter_inappwebview.callHandler("JSCCustomMessageAction", JSON.stringify(event));
         }
       ''');
 
@@ -158,7 +163,7 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
 
-      execute('chatBox.mount(document.getElementById("talkjs-container")).then(() => JSCLoadingState.postMessage("loaded"));');
+      execute('chatBox.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -183,18 +188,10 @@ class ChatBoxState extends State<ChatBox> {
       }
     }
 
-    return WebView(
-      initialUrl: 'about:blank',
-      javascriptMode: JavascriptMode.unrestricted,
-      debuggingEnabled: kDebugMode,
+    return InAppWebView(
+      initialUrlRequest: URLRequest(url: null),
       onWebViewCreated: _webViewCreatedCallback,
-      onPageFinished: _onPageFinished,
-      javascriptChannels: <JavascriptChannel>{
-        JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
-        JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
-        JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
-        JavascriptChannel(name: 'JSCCustomMessageAction', onMessageReceived: _jscCustomMessageAction),
-      },
+      onLoadStop: _onPageFinished,
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
@@ -217,8 +214,8 @@ class ChatBoxState extends State<ChatBox> {
 
     execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
 
-    execute('chatBox.onSendMessage((event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
-    execute('chatBox.onTranslationToggled((event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+    execute('chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event)));');
+    execute('chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));');
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
@@ -344,34 +341,37 @@ class ChatBoxState extends State<ChatBox> {
     return false;
   }
 
-  void _webViewCreatedCallback(WebViewController webViewController) async {
+  void _webViewCreatedCallback(InAppWebViewController webViewController) async {
     if (kDebugMode) {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(uri.toString());
+    webViewController.loadUrl(urlRequest: URLRequest(url: uri));
 
     _webViewController = webViewController;
   }
 
-  void _onPageFinished(String url) {
+  void _onPageFinished(InAppWebViewController controller, Uri? url) async {
     if (kDebugMode) {
       print('📗 chatbox._onPageFinished');
     }
 
-    if (url != 'about:blank') {
+    if (url.toString() != 'about:blank') {
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
+
       // Wait for TalkJS to be ready
-      // Not all WebViews support top level await, so it's better to use an
-      // async IIFE
-      final js = '(async function () { await Talk.ready; }());';
+      final js = 'await Talk.ready;';
 
       if (kDebugMode) {
         print('📗 chatbox._onPageFinished: $js');
       }
 
-      _webViewController!.runJavascript(js);
+      await _webViewController!.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
@@ -379,41 +379,49 @@ class ChatBoxState extends State<ChatBox> {
           print('📗 chatbox._onPageFinished _pending: $statement');
         }
 
-        _webViewController!.runJavascript(statement);
+        _webViewController!.evaluateJavascript(source: statement);
       }
     }
   }
 
-  void _jscSendMessage(JavascriptMessage message) {
+  void _jscSendMessage(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscSendMessage: ${message.message}');
+      print('📗 chatbox._jscSendMessage: $message');
     }
 
-    widget.onSendMessage?.call(SendMessageEvent.fromJson(json.decode(message.message)));
+    widget.onSendMessage?.call(SendMessageEvent.fromJson(json.decode(message)));
   }
 
-  void _jscTranslationToggled(JavascriptMessage message) {
+  void _jscTranslationToggled(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscTranslationToggled: ${message.message}');
+      print('📗 chatbox._jscTranslationToggled: $message');
     }
 
-    widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message.message)));
+    widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message)));
   }
 
-  void _jscLoadingState(JavascriptMessage message) {
+  void _jscLoadingState(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscLoadingState: ${message.message}');
+      print('📗 chatbox._jscLoadingState: $message');
     }
 
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
-  void _jscCustomMessageAction(JavascriptMessage message) {
+  void _jscCustomMessageAction(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscCustomMessageAction: ${message.message}');
+      print('📗 chatbox._jscCustomMessageAction: $message');
     }
 
-    Map<String, dynamic> jsonMessage = json.decode(message.message);
+    Map<String, dynamic> jsonMessage = json.decode(message);
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
@@ -544,7 +552,7 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     if (controller != null) {
-      controller.runJavascript(statement);
+      controller.evaluateJavascript(source: statement);
     } else {
       this._pending.add(statement);
     }

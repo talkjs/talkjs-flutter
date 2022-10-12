@@ -15,7 +15,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  talkjs_webview_flutter: ^3.0.0
+  flutter_inappwebview: ^5.4.4+3
   crypto: ^3.0.1
   firebase_core: ^1.16.0
   firebase_messaging: ^11.3.0
