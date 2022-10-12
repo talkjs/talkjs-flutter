@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -192,6 +193,13 @@ class ChatBoxState extends State<ChatBox> {
       initialUrlRequest: URLRequest(url: null),
       onWebViewCreated: _webViewCreatedCallback,
       onLoadStop: _onPageFinished,
+      androidOnPermissionRequest: (InAppWebViewController controller, String origin, List<String> resources) async {
+        print("📘 androidOnPermissionRequest: $resources");
+
+        final granted = await Permission.microphone.request().isGranted;
+
+        return PermissionRequestResponse(resources: resources, action: granted ? PermissionRequestResponseAction.GRANT : PermissionRequestResponseAction.DENY);
+      },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
