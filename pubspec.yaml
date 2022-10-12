@@ -17,8 +17,8 @@ dependencies:
 
   flutter_inappwebview: ^5.4.4+3
   crypto: ^3.0.1
-  firebase_core: ^1.16.0
-  firebase_messaging: ^11.3.0
+  firebase_core: ^1.24.0
+  firebase_messaging: ^13.1.0
   flutter_local_notifications: ^12.0.2
   http: ^0.13.4
   flutter_apns_only: ^1.5.2
