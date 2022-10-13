@@ -153,6 +153,9 @@ class ConversationListState extends State<ConversationList> {
       initialUrlRequest: URLRequest(url: null),
       onWebViewCreated: _webViewCreatedCallback,
       onLoadStop: _onPageFinished,
+      onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
+        print("[${message.messageLevel}] ${message.message}");
+      },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
         Factory(() => VerticalDragGestureRecognizer()),

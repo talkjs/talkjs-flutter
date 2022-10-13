@@ -191,8 +191,19 @@ class ChatBoxState extends State<ChatBox> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
+      initialOptions: InAppWebViewGroupOptions(ios: IOSInAppWebViewOptions(disableInputAccessoryView: true)),
       onWebViewCreated: _webViewCreatedCallback,
       onLoadStop: _onPageFinished,
+      onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
+        print("[${message.messageLevel}] ${message.message}");
+      },
+      androidOnGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
+        print("📘 androidOnGeolocationPermissionsShowPrompt");
+
+        final granted = await Permission.location.request().isGranted;
+
+        return GeolocationPermissionShowPromptResponse(origin: origin, allow: granted, retain: true);
+      },
       androidOnPermissionRequest: (InAppWebViewController controller, String origin, List<String> resources) async {
         print("📘 androidOnPermissionRequest: $resources");
 
@@ -355,8 +366,7 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(urlRequest: URLRequest(url: uri));
+    webViewController.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
 
     _webViewController = webViewController;
   }
@@ -366,29 +376,27 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onPageFinished');
     }
 
-    if (url.toString() != 'about:blank') {
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
+    _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
+    _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
+    _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
 
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
+    // Wait for TalkJS to be ready
+    final js = 'await Talk.ready;';
 
+    if (kDebugMode) {
+      print('📗 chatbox._onPageFinished: $js');
+    }
+
+    await _webViewController!.callAsyncJavaScript(functionBody: js);
+
+    // Execute any pending instructions
+    for (var statement in _pending) {
       if (kDebugMode) {
-        print('📗 chatbox._onPageFinished: $js');
+        print('📗 chatbox._onPageFinished _pending: $statement');
       }
 
-      await _webViewController!.callAsyncJavaScript(functionBody: js);
-
-      // Execute any pending instructions
-      for (var statement in _pending) {
-        if (kDebugMode) {
-          print('📗 chatbox._onPageFinished _pending: $statement');
-        }
-
-        _webViewController!.evaluateJavascript(source: statement);
-      }
+      _webViewController!.evaluateJavascript(source: statement);
     }
   }
 
