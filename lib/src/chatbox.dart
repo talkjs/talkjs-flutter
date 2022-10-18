@@ -367,14 +367,14 @@ class ChatBoxState extends State<ChatBox> {
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     webViewController.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
-
-    _webViewController = webViewController;
   }
 
   void _onPageFinished(InAppWebViewController controller, Uri? url) async {
     if (kDebugMode) {
       print('📗 chatbox._onPageFinished');
     }
+
+    _webViewController = webViewController;
 
     _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
     _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
