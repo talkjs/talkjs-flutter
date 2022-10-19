@@ -105,7 +105,6 @@ class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
   InAppWebViewController? _webViewController;
   bool _webViewCreated = false;
-  String _htmlData = "";
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -191,7 +190,7 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     return InAppWebView(
-      initialData: InAppWebViewInitialData(data: _htmlData, baseUrl: Uri.parse(_htmlData == "" ? "about:blank" : "https://app.talkjs.com")),
+      initialUrlRequest: URLRequest(url: null),
       initialOptions: InAppWebViewGroupOptions(ios: IOSInAppWebViewOptions(disableInputAccessoryView: true)),
       onWebViewCreated: _webViewCreatedCallback,
       onLoadStop: _onPageFinished,
@@ -366,10 +365,8 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
-    if (_htmlData == "") {
-      _htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-      controller.loadData(data: _htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
-    }
+    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
+    controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
   }
 
   void _onPageFinished(InAppWebViewController controller, Uri? url) async {
