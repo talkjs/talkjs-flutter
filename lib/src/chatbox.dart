@@ -360,43 +360,45 @@ class ChatBoxState extends State<ChatBox> {
     return false;
   }
 
-  void _webViewCreatedCallback(InAppWebViewController webViewController) async {
+  void _webViewCreatedCallback(InAppWebViewController controller) async {
     if (kDebugMode) {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    webViewController.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
+    controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
   }
 
   void _onPageFinished(InAppWebViewController controller, Uri? url) async {
     if (kDebugMode) {
-      print('📗 chatbox._onPageFinished');
+      print('📗 chatbox._onPageFinished ($url)');
     }
 
-    _webViewController = webViewController;
+    if ((url.toString() != 'about:blank') && (_webViewController == null)) {
+      _webViewController = controller;
 
-    _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
-    _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
-    _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
-    _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+      _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
 
-    // Wait for TalkJS to be ready
-    final js = 'await Talk.ready;';
+      // Wait for TalkJS to be ready
+      final js = 'await Talk.ready;';
 
-    if (kDebugMode) {
-      print('📗 chatbox._onPageFinished: $js');
-    }
-
-    await _webViewController!.callAsyncJavaScript(functionBody: js);
-
-    // Execute any pending instructions
-    for (var statement in _pending) {
       if (kDebugMode) {
-        print('📗 chatbox._onPageFinished _pending: $statement');
+        print('📗 chatbox._onPageFinished: $js');
       }
 
-      _webViewController!.evaluateJavascript(source: statement);
+      await _webViewController!.callAsyncJavaScript(functionBody: js);
+
+      // Execute any pending instructions
+      for (var statement in _pending) {
+        if (kDebugMode) {
+          print('📗 chatbox._onPageFinished _pending: $statement');
+        }
+
+        _webViewController!.evaluateJavascript(source: statement);
+      }
     }
   }
 
