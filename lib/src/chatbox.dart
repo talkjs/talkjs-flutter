@@ -365,6 +365,11 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
+    controller.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
+    controller.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
+    controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    controller.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
+
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
   }
@@ -377,11 +382,6 @@ class ChatBoxState extends State<ChatBox> {
     if ((url.toString() != 'about:blank') && (_webViewController == null)) {
       _webViewController = controller;
 
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
-
       // Wait for TalkJS to be ready
       final js = 'await Talk.ready;';
 
@@ -389,7 +389,7 @@ class ChatBoxState extends State<ChatBox> {
         print('📗 chatbox._onPageFinished: $js');
       }
 
-      await _webViewController!.callAsyncJavaScript(functionBody: js);
+      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
@@ -397,7 +397,7 @@ class ChatBoxState extends State<ChatBox> {
           print('📗 chatbox._onPageFinished _pending: $statement');
         }
 
-        _webViewController!.evaluateJavascript(source: statement);
+        controller.evaluateJavascript(source: statement);
       }
     }
   }
