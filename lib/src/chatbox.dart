@@ -145,7 +145,7 @@ class ChatBoxState extends State<ChatBox> {
       _webViewCreated = true;
 
       if (Platform.isAndroid) {
-        AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+        InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
       }
 
       // Here a Timer is needed, as we can't change the widget's state while the widget
@@ -191,36 +191,32 @@ class ChatBoxState extends State<ChatBox> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
-      initialOptions: InAppWebViewGroupOptions(
-        android: AndroidInAppWebViewOptions(
-          useHybridComposition: true,
-        ),
-        ios: IOSInAppWebViewOptions(
-          disableInputAccessoryView: true,
-        )
+      initialSettings: InAppWebViewSettings(
+        useHybridComposition: true,
+        disableInputAccessoryView: true,
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
         print("chatbox [${message.messageLevel}] ${message.message}");
       },
-      androidOnGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
-        print("📘 chatbox androidOnGeolocationPermissionsShowPrompt");
+      onGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
+        print("📘 chatbox onGeolocationPermissionsShowPrompt ($origin)");
 
         final granted = await Permission.location.request().isGranted;
 
         return GeolocationPermissionShowPromptResponse(origin: origin, allow: granted, retain: true);
       },
-      androidOnPermissionRequest: (InAppWebViewController controller, String origin, List<String> resources) async {
-        print("📘 chatbox androidOnPermissionRequest: $resources");
+      onPermissionRequest: (InAppWebViewController controller, PermissionRequest permissionRequest) async {
+        print("📘 chatbox onPermissionRequest");
 
         var granted = false;
 
-        if (resources.indexOf("android.webkit.resource.AUDIO_CAPTURE") >= 0) {
+        if (permissionRequest.resources.indexOf(PermissionResourceType.MICROPHONE) >= 0) {
           granted = await Permission.microphone.request().isGranted;
         }
 
-        return PermissionRequestResponse(resources: resources, action: granted ? PermissionRequestResponseAction.GRANT : PermissionRequestResponseAction.DENY);
+        return PermissionResponse(resources: permissionRequest.resources, action: granted ? PermissionResponseAction.GRANT : PermissionResponseAction.DENY);
       },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
@@ -576,13 +572,17 @@ class ChatBoxState extends State<ChatBox> {
   void execute(String statement) {
     final controller = _webViewController;
 
-    if (kDebugMode) {
-      print('📘 chatbox.execute: $statement');
-    }
-
     if (controller != null) {
+      if (kDebugMode) {
+        print('📗 chatbox.execute: $statement');
+      }
+
       controller.evaluateJavascript(source: statement);
     } else {
+      if (kDebugMode) {
+        print('📘 chatbox.execute: $statement');
+      }
+
       this._pending.add(statement);
     }
   }

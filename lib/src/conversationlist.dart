@@ -129,7 +129,7 @@ class ConversationListState extends State<ConversationList> {
       _webViewCreated = true;
 
       if (Platform.isAndroid) {
-        AndroidInAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+        InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
       }
 
       // Here a Timer is needed, as we can't change the widget's state while the widget
@@ -151,13 +151,9 @@ class ConversationListState extends State<ConversationList> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
-      initialOptions: InAppWebViewGroupOptions(
-        android: AndroidInAppWebViewOptions(
-          useHybridComposition: true,
-        ),
-        ios: IOSInAppWebViewOptions(
-          disableInputAccessoryView: true,
-        )
+      initialSettings: InAppWebViewSettings(
+        useHybridComposition: true,
+        disableInputAccessoryView: true,
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
@@ -305,13 +301,17 @@ class ConversationListState extends State<ConversationList> {
   void execute(String statement) {
     final controller = _webViewController;
 
-    if (kDebugMode) {
-      print('📘 conversationlist.execute: $statement');
-    }
-
     if (controller != null) {
+      if (kDebugMode) {
+        print('📗 conversationlist.execute: $statement');
+      }
+
       controller.evaluateJavascript(source: statement);
     } else {
+      if (kDebugMode) {
+        print('📘 conversationlist.execute: $statement');
+      }
+
       this._pending.add(statement);
     }
   }
