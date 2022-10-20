@@ -20,7 +20,7 @@ typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
-typedef NavigationHandler = UrlNavigationAction Function(UrlNavigationRequest navigation);
+typedef NavigationHandler = UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
 
 class SendMessageEvent {
   final ConversationData conversation;
