@@ -151,6 +151,14 @@ class ConversationListState extends State<ConversationList> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
+      initialOptions: InAppWebViewGroupOptions(
+        android: AndroidInAppWebViewOptions(
+          useHybridComposition: true,
+        ),
+        ios: IOSInAppWebViewOptions(
+          disableInputAccessoryView: true,
+        )
+      ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {

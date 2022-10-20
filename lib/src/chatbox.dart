@@ -191,7 +191,14 @@ class ChatBoxState extends State<ChatBox> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
-      initialOptions: InAppWebViewGroupOptions(ios: IOSInAppWebViewOptions(disableInputAccessoryView: true)),
+      initialOptions: InAppWebViewGroupOptions(
+        android: AndroidInAppWebViewOptions(
+          useHybridComposition: true,
+        ),
+        ios: IOSInAppWebViewOptions(
+          disableInputAccessoryView: true,
+        )
+      ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
