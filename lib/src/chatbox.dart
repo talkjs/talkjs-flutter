@@ -393,7 +393,7 @@ class ChatBoxState extends State<ChatBox> {
       final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 chatbox._onLoadStop: $js');
+        print('📗 chatbox callAsyncJavaScript: $js');
       }
 
       await controller.callAsyncJavaScript(functionBody: js);

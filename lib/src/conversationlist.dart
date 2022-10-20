@@ -224,7 +224,7 @@ class ConversationListState extends State<ConversationList> {
       final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 conversationlist._onLoadStop: $js');
+        print('📗 conversationlist callAsyncJavaScript: $js');
       }
 
       await controller.callAsyncJavaScript(functionBody: js);
