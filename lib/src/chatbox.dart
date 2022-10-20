@@ -192,22 +192,26 @@ class ChatBoxState extends State<ChatBox> {
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
       initialOptions: InAppWebViewGroupOptions(ios: IOSInAppWebViewOptions(disableInputAccessoryView: true)),
-      onWebViewCreated: _webViewCreatedCallback,
-      onLoadStop: _onPageFinished,
+      onWebViewCreated: _onWebViewCreated,
+      onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
-        print("[${message.messageLevel}] ${message.message}");
+        print("chatbox [${message.messageLevel}] ${message.message}");
       },
       androidOnGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
-        print("📘 androidOnGeolocationPermissionsShowPrompt");
+        print("📘 chatbox androidOnGeolocationPermissionsShowPrompt");
 
         final granted = await Permission.location.request().isGranted;
 
         return GeolocationPermissionShowPromptResponse(origin: origin, allow: granted, retain: true);
       },
       androidOnPermissionRequest: (InAppWebViewController controller, String origin, List<String> resources) async {
-        print("📘 androidOnPermissionRequest: $resources");
+        print("📘 chatbox androidOnPermissionRequest: $resources");
 
-        final granted = await Permission.microphone.request().isGranted;
+        var granted = false;
+
+        if (resources.indexOf("android.webkit.resource.AUDIO_CAPTURE") >= 0) {
+          granted = await Permission.microphone.request().isGranted;
+        }
 
         return PermissionRequestResponse(resources: resources, action: granted ? PermissionRequestResponseAction.GRANT : PermissionRequestResponseAction.DENY);
       },
@@ -360,9 +364,9 @@ class ChatBoxState extends State<ChatBox> {
     return false;
   }
 
-  void _webViewCreatedCallback(InAppWebViewController controller) async {
+  void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
-      print('📗 chatbox._webViewCreatedCallback');
+      print('📗 chatbox._onWebViewCreated');
     }
 
     controller.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
@@ -374,9 +378,9 @@ class ChatBoxState extends State<ChatBox> {
     controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
   }
 
-  void _onPageFinished(InAppWebViewController controller, Uri? url) async {
+  void _onLoadStop(InAppWebViewController controller, Uri? url) async {
     if (kDebugMode) {
-      print('📗 chatbox._onPageFinished ($url)');
+      print('📗 chatbox._onLoadStop ($url)');
     }
 
     if ((url.toString() != 'about:blank') && (_webViewController == null)) {
@@ -386,7 +390,7 @@ class ChatBoxState extends State<ChatBox> {
       final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 chatbox._onPageFinished: $js');
+        print('📗 chatbox._onLoadStop: $js');
       }
 
       await controller.callAsyncJavaScript(functionBody: js);
@@ -394,7 +398,7 @@ class ChatBoxState extends State<ChatBox> {
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {
-          print('📗 chatbox._onPageFinished _pending: $statement');
+          print('📗 chatbox._onLoadStop _pending: $statement');
         }
 
         controller.evaluateJavascript(source: statement);

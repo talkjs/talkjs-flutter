@@ -151,10 +151,10 @@ class ConversationListState extends State<ConversationList> {
 
     return InAppWebView(
       initialUrlRequest: URLRequest(url: null),
-      onWebViewCreated: _webViewCreatedCallback,
-      onLoadStop: _onPageFinished,
+      onWebViewCreated: _onWebViewCreated,
+      onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
-        print("[${message.messageLevel}] ${message.message}");
+        print("conversationlist [${message.messageLevel}] ${message.message}");
       },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
@@ -195,43 +195,43 @@ class ConversationListState extends State<ConversationList> {
     return false;
   }
 
-  void _webViewCreatedCallback(InAppWebViewController webViewController) async {
+  void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
-      print('📗 conversationlist._webViewCreatedCallback');
+      print('📗 conversationlist._onWebViewCreated');
     }
+
+    controller.addJavaScriptHandler(handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
+    controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(urlRequest: URLRequest(url: uri));
-
-    _webViewController = webViewController;
+    controller.loadUrl(urlRequest: URLRequest(url: uri));
   }
 
-  void _onPageFinished(InAppWebViewController controller, Uri? url) async {
+  void _onLoadStop(InAppWebViewController controller, Uri? url) async {
     if (kDebugMode) {
-      print('📗 conversationlist._onPageFinished');
+      print('📗 conversationlist._onLoadStop ($url)');
     }
 
-    if (url.toString() != 'about:blank') {
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
-      _webViewController!.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    if ((url.toString() != 'about:blank') && (_webViewController == null)) {
+      _webViewController = controller;
 
       // Wait for TalkJS to be ready
       final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 conversationlist._onPageFinished: $js');
+        print('📗 conversationlist._onLoadStop: $js');
       }
 
-      await _webViewController!.callAsyncJavaScript(functionBody: js);
+      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {
-          print('📗 conversationlist._onPageFinished _pending: $statement');
+          print('📗 conversationlist._onLoadStop _pending: $statement');
         }
 
-        _webViewController!.evaluateJavascript(source: statement);
+        controller.evaluateJavascript(source: statement);
       }
     }
   }
