@@ -150,7 +150,6 @@ class ConversationListState extends State<ConversationList> {
     }
 
     return InAppWebView(
-      initialUrlRequest: URLRequest(url: null),
       initialSettings: InAppWebViewSettings(
         useHybridComposition: true,
         disableInputAccessoryView: true,
@@ -208,8 +207,7 @@ class ConversationListState extends State<ConversationList> {
     controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    controller.loadUrl(urlRequest: URLRequest(url: uri));
+    controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
   }
 
   void _onLoadStop(InAppWebViewController controller, Uri? url) async {
@@ -217,7 +215,7 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._onLoadStop ($url)');
     }
 
-    if ((url.toString() != 'about:blank') && (_webViewController == null)) {
+    if (_webViewController == null) {
       _webViewController = controller;
 
       // Wait for TalkJS to be ready

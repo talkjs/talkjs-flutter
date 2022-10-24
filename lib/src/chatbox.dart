@@ -190,7 +190,6 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     return InAppWebView(
-      initialUrlRequest: URLRequest(url: null),
       initialSettings: InAppWebViewSettings(
         useHybridComposition: true,
         disableInputAccessoryView: true,
@@ -386,7 +385,7 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onLoadStop ($url)');
     }
 
-    if ((url.toString() != 'about:blank') && (_webViewController == null)) {
+    if (_webViewController == null) {
       _webViewController = controller;
 
       // Wait for TalkJS to be ready
