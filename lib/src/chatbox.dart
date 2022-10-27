@@ -56,25 +56,11 @@ class MessageActionEvent {
 enum UrlNavigationAction { allow, deny }
 
 class UrlNavigationRequest {
-  final Uri? url;
-  final String rawUrl;
-  final bool isValidUrl;
+  final String url;
 
-  UrlNavigationRequest._(
-    this.url, 
-    this.rawUrl,
-    this.isValidUrl,
-  ) ;
-
-  factory UrlNavigationRequest(String url){
-    final Uri? uri = Uri.tryParse(url);
-
-    return UrlNavigationRequest._(
-      uri,
-      url,
-      uri!=null,
-    );
-  }
+  UrlNavigationRequest(
+    this.url
+  );
 }
 
 /// A messaging UI for just a single conversation.
