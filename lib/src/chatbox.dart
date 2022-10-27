@@ -56,7 +56,7 @@ class MessageActionEvent {
 enum UrlNavigationAction { allow, deny }
 
 class UrlNavigationRequest {
-  final String url;
+  final String? url;
 
   UrlNavigationRequest(
     this.url
