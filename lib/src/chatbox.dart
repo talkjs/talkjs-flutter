@@ -22,6 +22,7 @@ typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
+typedef NavigationHandler = UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -54,6 +55,16 @@ class MessageActionEvent {
     message = Message.fromJson(json['message']);
 }
 
+enum UrlNavigationAction { allow, deny }
+
+class UrlNavigationRequest {
+  final String url;
+
+  UrlNavigationRequest(
+    this.url,
+  );
+}
+
 /// A messaging UI for just a single conversation.
 ///
 /// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
@@ -77,6 +88,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
     Key? key,
@@ -95,6 +107,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.onUrlNavigation,
   }) : super(key: key);
 
   @override
@@ -221,6 +234,7 @@ class ChatBoxState extends State<ChatBox> {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
+      navigationDelegate: _shouldNavigateToUrl,
     );
   }
 
@@ -449,6 +463,25 @@ class ChatBoxState extends State<ChatBox> {
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
+  }
+
+  FutureOr<NavigationDecision> _shouldNavigateToUrl(
+    NavigationRequest navigationRequest,
+  ) {
+    if (widget.onUrlNavigation != null) {
+      final UrlNavigationAction action = widget.onUrlNavigation!(
+        UrlNavigationRequest(navigationRequest.url),
+      );
+
+      switch (action) {
+        case UrlNavigationAction.allow:
+          return NavigationDecision.navigate;
+        case UrlNavigationAction.deny:
+          return NavigationDecision.prevent;
+      }
+    }
+
+    return NavigationDecision.navigate;
   }
 
   /// For internal use only. Implementation detail that may change anytime.
