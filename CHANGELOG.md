@@ -1,3 +1,7 @@
+## 0.5.0
+
+- Added the `onUrlNavigation` callback to the ChatBox
+
 ## 0.4.0
 
 - BREAKING CHANGE: Changed the `notify` property of the `Participant` to allow for mentions only
