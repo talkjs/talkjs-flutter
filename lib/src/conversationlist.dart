@@ -207,10 +207,10 @@ class ConversationListState extends State<ConversationList> {
     controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
+    controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
   }
 
-  void _onLoadStop(InAppWebViewController controller, Uri? url) async {
+  void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
     if (kDebugMode) {
       print('📗 conversationlist._onLoadStop ($url)');
     }

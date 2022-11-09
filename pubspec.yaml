@@ -15,7 +15,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  flutter_inappwebview: ^6.0.0-beta.3
+  flutter_inappwebview: ^6.0.0-beta.12
   crypto: ^3.0.1
   firebase_core: ^1.24.0
   firebase_messaging: ^13.1.0

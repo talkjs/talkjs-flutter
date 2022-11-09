@@ -55,8 +55,6 @@ class MessageActionEvent {
     message = Message.fromJson(json['message']);
 }
 
-enum UrlNavigationAction { allow, deny }
-
 class UrlNavigationRequest {
   final String url;
 
@@ -64,6 +62,8 @@ class UrlNavigationRequest {
     this.url,
   );
 }
+
+enum UrlNavigationAction { deny, allow }
 
 /// A messaging UI for just a single conversation.
 ///
@@ -206,6 +206,7 @@ class ChatBoxState extends State<ChatBox> {
       initialSettings: InAppWebViewSettings(
         useHybridComposition: true,
         disableInputAccessoryView: true,
+        useShouldOverrideUrlLoading: true,
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
@@ -234,7 +235,7 @@ class ChatBoxState extends State<ChatBox> {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
-      navigationDelegate: _shouldNavigateToUrl,
+      shouldOverrideUrlLoading: _shouldNavigateToUrl,
     );
   }
 
@@ -391,10 +392,10 @@ class ChatBoxState extends State<ChatBox> {
     controller.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    controller.loadData(data: htmlData, baseUrl: Uri.parse("https://app.talkjs.com"));
+    controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
   }
 
-  void _onLoadStop(InAppWebViewController controller, Uri? url) async {
+  void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
     if (kDebugMode) {
       print('📗 chatbox._onLoadStop ($url)');
     }
@@ -465,23 +466,24 @@ class ChatBoxState extends State<ChatBox> {
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
   }
 
-  FutureOr<NavigationDecision> _shouldNavigateToUrl(
-    NavigationRequest navigationRequest,
-  ) {
+  Future<NavigationActionPolicy?> _shouldNavigateToUrl(
+    InAppWebViewController controller,
+    NavigationAction navigationAction,
+  ) async {
     if (widget.onUrlNavigation != null) {
       final UrlNavigationAction action = widget.onUrlNavigation!(
-        UrlNavigationRequest(navigationRequest.url),
+        UrlNavigationRequest(navigationAction.request.url!.rawValue),
       );
 
       switch (action) {
         case UrlNavigationAction.allow:
-          return NavigationDecision.navigate;
+          return NavigationActionPolicy.ALLOW;
         case UrlNavigationAction.deny:
-          return NavigationDecision.prevent;
+          return NavigationActionPolicy.CANCEL;
       }
     }
 
-    return NavigationDecision.navigate;
+    return NavigationActionPolicy.ALLOW;
   }
 
   /// For internal use only. Implementation detail that may change anytime.
