@@ -364,8 +364,7 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(uri.toString());
+    webViewController.loadHtmlString(htmlData, baseUrl: 'https://app.talkjs.com');
 
     _webViewController = webViewController;
   }
