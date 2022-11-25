@@ -364,8 +364,7 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
-    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    webViewController.loadHtmlString(htmlData, baseUrl: 'https://app.talkjs.com');
+    webViewController.loadFlutterAsset('packages/talkjs_flutter/assets/index.html');
 
     _webViewController = webViewController;
   }
