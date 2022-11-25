@@ -116,6 +116,7 @@ class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
   WebViewController? _webViewController;
   bool _webViewCreated = false;
+  bool _chatBoxLoaded = false;
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -417,7 +418,7 @@ class ChatBoxState extends State<ChatBox> {
     if (kDebugMode) {
       print('📗 chatbox._jscLoadingState: ${message.message}');
     }
-
+    _chatBoxLoaded = true;
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
@@ -436,6 +437,14 @@ class ChatBoxState extends State<ChatBox> {
     NavigationRequest navigationRequest,
   ) {
     if (widget.onUrlNavigation != null) {
+      if(
+        !_chatBoxLoaded || 
+        navigationRequest.url.startsWith('https://cdn.iframe.ly/api/iframe' ) || 
+        navigationRequest.url.startsWith('https://app.talkjs.com')
+      ){
+        return NavigationDecision.navigate;
+      }
+
       final UrlNavigationAction action = widget.onUrlNavigation!(
         UrlNavigationRequest(navigationRequest.url),
       );
