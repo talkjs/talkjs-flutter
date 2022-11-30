@@ -198,7 +198,6 @@ class ChatBoxState extends State<ChatBox> {
     }
 
     return WebView(
-      initialUrl: 'about:blank',
       javascriptMode: JavascriptMode.unrestricted,
       debuggingEnabled: kDebugMode,
       onWebViewCreated: _webViewCreatedCallback,
@@ -364,8 +363,9 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._webViewCreatedCallback');
     }
 
-    webViewController.loadFlutterAsset('packages/talkjs_flutter/assets/index.html');
-
+    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
+    webViewController.loadHtmlString(htmlData, baseUrl: 'https://app.talkjs.com/');
+    
     _webViewController = webViewController;
   }
 
@@ -374,7 +374,7 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onPageFinished');
     }
 
-    if (url != 'about:blank') {
+    if (url == 'https://app.talkjs.com/') {
       // Wait for TalkJS to be ready
       // Not all WebViews support top level await, so it's better to use an
       // async IIFE
