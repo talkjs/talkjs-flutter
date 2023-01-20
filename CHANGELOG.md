@@ -1,3 +1,13 @@
+## 0.6.0
+
+- BREAKING CHANGE: Updated version numbers for Firebase dependencies. This may require you to update
+    your build versions on Android and iOS.
+- Fix audio messages not working.
+
+## 0.5.0
+
+- Added the `onUrlNavigation` callback to the ChatBox
+
 ## 0.4.0
 
 - BREAKING CHANGE: Changed the `notify` property of the `Participant` to allow for mentions only
