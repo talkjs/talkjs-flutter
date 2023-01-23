@@ -9,6 +9,7 @@ import 'package:flutter/gestures.dart';
 
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -88,7 +89,6 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
-  final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
     Key? key,
@@ -107,7 +107,6 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
-    this.onUrlNavigation,
   }) : super(key: key);
 
   @override
@@ -235,7 +234,18 @@ class ChatBoxState extends State<ChatBox> {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
-      shouldOverrideUrlLoading: _shouldNavigateToUrl,
+      shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
+        if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
+          if (await launchUrl(navigationAction.request.url!)) {
+            // We launched the browser, so we don't navigate to the URL in the WebView
+            return NavigationActionPolicy.CANCEL;
+          } else {
+            // We couldn't launch the external browser, so as a fallback we're using the default action
+            return NavigationActionPolicy.ALLOW;
+          }
+        }
+        return NavigationActionPolicy.ALLOW;
+      },
     );
   }
 
@@ -464,26 +474,6 @@ class ChatBoxState extends State<ChatBox> {
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
-  }
-
-  Future<NavigationActionPolicy?> _shouldNavigateToUrl(
-    InAppWebViewController controller,
-    NavigationAction navigationAction,
-  ) async {
-    if (widget.onUrlNavigation != null) {
-      final UrlNavigationAction action = widget.onUrlNavigation!(
-        UrlNavigationRequest(navigationAction.request.url!.rawValue),
-      );
-
-      switch (action) {
-        case UrlNavigationAction.allow:
-          return NavigationActionPolicy.ALLOW;
-        case UrlNavigationAction.deny:
-          return NavigationActionPolicy.CANCEL;
-      }
-    }
-
-    return NavigationActionPolicy.ALLOW;
   }
 
   /// For internal use only. Implementation detail that may change anytime.
