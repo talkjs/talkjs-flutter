@@ -205,12 +205,17 @@ class ChatBoxState extends State<ChatBox> {
       initialSettings: InAppWebViewSettings(
         useHybridComposition: true,
         disableInputAccessoryView: true,
+        transparentBackground: true,
         useShouldOverrideUrlLoading: true,
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
         print("chatbox [${message.messageLevel}] ${message.message}");
+      },
+      gestureRecognizers: {
+        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
+        Factory(() => VerticalDragGestureRecognizer()),
       },
       onGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
         print("📘 chatbox onGeolocationPermissionsShowPrompt ($origin)");
@@ -229,10 +234,6 @@ class ChatBoxState extends State<ChatBox> {
         }
 
         return PermissionResponse(resources: permissionRequest.resources, action: granted ? PermissionResponseAction.GRANT : PermissionResponseAction.DENY);
-      },
-      gestureRecognizers: {
-        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
-        Factory(() => VerticalDragGestureRecognizer()),
       },
       shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
         if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {

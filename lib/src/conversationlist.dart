@@ -153,6 +153,7 @@ class ConversationListState extends State<ConversationList> {
       initialSettings: InAppWebViewSettings(
         useHybridComposition: true,
         disableInputAccessoryView: true,
+        transparentBackground: true,
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
