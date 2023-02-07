@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
-import 'package:talkjs_webview_flutter/webview_flutter.dart';
+import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -102,7 +103,7 @@ class ConversationList extends StatefulWidget {
 
 class ConversationListState extends State<ConversationList> {
   /// Used to control the underlying WebView
-  WebViewController? _webViewController;
+  InAppWebViewController? _webViewController;
   bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
@@ -127,6 +128,10 @@ class ConversationListState extends State<ConversationList> {
     if (!_webViewCreated) {
       _webViewCreated = true;
 
+      if (Platform.isAndroid) {
+        InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+      }
+
       // Here a Timer is needed, as we can't change the widget's state while the widget
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
@@ -135,7 +140,7 @@ class ConversationListState extends State<ConversationList> {
       _createConversationList();
       // feedFilter is set as an option for the inbox
 
-      execute('conversationList.mount(document.getElementById("talkjs-container")).then(() => JSCLoadingState.postMessage("loaded"));');
+      execute('conversationList.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -144,15 +149,16 @@ class ConversationListState extends State<ConversationList> {
       _checkFeedFilter();
     }
 
-    return WebView(
-      initialUrl: 'about:blank',
-      javascriptMode: JavascriptMode.unrestricted,
-      debuggingEnabled: kDebugMode,
-      onWebViewCreated: _webViewCreatedCallback,
-      onPageFinished: _onPageFinished,
-      javascriptChannels: <JavascriptChannel>{
-        JavascriptChannel(name: 'JSCSelectConversation', onMessageReceived: _jscSelectConversation),
-        JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
+    return InAppWebView(
+      initialSettings: InAppWebViewSettings(
+        useHybridComposition: true,
+        disableInputAccessoryView: true,
+        transparentBackground: true,
+      ),
+      onWebViewCreated: _onWebViewCreated,
+      onLoadStop: _onLoadStop,
+      onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
+        print("conversationlist [${message.messageLevel}] ${message.message}");
       },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
@@ -173,7 +179,7 @@ class ConversationListState extends State<ConversationList> {
 
     execute('''conversationList.onSelectConversation((event) => {
       event.preventDefault();
-      JSCSelectConversation.postMessage(JSON.stringify(event));
+      window.flutter_inappwebview.callHandler("JSCSelectConversation", JSON.stringify(event));
     }); ''');
   }
 
@@ -193,57 +199,61 @@ class ConversationListState extends State<ConversationList> {
     return false;
   }
 
-  void _webViewCreatedCallback(WebViewController webViewController) async {
+  void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
-      print('📗 conversationlist._webViewCreatedCallback');
+      print('📗 conversationlist._onWebViewCreated');
     }
+
+    controller.addJavaScriptHandler(handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
+    controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    Uri uri = Uri.dataFromString(htmlData, mimeType: 'text/html', encoding: Encoding.getByName('utf-8'));
-    webViewController.loadUrl(uri.toString());
-
-    _webViewController = webViewController;
+    controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
   }
 
-  void _onPageFinished(String url) {
+  void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
     if (kDebugMode) {
-      print('📗 conversationlist._onPageFinished');
+      print('📗 conversationlist._onLoadStop ($url)');
     }
 
-    if (url != 'about:blank') {
+    if (_webViewController == null) {
+      _webViewController = controller;
+
       // Wait for TalkJS to be ready
-      // Not all WebViews support top level await, so it's better to use an
-      // async IIFE
-      final js = '(async function () { await Talk.ready; }());';
+      final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 conversationlist._onPageFinished: $js');
+        print('📗 conversationlist callAsyncJavaScript: $js');
       }
 
-      _webViewController!.runJavascript(js);
+      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {
-          print('📗 conversationlist._onPageFinished _pending: $statement');
+          print('📗 conversationlist._onLoadStop _pending: $statement');
         }
 
-        _webViewController!.runJavascript(statement);
+        controller.evaluateJavascript(source: statement);
       }
     }
   }
 
-  void _jscSelectConversation(JavascriptMessage message) {
+  void _jscSelectConversation(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 conversationlist._jscSelectConversation: ${message.message}');
+      print('📗 conversationlist._jscSelectConversation: $message');
     }
 
-    widget.onSelectConversation?.call(SelectConversationEvent.fromJson(json.decode(message.message)));
+    widget.onSelectConversation?.call(SelectConversationEvent.fromJson(json.decode(message)));
   }
 
-  void _jscLoadingState(JavascriptMessage message) {
+  void _jscLoadingState(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 conversationlist._jscLoadingState: ${message.message}');
+      print('📗 conversationlist._jscLoadingState: $message');
     }
 
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
@@ -290,13 +300,17 @@ class ConversationListState extends State<ConversationList> {
   void execute(String statement) {
     final controller = _webViewController;
 
-    if (kDebugMode) {
-      print('📘 conversationlist.execute: $statement');
-    }
-
     if (controller != null) {
-      controller.runJavascript(statement);
+      if (kDebugMode) {
+        print('📗 conversationlist.execute: $statement');
+      }
+
+      controller.evaluateJavascript(source: statement);
     } else {
+      if (kDebugMode) {
+        print('📘 conversationlist.execute: $statement');
+      }
+
       this._pending.add(statement);
     }
   }
