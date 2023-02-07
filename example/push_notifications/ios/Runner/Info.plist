@@ -52,6 +52,8 @@
 	<false/>
 	<key>flutter_apns.disable_swizzling</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Your message to user when the location is accessed for the first time</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Your message to user when the microphone is accessed for the first time</string>
 </dict>
