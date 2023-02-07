@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 
-import 'package:talkjs_webview_flutter/webview_flutter.dart';
+import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import './session.dart';
 import './conversation.dart';
@@ -53,8 +56,6 @@ class MessageActionEvent {
     message = Message.fromJson(json['message']);
 }
 
-enum UrlNavigationAction { allow, deny }
-
 class UrlNavigationRequest {
   final String url;
 
@@ -62,6 +63,8 @@ class UrlNavigationRequest {
     this.url,
   );
 }
+
+enum UrlNavigationAction { deny, allow }
 
 /// A messaging UI for just a single conversation.
 ///
@@ -86,7 +89,6 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
-  final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
     Key? key,
@@ -105,7 +107,6 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
-    this.onUrlNavigation,
   }) : super(key: key);
 
   @override
@@ -114,7 +115,7 @@ class ChatBox extends StatefulWidget {
 
 class ChatBoxState extends State<ChatBox> {
   /// Used to control the underlying WebView
-  WebViewController? _webViewController;
+  InAppWebViewController? _webViewController;
   bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
@@ -155,6 +156,10 @@ class ChatBoxState extends State<ChatBox> {
       // If it's the first time that the widget is built, then build everything
       _webViewCreated = true;
 
+      if (Platform.isAndroid) {
+        InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+      }
+
       // Here a Timer is needed, as we can't change the widget's state while the widget
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
@@ -162,7 +167,7 @@ class ChatBoxState extends State<ChatBox> {
       execute('let chatBox;');
       execute('''
         function customMessageActionHandler(event) {
-          JSCCustomMessageAction.postMessage(JSON.stringify(event));
+          window.flutter_inappwebview.callHandler("JSCCustomMessageAction", JSON.stringify(event));
         }
       ''');
 
@@ -171,7 +176,7 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
 
-      execute('chatBox.mount(document.getElementById("talkjs-container")).then(() => JSCLoadingState.postMessage("loaded"));');
+      execute('chatBox.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -196,23 +201,52 @@ class ChatBoxState extends State<ChatBox> {
       }
     }
 
-    return WebView(
-      initialUrl: 'about:blank',
-      javascriptMode: JavascriptMode.unrestricted,
-      debuggingEnabled: kDebugMode,
-      onWebViewCreated: _webViewCreatedCallback,
-      onPageFinished: _onPageFinished,
-      javascriptChannels: <JavascriptChannel>{
-        JavascriptChannel(name: 'JSCSendMessage', onMessageReceived: _jscSendMessage),
-        JavascriptChannel(name: 'JSCTranslationToggled', onMessageReceived: _jscTranslationToggled),
-        JavascriptChannel(name: 'JSCLoadingState', onMessageReceived: _jscLoadingState),
-        JavascriptChannel(name: 'JSCCustomMessageAction', onMessageReceived: _jscCustomMessageAction),
+    return InAppWebView(
+      initialSettings: InAppWebViewSettings(
+        useHybridComposition: true,
+        disableInputAccessoryView: true,
+        transparentBackground: true,
+        useShouldOverrideUrlLoading: true,
+      ),
+      onWebViewCreated: _onWebViewCreated,
+      onLoadStop: _onLoadStop,
+      onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
+        print("chatbox [${message.messageLevel}] ${message.message}");
       },
       gestureRecognizers: {
         // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
         Factory(() => VerticalDragGestureRecognizer()),
       },
-      navigationDelegate: _shouldNavigateToUrl,
+      onGeolocationPermissionsShowPrompt: (InAppWebViewController controller, String origin) async {
+        print("📘 chatbox onGeolocationPermissionsShowPrompt ($origin)");
+
+        final granted = await Permission.location.request().isGranted;
+
+        return GeolocationPermissionShowPromptResponse(origin: origin, allow: granted, retain: true);
+      },
+      onPermissionRequest: (InAppWebViewController controller, PermissionRequest permissionRequest) async {
+        print("📘 chatbox onPermissionRequest");
+
+        var granted = false;
+
+        if (permissionRequest.resources.indexOf(PermissionResourceType.MICROPHONE) >= 0) {
+          granted = await Permission.microphone.request().isGranted;
+        }
+
+        return PermissionResponse(resources: permissionRequest.resources, action: granted ? PermissionResponseAction.GRANT : PermissionResponseAction.DENY);
+      },
+      shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
+        if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
+          if (await launchUrl(navigationAction.request.url!)) {
+            // We launched the browser, so we don't navigate to the URL in the WebView
+            return NavigationActionPolicy.CANCEL;
+          } else {
+            // We couldn't launch the external browser, so as a fallback we're using the default action
+            return NavigationActionPolicy.ALLOW;
+          }
+        }
+        return NavigationActionPolicy.ALLOW;
+      },
     );
   }
 
@@ -231,8 +265,8 @@ class ChatBoxState extends State<ChatBox> {
 
     execute('chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
 
-    execute('chatBox.onSendMessage((event) => JSCSendMessage.postMessage(JSON.stringify(event)));');
-    execute('chatBox.onTranslationToggled((event) => JSCTranslationToggled.postMessage(JSON.stringify(event)));');
+    execute('chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event)));');
+    execute('chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));');
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
@@ -358,97 +392,89 @@ class ChatBoxState extends State<ChatBox> {
     return false;
   }
 
-  void _webViewCreatedCallback(WebViewController webViewController) async {
+  void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
-      print('📗 chatbox._webViewCreatedCallback');
+      print('📗 chatbox._onWebViewCreated');
     }
+
+    controller.addJavaScriptHandler(handlerName: 'JSCSendMessage', callback: _jscSendMessage);
+    controller.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
+    controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    controller.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    webViewController.loadHtmlString(htmlData, baseUrl: 'https://app.talkjs.com');
-
-    _webViewController = webViewController;
+    controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
   }
 
-  void _onPageFinished(String url) {
+  void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
     if (kDebugMode) {
-      print('📗 chatbox._onPageFinished');
+      print('📗 chatbox._onLoadStop ($url)');
     }
 
-    if (url != 'about:blank') {
+    if (_webViewController == null) {
+      _webViewController = controller;
+
       // Wait for TalkJS to be ready
-      // Not all WebViews support top level await, so it's better to use an
-      // async IIFE
-      final js = '(async function () { await Talk.ready; }());';
+      final js = 'await Talk.ready;';
 
       if (kDebugMode) {
-        print('📗 chatbox._onPageFinished: $js');
+        print('📗 chatbox callAsyncJavaScript: $js');
       }
 
-      _webViewController!.runJavascript(js);
+      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {
-          print('📗 chatbox._onPageFinished _pending: $statement');
+          print('📗 chatbox._onLoadStop _pending: $statement');
         }
 
-        _webViewController!.runJavascript(statement);
+        controller.evaluateJavascript(source: statement);
       }
     }
   }
 
-  void _jscSendMessage(JavascriptMessage message) {
+  void _jscSendMessage(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscSendMessage: ${message.message}');
+      print('📗 chatbox._jscSendMessage: $message');
     }
 
-    widget.onSendMessage?.call(SendMessageEvent.fromJson(json.decode(message.message)));
+    widget.onSendMessage?.call(SendMessageEvent.fromJson(json.decode(message)));
   }
 
-  void _jscTranslationToggled(JavascriptMessage message) {
+  void _jscTranslationToggled(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscTranslationToggled: ${message.message}');
+      print('📗 chatbox._jscTranslationToggled: $message');
     }
 
-    widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message.message)));
+    widget.onTranslationToggled?.call(TranslationToggledEvent.fromJson(json.decode(message)));
   }
 
-  void _jscLoadingState(JavascriptMessage message) {
+  void _jscLoadingState(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscLoadingState: ${message.message}');
+      print('📗 chatbox._jscLoadingState: $message');
     }
 
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
-  void _jscCustomMessageAction(JavascriptMessage message) {
+  void _jscCustomMessageAction(List<dynamic> arguments) {
+    final message = arguments[0];
+
     if (kDebugMode) {
-      print('📗 chatbox._jscCustomMessageAction: ${message.message}');
+      print('📗 chatbox._jscCustomMessageAction: $message');
     }
 
-    Map<String, dynamic> jsonMessage = json.decode(message.message);
+    Map<String, dynamic> jsonMessage = json.decode(message);
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
-  }
-
-  FutureOr<NavigationDecision> _shouldNavigateToUrl(
-    NavigationRequest navigationRequest,
-  ) {
-    if (widget.onUrlNavigation != null) {
-      final UrlNavigationAction action = widget.onUrlNavigation!(
-        UrlNavigationRequest(navigationRequest.url),
-      );
-
-      switch (action) {
-        case UrlNavigationAction.allow:
-          return NavigationDecision.navigate;
-        case UrlNavigationAction.deny:
-          return NavigationDecision.prevent;
-      }
-    }
-
-    return NavigationDecision.navigate;
   }
 
   /// For internal use only. Implementation detail that may change anytime.
@@ -571,13 +597,17 @@ class ChatBoxState extends State<ChatBox> {
   void execute(String statement) {
     final controller = _webViewController;
 
-    if (kDebugMode) {
-      print('📘 chatbox.execute: $statement');
-    }
-
     if (controller != null) {
-      controller.runJavascript(statement);
+      if (kDebugMode) {
+        print('📗 chatbox.execute: $statement');
+      }
+
+      controller.evaluateJavascript(source: statement);
     } else {
+      if (kDebugMode) {
+        print('📘 chatbox.execute: $statement');
+      }
+
       this._pending.add(statement);
     }
   }
