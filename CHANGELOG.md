@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Updated version of flutter-apns lib for fix crash on iOS side when you try to initialize FirebaseCore in your project. This may require you to update if you wanna use Firebase separatly.
+
 ## 0.6.0
 
 - BREAKING CHANGE: Updated version numbers for Firebase dependencies. This may require you to update
