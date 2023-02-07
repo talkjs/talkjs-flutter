@@ -1,11 +1,16 @@
-## 0.6.1
+## 0.7.0
 
-- Updated version of flutter-apns lib for fix crash on iOS side when you try to initialize FirebaseCore in your project. This may require you to update if you wanna use Firebase separatly.
+- BREAKING CHANGE: To ensure that file uploads work correctly, you'll need to update your
+  `AndroidManifest.xml` file as indicated in the [docs](https://talkjs.com/docs/Features/Customizations/File_Sharing/#enabling-file-upload-on-flutter)
+- BREAKING CHANGE: Due to a change in the latest versions of iOS, to ensure that microphone
+  permission is granted correctly for voice messages, update your `Podfile` as shown in
+  the [docs](https://talkjs.com/docs/Features/Customizations/Voice_Messages/#ios)
+- Updated dependencies versions
 
 ## 0.6.0
 
 - BREAKING CHANGE: Updated version numbers for Firebase dependencies. This may require you to update
-    your build versions on Android and iOS.
+  your build versions on Android and iOS.
 - Fix audio messages not working.
 
 ## 0.5.0
@@ -37,4 +42,3 @@
 ## 0.1.0
 
 - Initial version.
-
