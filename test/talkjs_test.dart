@@ -31,6 +31,7 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
       ) == ConversationPredicate(
         access: FieldPredicate.notEquals(ConversationAccessLevel.none),
         custom: {
@@ -39,6 +40,7 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
       )
     , true);
   });
@@ -120,6 +122,10 @@ void main() {
     expect(CustomFieldPredicate.of(CustomFieldPredicate.oneOf(['it', 'fr'])) == CustomFieldPredicate.oneOf(['it', 'fr']), true);
   });
 
+  test('test NumberPredicate.of', () {
+    expect(NumberPredicate.of(NumberPredicate.notBetween([100, 300])) == NumberPredicate.notBetween([100, 300]), true);
+  });
+
   test('test ConversationPredicate of', () {
     expect(
       ConversationPredicate.of(ConversationPredicate(
@@ -130,6 +136,7 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
       )) == ConversationPredicate(
         access: FieldPredicate.notEquals(ConversationAccessLevel.none),
         custom: {
@@ -138,6 +145,7 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
       )
     , true);
   });
@@ -218,8 +226,9 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
       )),
-      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false}'
+      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0]}'
     );
   });
 

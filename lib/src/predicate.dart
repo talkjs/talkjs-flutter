@@ -128,6 +128,75 @@ class CustomFieldPredicate extends FieldPredicate<String> {
   );
 }
 
+class NumberPredicate {
+  final String _operand;
+  double? _value;
+  List<double>? _values;
+
+  NumberPredicate.greaterThan(double value) : _operand = '>', _value = value;
+  NumberPredicate.lessThan(double value) : _operand = '<', _value = value;
+  NumberPredicate.greaterOrEquals(double value) : _operand = '>=', _value = value;
+  NumberPredicate.lessOrEquals(double value) : _operand = '<=', _value = value;
+  NumberPredicate.between(List<double> values) : _operand = 'between', _values = List<double>.of(values);
+  NumberPredicate.notBetween(List<double> values) : _operand = '!between', _values = List<double>.of(values);
+
+  NumberPredicate.of(NumberPredicate other)
+    : _operand = other._operand,
+    _value = other._value,
+    _values = (other._values != null ? List<double>.of(other._values!) : null);
+
+  @override
+  String toString() {
+    return json.encode(this);
+  }
+
+  dynamic toJson() {
+    final result = <dynamic>[];
+
+    result.add(_operand);
+
+    if (_value != null) {
+      result.add(_value);
+    }
+
+    if (_values != null) {
+      result.add(_values);
+    }
+
+    return result;
+  }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is NumberPredicate)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (_value != other._value) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => Object.hash(
+    _operand,
+    _value,
+    (_values != null ? Object.hashAll(_values!) : _values),
+  );
+}
+
 class ConversationAccessLevel {
   final String _value;
 
@@ -151,12 +220,16 @@ class ConversationPredicate {
   /// Set this field to only select conversations that have, or don't have any, unread messages.
   final bool? hasUnreadMessages;
 
-  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages});
+  /// Only select conversations that have the last message sent in a particular time interval.
+  final NumberPredicate? lastMessageTs;
+
+  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages, this.lastMessageTs});
 
   ConversationPredicate.of(ConversationPredicate other)
     : access = (other.access != null ? FieldPredicate<ConversationAccessLevel>.of(other.access!) : null),
     custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
-    hasUnreadMessages = other.hasUnreadMessages;
+    hasUnreadMessages = other.hasUnreadMessages,
+    lastMessageTs = (other.lastMessageTs != null ? NumberPredicate.of(other.lastMessageTs!) : null);
 
   @override
   String toString() {
@@ -176,6 +249,10 @@ class ConversationPredicate {
 
     if (hasUnreadMessages != null) {
       result['hasUnreadMessages'] = hasUnreadMessages;
+    }
+
+    if (lastMessageTs != null) {
+      result['lastMessageTs'] = lastMessageTs;
     }
 
     return result;
@@ -202,6 +279,10 @@ class ConversationPredicate {
       return false;
     }
 
+    if (lastMessageTs != other.lastMessageTs) {
+      return false;
+    }
+
     return true;
   }
 
@@ -210,6 +291,7 @@ class ConversationPredicate {
     (custom != null ? Object.hashAll(custom!.keys) : custom),
     (custom != null ? Object.hashAll(custom!.values) : custom),
     hasUnreadMessages,
+    lastMessageTs,
   );
 }
 
