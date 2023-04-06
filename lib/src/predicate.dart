@@ -8,10 +8,10 @@ class FieldPredicate<T> {
   List<String?>? _values;
   bool _useValue;
 
-  FieldPredicate.equals(T value) : _operand = '==', _value = (value != null ? value.toString() : null), _useValue = true;
-  FieldPredicate.notEquals(T value) : _operand = '!=', _value = (value != null ? value.toString() : null), _useValue = true;
-  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => (value != null ? value.toString() : null)).toList(), _useValue = false;
-  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => (value != null ? value.toString() : null)).toList(), _useValue = false;
+  FieldPredicate.equals(T value) : _operand = '==', _value = value?.toString(), _useValue = true;
+  FieldPredicate.notEquals(T value) : _operand = '!=', _value = value?.toString(), _useValue = true;
+  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => value?.toString()).toList(), _useValue = false;
+  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => value?.toString()).toList(), _useValue = false;
 
   FieldPredicate.of(FieldPredicate<T> other)
     : _operand = other._operand,
