@@ -5,17 +5,19 @@ import 'package:flutter/foundation.dart';
 class FieldPredicate<T> {
   final String _operand;
   String? _value;
-  List<String>? _values;
+  List<String?>? _values;
+  bool _useValue;
 
-  FieldPredicate.equals(T value) : _operand = '==', _value = value.toString();
-  FieldPredicate.notEquals(T value) : _operand = '!=', _value = value.toString();
-  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => value.toString()).toList();
-  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => value.toString()).toList();
+  FieldPredicate.equals(T value) : _operand = '==', _value = (value != null ? value.toString() : null), _useValue = true;
+  FieldPredicate.notEquals(T value) : _operand = '!=', _value = (value != null ? value.toString() : null), _useValue = true;
+  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => (value != null ? value.toString() : null)).toList(), _useValue = false;
+  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => (value != null ? value.toString() : null)).toList(), _useValue = false;
 
   FieldPredicate.of(FieldPredicate<T> other)
     : _operand = other._operand,
     _value = other._value,
-    _values = (other._values != null ? List<String>.of(other._values!) : null);
+    _values = (other._values != null ? List<String?>.of(other._values!) : null),
+    _useValue = other._useValue;
 
   @override
   String toString() {
@@ -27,7 +29,7 @@ class FieldPredicate<T> {
 
     result.add(_operand);
 
-    if (_value != null) {
+    if (_useValue) {
       result.add(_value);
     }
 
@@ -59,6 +61,10 @@ class FieldPredicate<T> {
       return false;
     }
 
+    if (_useValue != other._useValue) {
+      return false;
+    }
+
     return true;
   }
 
@@ -66,6 +72,7 @@ class FieldPredicate<T> {
     _operand,
     _value,
     (_values != null ? Object.hashAll(_values!) : _values),
+    _useValue,
   );
 }
 
@@ -113,6 +120,10 @@ class CustomFieldPredicate extends FieldPredicate<String> {
       return false;
     }
 
+    if (_useValue != other._useValue) {
+      return false;
+    }
+
     if (_exists != other._exists) {
       return false;
     }
@@ -124,6 +135,7 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     _operand,
     _value,
     (_values != null ? Object.hashAll(_values!) : _values),
+    _useValue,
     _exists,
   );
 }
@@ -223,13 +235,17 @@ class ConversationPredicate {
   /// Only select conversations that have the last message sent in a particular time interval.
   final NumberPredicate? lastMessageTs;
 
-  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages, this.lastMessageTs});
+  /// Only select conversations that have the subject set to particular values.
+  final FieldPredicate<String?>? subject;
+
+  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages, this.lastMessageTs, this.subject});
 
   ConversationPredicate.of(ConversationPredicate other)
     : access = (other.access != null ? FieldPredicate<ConversationAccessLevel>.of(other.access!) : null),
     custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
     hasUnreadMessages = other.hasUnreadMessages,
-    lastMessageTs = (other.lastMessageTs != null ? NumberPredicate.of(other.lastMessageTs!) : null);
+    lastMessageTs = (other.lastMessageTs != null ? NumberPredicate.of(other.lastMessageTs!) : null),
+    subject = (other.subject != null ? FieldPredicate<String?>.of(other.subject!) : null);
 
   @override
   String toString() {
@@ -253,6 +269,10 @@ class ConversationPredicate {
 
     if (lastMessageTs != null) {
       result['lastMessageTs'] = lastMessageTs;
+    }
+
+    if (subject != null) {
+      result['subject'] = subject;
     }
 
     return result;
@@ -283,6 +303,10 @@ class ConversationPredicate {
       return false;
     }
 
+    if (subject != other.subject) {
+      return false;
+    }
+
     return true;
   }
 
@@ -292,6 +316,7 @@ class ConversationPredicate {
     (custom != null ? Object.hashAll(custom!.values) : custom),
     hasUnreadMessages,
     lastMessageTs,
+    subject,
   );
 }
 
