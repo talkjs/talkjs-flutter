@@ -89,6 +89,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final Future<bool> Function(Uri uri)? overrideUrlLoading;
 
   const ChatBox({
     Key? key,
@@ -107,6 +108,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.overrideUrlLoading,
   }) : super(key: key);
 
   @override
@@ -236,16 +238,20 @@ class ChatBoxState extends State<ChatBox> {
         return PermissionResponse(resources: permissionRequest.resources, action: granted ? PermissionResponseAction.GRANT : PermissionResponseAction.DENY);
       },
       shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
-        if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
-          if (await launchUrl(navigationAction.request.url!)) {
-            // We launched the browser, so we don't navigate to the URL in the WebView
-            return NavigationActionPolicy.CANCEL;
-          } else {
-            // We couldn't launch the external browser, so as a fallback we're using the default action
-            return NavigationActionPolicy.ALLOW;
+        final overridden = widget.overrideUrlLoading == null ? false : await widget.overrideUrlLoading!(navigationAction.request.url!);
+        if (!overridden) {
+          if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
+            if (await launchUrl(navigationAction.request.url!)) {
+              // We launched the browser, so we don't navigate to the URL in the WebView
+              return NavigationActionPolicy.CANCEL;
+            } else {
+              // We couldn't launch the external browser, so as a fallback we're using the default action
+              return NavigationActionPolicy.ALLOW;
+            }
           }
+          return NavigationActionPolicy.ALLOW;
         }
-        return NavigationActionPolicy.ALLOW;
+        return NavigationActionPolicy.CANCEL;
       },
     );
   }
