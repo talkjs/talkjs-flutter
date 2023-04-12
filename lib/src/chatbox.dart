@@ -89,6 +89,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
     Key? key,
@@ -107,6 +108,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.onUrlNavigation,
   }) : super(key: key);
 
   @override
@@ -237,15 +239,27 @@ class ChatBoxState extends State<ChatBox> {
       },
       shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
         if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
-          if (await launchUrl(navigationAction.request.url!)) {
-            // We launched the browser, so we don't navigate to the URL in the WebView
-            return NavigationActionPolicy.CANCEL;
-          } else {
-            // We couldn't launch the external browser, so as a fallback we're using the default action
-            return NavigationActionPolicy.ALLOW;
+          var shouldOpenBrowser = true;
+
+          if (widget.onUrlNavigation != null) {
+            // The onUrlNavigation function has been defined, so let's see if we should open the browser or not
+            if (widget.onUrlNavigation!(UrlNavigationRequest(navigationAction.request.url!.rawValue)) == UrlNavigationAction.deny) {
+              shouldOpenBrowser = false;
+            }
+          }
+
+          if (shouldOpenBrowser) {
+            if (await launchUrl(navigationAction.request.url!)) {
+              // We launched the browser, so we don't navigate to the URL in the WebView
+              return NavigationActionPolicy.CANCEL;
+            } else {
+              // We couldn't launch the external browser, so as a fallback we're using the default action
+              return NavigationActionPolicy.ALLOW;
+            }
           }
         }
-        return NavigationActionPolicy.ALLOW;
+
+        return NavigationActionPolicy.CANCEL;
       },
     );
   }
