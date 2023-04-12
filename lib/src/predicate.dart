@@ -5,17 +5,19 @@ import 'package:flutter/foundation.dart';
 class FieldPredicate<T> {
   final String _operand;
   String? _value;
-  List<String>? _values;
+  List<String?>? _values;
+  bool _useValue;
 
-  FieldPredicate.equals(T value) : _operand = '==', _value = value.toString();
-  FieldPredicate.notEquals(T value) : _operand = '!=', _value = value.toString();
-  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => value.toString()).toList();
-  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => value.toString()).toList();
+  FieldPredicate.equals(T value) : _operand = '==', _value = value?.toString(), _useValue = true;
+  FieldPredicate.notEquals(T value) : _operand = '!=', _value = value?.toString(), _useValue = true;
+  FieldPredicate.oneOf(List<T> values) : _operand = 'oneOf', _values = values.map((value) => value?.toString()).toList(), _useValue = false;
+  FieldPredicate.notOneOf(List<T> values) : _operand = '!oneOf', _values = values.map((value) => value?.toString()).toList(), _useValue = false;
 
   FieldPredicate.of(FieldPredicate<T> other)
     : _operand = other._operand,
     _value = other._value,
-    _values = (other._values != null ? List<String>.of(other._values!) : null);
+    _values = (other._values != null ? List<String?>.of(other._values!) : null),
+    _useValue = other._useValue;
 
   @override
   String toString() {
@@ -27,7 +29,7 @@ class FieldPredicate<T> {
 
     result.add(_operand);
 
-    if (_value != null) {
+    if (_useValue) {
       result.add(_value);
     }
 
@@ -59,6 +61,10 @@ class FieldPredicate<T> {
       return false;
     }
 
+    if (_useValue != other._useValue) {
+      return false;
+    }
+
     return true;
   }
 
@@ -66,6 +72,7 @@ class FieldPredicate<T> {
     _operand,
     _value,
     (_values != null ? Object.hashAll(_values!) : _values),
+    _useValue,
   );
 }
 
@@ -113,6 +120,10 @@ class CustomFieldPredicate extends FieldPredicate<String> {
       return false;
     }
 
+    if (_useValue != other._useValue) {
+      return false;
+    }
+
     if (_exists != other._exists) {
       return false;
     }
@@ -124,7 +135,77 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     _operand,
     _value,
     (_values != null ? Object.hashAll(_values!) : _values),
+    _useValue,
     _exists,
+  );
+}
+
+class NumberPredicate {
+  final String _operand;
+  double? _value;
+  List<double>? _values;
+
+  NumberPredicate.greaterThan(double value) : _operand = '>', _value = value;
+  NumberPredicate.lessThan(double value) : _operand = '<', _value = value;
+  NumberPredicate.greaterOrEquals(double value) : _operand = '>=', _value = value;
+  NumberPredicate.lessOrEquals(double value) : _operand = '<=', _value = value;
+  NumberPredicate.between(List<double> values) : _operand = 'between', _values = List<double>.of(values);
+  NumberPredicate.notBetween(List<double> values) : _operand = '!between', _values = List<double>.of(values);
+
+  NumberPredicate.of(NumberPredicate other)
+    : _operand = other._operand,
+    _value = other._value,
+    _values = (other._values != null ? List<double>.of(other._values!) : null);
+
+  @override
+  String toString() {
+    return json.encode(this);
+  }
+
+  dynamic toJson() {
+    final result = <dynamic>[];
+
+    result.add(_operand);
+
+    if (_value != null) {
+      result.add(_value);
+    }
+
+    if (_values != null) {
+      result.add(_values);
+    }
+
+    return result;
+  }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is NumberPredicate)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (_value != other._value) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => Object.hash(
+    _operand,
+    _value,
+    (_values != null ? Object.hashAll(_values!) : _values),
   );
 }
 
@@ -151,12 +232,20 @@ class ConversationPredicate {
   /// Set this field to only select conversations that have, or don't have any, unread messages.
   final bool? hasUnreadMessages;
 
-  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages});
+  /// Only select conversations that have the last message sent in a particular time interval.
+  final NumberPredicate? lastMessageTs;
+
+  /// Only select conversations that have the subject set to particular values.
+  final FieldPredicate<String?>? subject;
+
+  const ConversationPredicate({this.access, this.custom, this.hasUnreadMessages, this.lastMessageTs, this.subject});
 
   ConversationPredicate.of(ConversationPredicate other)
     : access = (other.access != null ? FieldPredicate<ConversationAccessLevel>.of(other.access!) : null),
     custom = (other.custom != null ? Map<String, CustomFieldPredicate>.of(other.custom!) : null),
-    hasUnreadMessages = other.hasUnreadMessages;
+    hasUnreadMessages = other.hasUnreadMessages,
+    lastMessageTs = (other.lastMessageTs != null ? NumberPredicate.of(other.lastMessageTs!) : null),
+    subject = (other.subject != null ? FieldPredicate<String?>.of(other.subject!) : null);
 
   @override
   String toString() {
@@ -176,6 +265,14 @@ class ConversationPredicate {
 
     if (hasUnreadMessages != null) {
       result['hasUnreadMessages'] = hasUnreadMessages;
+    }
+
+    if (lastMessageTs != null) {
+      result['lastMessageTs'] = lastMessageTs;
+    }
+
+    if (subject != null) {
+      result['subject'] = subject;
     }
 
     return result;
@@ -202,6 +299,14 @@ class ConversationPredicate {
       return false;
     }
 
+    if (lastMessageTs != other.lastMessageTs) {
+      return false;
+    }
+
+    if (subject != other.subject) {
+      return false;
+    }
+
     return true;
   }
 
@@ -210,6 +315,8 @@ class ConversationPredicate {
     (custom != null ? Object.hashAll(custom!.keys) : custom),
     (custom != null ? Object.hashAll(custom!.values) : custom),
     hasUnreadMessages,
+    lastMessageTs,
+    subject,
   );
 }
 

@@ -31,6 +31,8 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+        subject: FieldPredicate.equals(null),
       ) == ConversationPredicate(
         access: FieldPredicate.notEquals(ConversationAccessLevel.none),
         custom: {
@@ -39,6 +41,8 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+        subject: FieldPredicate.equals(null),
       )
     , true);
   });
@@ -120,6 +124,10 @@ void main() {
     expect(CustomFieldPredicate.of(CustomFieldPredicate.oneOf(['it', 'fr'])) == CustomFieldPredicate.oneOf(['it', 'fr']), true);
   });
 
+  test('test NumberPredicate.of', () {
+    expect(NumberPredicate.of(NumberPredicate.notBetween([100, 300])) == NumberPredicate.notBetween([100, 300]), true);
+  });
+
   test('test ConversationPredicate of', () {
     expect(
       ConversationPredicate.of(ConversationPredicate(
@@ -130,6 +138,8 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+        subject: FieldPredicate.notEquals('Pink shoes'),
       )) == ConversationPredicate(
         access: FieldPredicate.notEquals(ConversationAccessLevel.none),
         custom: {
@@ -138,6 +148,8 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+        subject: FieldPredicate.notEquals('Pink shoes'),
       )
     , true);
   });
@@ -218,8 +230,10 @@ void main() {
           'visibility': CustomFieldPredicate.equals('visible'),
         },
         hasUnreadMessages: false,
+        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+        subject: FieldPredicate.oneOf(['Pink shoes', null]),
       )),
-      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false}'
+      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0],"subject":["oneOf",["Pink shoes",null]]}'
     );
   });
 
