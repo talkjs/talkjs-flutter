@@ -239,27 +239,23 @@ class ChatBoxState extends State<ChatBox> {
       },
       shouldOverrideUrlLoading: (InAppWebViewController controller, NavigationAction navigationAction) async {
         if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
-          var shouldOpenBrowser = true;
-
           if (widget.onUrlNavigation != null) {
             // The onUrlNavigation function has been defined, so let's see if we should open the browser or not
             if (widget.onUrlNavigation!(UrlNavigationRequest(navigationAction.request.url!.rawValue)) == UrlNavigationAction.deny) {
-              shouldOpenBrowser = false;
+              return NavigationActionPolicy.CANCEL;
             }
           }
 
-          if (shouldOpenBrowser) {
-            if (await launchUrl(navigationAction.request.url!)) {
-              // We launched the browser, so we don't navigate to the URL in the WebView
-              return NavigationActionPolicy.CANCEL;
-            } else {
-              // We couldn't launch the external browser, so as a fallback we're using the default action
-              return NavigationActionPolicy.ALLOW;
-            }
+          if (await launchUrl(navigationAction.request.url!)) {
+            // We launched the browser, so we don't navigate to the URL in the WebView
+            return NavigationActionPolicy.CANCEL;
+          } else {
+            // We couldn't launch the external browser, so as a fallback we're using the default action
+            return NavigationActionPolicy.ALLOW;
           }
         }
 
-        return NavigationActionPolicy.CANCEL;
+        return NavigationActionPolicy.ALLOW;
       },
     );
   }
