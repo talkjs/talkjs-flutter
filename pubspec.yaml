@@ -19,7 +19,7 @@ dependencies:
   crypto: ^3.0.2
   firebase_core: ^2.4.1
   firebase_messaging: ^14.2.1
-  flutter_local_notifications: ^13.0.0
+  flutter_local_notifications: ^14.0.0-dev.2
   http: ^0.13.5
   flutter_apns_only: ^1.6.0
   permission_handler: ^10.2.0

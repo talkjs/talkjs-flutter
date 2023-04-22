@@ -170,26 +170,26 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_local_notifications
-      sha256: "293995f94e120c8afce768981bd1fa9c5d6de67c547568e3b42ae2defdcbb4a0"
+      sha256: "1de5bde26d5022d989caa86ead8bde9ead07bc1fc794e952862c65aa8fabb875"
       url: "https://pub.dev"
     source: hosted
-    version: "13.0.0"
+    version: "14.0.0-dev.5"
   flutter_local_notifications_linux:
     dependency: transitive
     description:
       name: flutter_local_notifications_linux
-      sha256: "8f6c1611e0c4a88a382691a97bb3c3feb24cc0c0b54152b8b5fb7ffb837f7fbf"
+      sha256: e817ffb303ea04a6374d81a908f4842dea8c107a093ad5b2c65f19efcf4fe66a
       url: "https://pub.dev"
     source: hosted
-    version: "3.0.0"
+    version: "4.0.0-dev.2"
   flutter_local_notifications_platform_interface:
     dependency: transitive
     description:
       name: flutter_local_notifications_platform_interface
-      sha256: "5ec1feac5f7f7d9266759488bc5f76416152baba9aa1b26fe572246caa00d1ab"
+      sha256: d7d999056d6172b559907659d02ffa6ae2eff04501c1a84db6c25d155dcc918a
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.0"
+    version: "7.0.0-dev.3"
   flutter_test:
     dependency: "direct dev"
     description: flutter
