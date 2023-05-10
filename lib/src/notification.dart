@@ -152,10 +152,11 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   }
 
   // onBackgroundMessage runs on a separate isolate, so we're passing the message to the main isolate
-  IsolateNameServer.lookupPortByName('talkjsFCMPort')?.send(firebaseMessage);
+  IsolateNameServer.lookupPortByName('talkjsFCMPort')?.send(firebaseMessage.toMap());
 }
 
-Future<void> _onReceiveMessageFromPort(RemoteMessage firebaseMessage) async {
+Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) async {
+  final firebaseMessage = RemoteMessage.fromMap(firebaseMessageMap);
   print("📘 _onReceiveMessageFromPort: ${firebaseMessage.messageId}");
 
   final data = firebaseMessage.data;
