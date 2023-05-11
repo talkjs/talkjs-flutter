@@ -7,9 +7,9 @@ Official TalkJS SDK for Flutter
 TalkJS lets you add user-to-user chat to your marketplace, on-demand app, or
 social platform.
 For more information, visit
-[talkjs.com](https://talkjs.com/?ref=jssdk-npm-readme).
+[talkjs.com](https://talkjs.com/?ref=flutter-pub-readme).
 
-![Screenshots of TalkJS running on various devices](https://talkjs.com/images/devices_home.jpg)
+![Screenshots of TalkJS running on various devices](https://talkjs.com/images/talkjs_header.png?v=060423-1)
 
 Don't hesitate to
 [let us know](https://talkjs.com/?chat)
