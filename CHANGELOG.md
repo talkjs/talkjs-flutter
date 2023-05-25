@@ -1,3 +1,6 @@
+## 0.8.1
+- Updated Firebase dependencies versions
+
 ## 0.8.0
 - Add `lastMessageTs` and `subject` feedFilters.
 - Re-enable support for `onUrlNavigation` callback on the ChatBox.
