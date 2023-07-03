@@ -85,39 +85,43 @@ class User extends _BaseUser {
     String? role,
     Map<String, String?>? custom,
     String? welcomeMessage,
-  })
-    : _session = session,
-    _idOnly = false,
-    super(
-      id: id,
-      name: name,
-      email: email,
-      phone: phone,
-      availabilityText: availabilityText,
-      locale: locale,
-      photoUrl: photoUrl,
-      role: role,
-      custom: custom,
-      welcomeMessage: welcomeMessage,
-    );
+  })  : _session = session,
+        _idOnly = false,
+        super(
+          id: id,
+          name: name,
+          email: email,
+          phone: phone,
+          availabilityText: availabilityText,
+          locale: locale,
+          photoUrl: photoUrl,
+          role: role,
+          custom: custom,
+          welcomeMessage: welcomeMessage,
+        );
 
-  const User.fromId(String id, Session session) : _session = session, _idOnly = true, super(id: id, name: '');
+  const User.fromId(String id, Session session)
+      : _session = session,
+        _idOnly = true,
+        super(id: id, name: '');
 
   User.of(User other)
-    : _session = other._session,
-    _idOnly = other._idOnly,
-    super(
-      id: other.id,
-      name: other.name,
-      email: (other.email != null ? List<String>.of(other.email!) : null),
-      phone: (other.phone != null ? List<String>.of(other.phone!) : null),
-      availabilityText: other.availabilityText,
-      locale: other.locale,
-      photoUrl: other.photoUrl,
-      role: other.role,
-      custom: (other.custom != null ? Map<String, String?>.of(other.custom!) : null),
-      welcomeMessage: other.welcomeMessage,
-    );
+      : _session = other._session,
+        _idOnly = other._idOnly,
+        super(
+          id: other.id,
+          name: other.name,
+          email: (other.email != null ? List<String>.of(other.email!) : null),
+          phone: (other.phone != null ? List<String>.of(other.phone!) : null),
+          availabilityText: other.availabilityText,
+          locale: other.locale,
+          photoUrl: other.photoUrl,
+          role: other.role,
+          custom: (other.custom != null
+              ? Map<String, String?>.of(other.custom!)
+              : null),
+          welcomeMessage: other.welcomeMessage,
+        );
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -232,34 +236,44 @@ class User extends _BaseUser {
   }
 
   int get hashCode => Object.hash(
-    _session,
-    _idOnly,
-    availabilityText,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
-    (email != null ? Object.hashAll(email!) : email),
-    (phone != null ? Object.hashAll(phone!) : phone),
-    id,
-    name,
-    locale,
-    photoUrl,
-    role,
-    welcomeMessage,
-  );
+        _session,
+        _idOnly,
+        availabilityText,
+        (custom != null ? Object.hashAll(custom!.keys) : custom),
+        (custom != null ? Object.hashAll(custom!.values) : custom),
+        (email != null ? Object.hashAll(email!) : email),
+        (phone != null ? Object.hashAll(phone!) : phone),
+        id,
+        name,
+        locale,
+        photoUrl,
+        role,
+        welcomeMessage,
+      );
 }
 
 class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
-    : super(availabilityText: json['availabilityText'],
-      custom: (json['custom'] != null ? Map<String, String?>.from(json['custom']) : null),
-      email: (json['email'] != null ? (json['email'] is String ? <String>[json['email']] : List<String>.from(json['email'])) : null),
-      phone: (json['phone'] != null ? (json['phone'] is String ? <String>[json['phone']] : List<String>.from(json['phone'])) : null),
-      id: json['id'],
-      name: json['name'],
-      locale: json['locale'],
-      photoUrl: json['photoUrl'],
-      role: json['role'],
-      welcomeMessage: json['welcomeMessage'],
-    );
+      : super(
+          availabilityText: json['availabilityText'],
+          custom: (json['custom'] != null
+              ? Map<String, String?>.from(json['custom'])
+              : null),
+          email: (json['email'] != null
+              ? (json['email'] is String
+                  ? <String>[json['email']]
+                  : List<String>.from(json['email']))
+              : null),
+          phone: (json['phone'] != null
+              ? (json['phone'] is String
+                  ? <String>[json['phone']]
+                  : List<String>.from(json['phone']))
+              : null),
+          id: json['id'],
+          name: json['name'],
+          locale: json['locale'],
+          photoUrl: json['photoUrl'],
+          role: json['role'],
+          welcomeMessage: json['welcomeMessage'],
+        );
 }
-

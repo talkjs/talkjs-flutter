@@ -1,0 +1,24 @@
+{
+  "name": "talkjs-flutter",
+  "version": "1.0.0",
+  "description": "Official TalkJS SDK for Flutter",
+  "main": "index.js",
+  "directories": {
+    "example": "example",
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
+  },
+  "author": "",
+  "license": "ISC",
+  "lint-staged": {
+    "*.dart": "dart format"
+  },
+  "devDependencies": {
+    "husky": "^8.0.3",
+    "lint-staged": "^13.2.3"
+  }
+}

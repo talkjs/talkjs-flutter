@@ -21,7 +21,8 @@ class Session with ChangeNotifier {
 
   set me(User user) {
     if (_me != null) {
-      throw StateError('The me property has already been set for the Session object');
+      throw StateError(
+          'The me property has already been set for the Session object');
     } else {
       _me = user;
     }
@@ -37,7 +38,10 @@ class Session with ChangeNotifier {
 
   final bool enablePushNotifications;
 
-  Session({required this.appId, this.signature, this.enablePushNotifications = false});
+  Session(
+      {required this.appId,
+      this.signature,
+      this.enablePushNotifications = false});
 
   User getUser({
     required String id,
@@ -50,19 +54,20 @@ class Session with ChangeNotifier {
     String? role,
     Map<String, String?>? custom,
     String? welcomeMessage,
-  }) => User(
-    session: this,
-    id: id,
-    name: name,
-    email: email,
-    phone: phone,
-    availabilityText: availabilityText,
-    locale: locale,
-    photoUrl: photoUrl,
-    role: role,
-    custom: custom,
-    welcomeMessage: welcomeMessage,
-  );
+  }) =>
+      User(
+        session: this,
+        id: id,
+        name: name,
+        email: email,
+        phone: phone,
+        availabilityText: availabilityText,
+        locale: locale,
+        photoUrl: photoUrl,
+        role: role,
+        custom: custom,
+        welcomeMessage: welcomeMessage,
+      );
 
   User getUserById(String id) => User.fromId(id, this);
 
@@ -73,14 +78,14 @@ class Session with ChangeNotifier {
     String? photoUrl,
     String? subject,
     Set<Participant> participants = const <Participant>{},
-  }) => Conversation(
-    session: this,
-    id: id,
-    custom: custom,
-    welcomeMessages: welcomeMessages,
-    photoUrl: photoUrl,
-    subject: subject,
-    participants: participants,
-  );
+  }) =>
+      Conversation(
+        session: this,
+        id: id,
+        custom: custom,
+        welcomeMessages: welcomeMessages,
+        photoUrl: photoUrl,
+        subject: subject,
+        participants: participants,
+      );
 }
-

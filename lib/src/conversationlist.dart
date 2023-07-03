@@ -16,7 +16,8 @@ import './predicate.dart';
 import './chatbox.dart';
 import './webview_common.dart';
 
-typedef SelectConversationHandler = void Function(SelectConversationEvent event);
+typedef SelectConversationHandler = void Function(
+    SelectConversationEvent event);
 
 class SelectConversationEvent {
   final ConversationData conversation;
@@ -24,9 +25,11 @@ class SelectConversationEvent {
   final List<UserData> others;
 
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
-    : conversation = ConversationData.fromJson(json['conversation']),
-    me = UserData.fromJson(json['me']),
-    others = json['others'].map<UserData>((user) => UserData.fromJson(user)).toList();
+      : conversation = ConversationData.fromJson(json['conversation']),
+        me = UserData.fromJson(json['me']),
+        others = json['others']
+            .map<UserData>((user) => UserData.fromJson(user))
+            .toList();
 }
 
 class ConversationListOptions {
@@ -136,11 +139,15 @@ class ConversationListState extends State<ConversationList> {
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
 
-      createSession(execute: execute, session: widget.session, variableName: getUserVariableName(widget.session.me));
+      createSession(
+          execute: execute,
+          session: widget.session,
+          variableName: getUserVariableName(widget.session.me));
       _createConversationList();
       // feedFilter is set as an option for the inbox
 
-      execute('conversationList.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
+      execute(
+          'conversationList.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -157,7 +164,8 @@ class ConversationListState extends State<ConversationList> {
       ),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
-      onConsoleMessage: (InAppWebViewController controller, ConsoleMessage message) {
+      onConsoleMessage:
+          (InAppWebViewController controller, ConsoleMessage message) {
         print("conversationlist [${message.messageLevel}] ${message.message}");
       },
       gestureRecognizers: {
@@ -175,7 +183,8 @@ class ConversationListState extends State<ConversationList> {
 
     _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
 
-    execute('const conversationList = session.createInbox(${options.getJsonString(this)});');
+    execute(
+        'const conversationList = session.createInbox(${options.getJsonString(this)});');
 
     execute('''conversationList.onSelectConversation((event) => {
       event.preventDefault();
@@ -184,9 +193,9 @@ class ConversationListState extends State<ConversationList> {
   }
 
   void _setFeedFilter() {
-      _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
+    _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
 
-      execute('conversationList.setFeedFilter(${json.encode(_oldFeedFilter)});');
+    execute('conversationList.setFeedFilter(${json.encode(_oldFeedFilter)});');
   }
 
   bool _checkFeedFilter() {
@@ -204,11 +213,15 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._onWebViewCreated');
     }
 
-    controller.addJavaScriptHandler(handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
-    controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    controller.addJavaScriptHandler(
+        handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
+    controller.addJavaScriptHandler(
+        handlerName: 'JSCLoadingState', callback: _jscLoadingState);
 
-    String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
-    controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
+    String htmlData = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/index.html');
+    controller.loadData(
+        data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
   }
 
   void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
@@ -246,7 +259,8 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._jscSelectConversation: $message');
     }
 
-    widget.onSelectConversation?.call(SelectConversationEvent.fromJson(json.decode(message)));
+    widget.onSelectConversation
+        ?.call(SelectConversationEvent.fromJson(json.decode(message)));
   }
 
   void _jscLoadingState(List<dynamic> arguments) {
@@ -320,4 +334,3 @@ class ConversationListState extends State<ConversationList> {
     execute('conversationList.destroy();');
   }
 }
-
