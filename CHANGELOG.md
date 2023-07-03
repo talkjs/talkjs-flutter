@@ -1,3 +1,11 @@
+## 0.8.1
+- Updated Firebase dependencies versions
+
+## 0.8.0
+- Add `lastMessageTs` and `subject` feedFilters.
+- Re-enable support for `onUrlNavigation` callback on the ChatBox.
+- Fix push notifications not working on Android in Flutter v3.3.0 and later.
+
 ## 0.7.0
 
 - BREAKING CHANGE: To ensure that file uploads work correctly, you'll need to update your
