@@ -1,17 +1,15 @@
-import 'dart:io' show Platform;
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:talkjs_flutter/talkjs_flutter.dart';
-import 'package:firebase_core/firebase_core.dart';
+
 import 'firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isAndroid) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await Talk.registerPushNotificationHandlers(
     androidChannel: const AndroidChannel(
@@ -34,7 +32,8 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    final session = Session(appId: 'YOUR_APP_ID', enablePushNotifications: true);
+    final session =
+        Session(appId: 'YOUR_APP_ID', enablePushNotifications: true);
 
     final me = session.getUser(
       id: '123456',
