@@ -1,19 +1,22 @@
+import 'dart:convert';
 import 'dart:core';
+import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:ui';
-import 'dart:convert';
-import 'dart:isolate';
-import 'package:flutter/services.dart';
+
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_apns_only/flutter_apns_only.dart';
+// import 'package:flutter_apns_only/flutter_apns_only.dart';
 
 enum AndroidVisibility {
   /// Show the notification on all lockscreens, but conceal sensitive or private information on secure lockscreens.
   PRIVATE,
+
   /// Show this notification in its entirety on all lockscreens.
   PUBLIC,
+
   /// Do not reveal any part of this notification on a secure lockscreen.
   ///
   /// Useful for notifications showing sensitive information such as banking apps.
@@ -98,9 +101,10 @@ class IOSPermissions {
 }
 
 String? fcmToken;
-String? apnsToken;
+// String? apnsToken;
 
-final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
 AndroidChannel? _androidChannel;
 final _activeNotifications = <String, List<String>>{};
 int _nextId = 0;
@@ -148,7 +152,8 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   print('📘 Message data: ${firebaseMessage.data}');
 
   if (firebaseMessage.notification != null) {
-    print('📘 Message also contained a notification: ${firebaseMessage.notification}');
+    print(
+        '📘 Message also contained a notification: ${firebaseMessage.notification}');
   }
 
   // onBackgroundMessage runs on a separate isolate, so we're passing the message to the main isolate
@@ -175,7 +180,8 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
 
     showId = _showIdFromNotificationId[notificationId]!;
 
-    final timestamp = DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
+    final timestamp =
+        DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
 
     final activeNotifications = _activeNotifications[notificationId];
 
@@ -201,7 +207,8 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
           Person(
             name: 'me',
           ),
-          groupConversation: talkjsData['conversation']['participants'].length > 2,
+          groupConversation:
+              talkjsData['conversation']['participants'].length > 2,
           messages: [
             Message(
               talkjsData['message']['text'],
@@ -220,8 +227,10 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
       activeNotifications.add(data['talkjs']);
       final messages = <Message>[];
       for (final talkjsString in activeNotifications) {
-        final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
-        final messageTimestamp = DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
+        final Map<String, dynamic> messageTalkjsData =
+            json.decode(talkjsString);
+        final messageTimestamp =
+            DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
         final messageSender = talkjsData['sender'];
 
         messages.add(
@@ -241,7 +250,8 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
         Person(
           name: 'me',
         ),
-        groupConversation: talkjsData['conversation']['participants'].length > 2,
+        groupConversation:
+            talkjsData['conversation']['participants'].length > 2,
         messages: messages,
       );
     }
@@ -267,7 +277,8 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
       _androidChannel!.channelId,
       _androidChannel!.channelName,
       channelDescription: _androidChannel!.channelDescription,
-      importance: _androidChannel!.importance?.toLocalNotification() ?? Importance.high,
+      importance:
+          _androidChannel!.importance?.toLocalNotification() ?? Importance.high,
       playSound: playSound,
       sound: sound,
       enableVibration: _androidChannel!.vibrate ?? true,
@@ -281,8 +292,8 @@ Future<void> _onReceiveMessageFromPort(Map<String, dynamic> firebaseMessageMap) 
   );
 
   await _flutterLocalNotificationsPlugin.show(
-    showId,  // id
-    data['title'],  // title
+    showId, // id
+    data['title'], // title
     data['message'], // body
     platformChannelSpecifics, // notificationDetails
     payload: data['talkjs'],
@@ -310,7 +321,8 @@ void _onFCMTokenRefresh(String token) {
   // TODO: Update the token on the Talkjs server once we have the data layer SDK ready
 }
 
-Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChannel) async {
+Future<void> registerAndroidPushNotificationHandlers(
+    AndroidChannel androidChannel) async {
   // Get the token each time the application loads
   fcmToken = await FirebaseMessaging.instance.getToken();
   print('📘 Firebase token: $fcmToken');
@@ -329,74 +341,114 @@ Future<void> registerAndroidPushNotificationHandlers(AndroidChannel androidChann
 
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
-      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-      ?.getActiveNotifications();
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.getActiveNotifications();
 
-      if (activeNotifications != null) {
-        for (final displayedNotification in activeNotifications) {
-          if (displayedNotification.payload != null) {
-            final Map<String, dynamic> talkjsData = json.decode(displayedNotification.payload!);
+    if (activeNotifications != null) {
+      for (final displayedNotification in activeNotifications) {
+        if (displayedNotification.payload != null) {
+          final Map<String, dynamic> talkjsData =
+              json.decode(displayedNotification.payload!);
 
-            if ((talkjsData['conversation'] != null) && (talkjsData['conversation']['id'] != null)) {
-              print('📘 Existing notification: ${displayedNotification.payload}');
-              final String notificationId = talkjsData['conversation']['id'];
+          if ((talkjsData['conversation'] != null) &&
+              (talkjsData['conversation']['id'] != null)) {
+            print('📘 Existing notification: ${displayedNotification.payload}');
+            final String notificationId = talkjsData['conversation']['id'];
 
-              if (!_showIdFromNotificationId.containsKey(notificationId)) {
-                _showIdFromNotificationId[notificationId] = _nextId;
-                _nextId += 1;
-              }
+            if (!_showIdFromNotificationId.containsKey(notificationId)) {
+              _showIdFromNotificationId[notificationId] = _nextId;
+              _nextId += 1;
+            }
 
-              if (_activeNotifications[notificationId] == null) {
-                _activeNotifications[notificationId] = [displayedNotification.payload!];
-              } else {
-                _activeNotifications[notificationId]!.add(displayedNotification.payload!);
-              }
+            if (_activeNotifications[notificationId] == null) {
+              _activeNotifications[notificationId] = [
+                displayedNotification.payload!
+              ];
+            } else {
+              _activeNotifications[notificationId]!
+                  .add(displayedNotification.payload!);
             }
           }
         }
       }
+    }
   } on PlatformException {
     // PlatformException is raised on Android < 6.0
     // Simply ignoring this part
   }
 
-  IsolateNameServer.registerPortWithName(_receivePort.sendPort, 'talkjsFCMPort');
-  _receivePort.listen((message) async => await _onReceiveMessageFromPort(message));
+  IsolateNameServer.registerPortWithName(
+      _receivePort.sendPort, 'talkjsFCMPort');
+  _receivePort
+      .listen((message) async => await _onReceiveMessageFromPort(message));
 
   FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
 }
 
-Future<void> _onPush(String name, ApnsRemoteMessage message) async {
-  final payload = message.payload;
-  print('📘 _onPush $name: ${payload["notification"]?["title"]}');
+Future<void> registerIOSPushNotificationHandlers(
+    IOSPermissions iosPermissions) async {
+  fcmToken = await FirebaseMessaging.instance.getToken();
+  print('📘 Firebase token: $fcmToken');
+  // Get the token each time the application loads
 
-  final action = UNNotificationAction.getIdentifier(payload['data']);
+  // Update the token each time it refreshes
+  FirebaseMessaging.instance.onTokenRefresh.listen(_onFCMTokenRefresh);
 
-  if (action != null && action != UNNotificationAction.defaultIdentifier) {
-    print('📘 _onPush action: $action');
-  }
-}
-
-Future<void> registerIOSPushNotificationHandlers(IOSPermissions iosPermissions) async {
-  final connector = ApnsPushConnectorOnly();
-
-  connector.configureApns(
-    onLaunch: (data) => _onPush('onLaunch', data),
-    onResume: (data) => _onPush('onResume', data),
-    onMessage: (data) => _onPush('onMessage', data),
-    onBackgroundMessage: (data) => _onPush('onBackgroundMessage', data),
+  await _flutterLocalNotificationsPlugin.initialize(
+    InitializationSettings(
+      iOS: DarwinInitializationSettings(
+        requestSoundPermission: iosPermissions.sound,
+        requestAlertPermission: iosPermissions.alert,
+        requestBadgePermission: iosPermissions.badge,
+      ),
+    ),
+    onDidReceiveNotificationResponse: _onSelectNotification,
   );
 
-  connector.token.addListener(() {
-    print('📘 apns token refresh: ${connector.token.value}');
+  try {
+    final activeNotifications = await _flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.getActiveNotifications();
 
-    apnsToken = connector.token.value;
-  });
+    if (activeNotifications != null) {
+      for (final displayedNotification in activeNotifications) {
+        if (displayedNotification.payload != null) {
+          final Map<String, dynamic> talkjsData =
+              json.decode(displayedNotification.payload!);
 
-  connector.requestNotificationPermissions(IosNotificationSettings(
-    sound: iosPermissions.sound,
-    alert: iosPermissions.alert,
-    badge: iosPermissions.badge,
-  ));
+          if ((talkjsData['conversation'] != null) &&
+              (talkjsData['conversation']['id'] != null)) {
+            print('📘 Existing notification: ${displayedNotification.payload}');
+            final String notificationId = talkjsData['conversation']['id'];
+
+            if (!_showIdFromNotificationId.containsKey(notificationId)) {
+              _showIdFromNotificationId[notificationId] = _nextId;
+              _nextId += 1;
+            }
+
+            if (_activeNotifications[notificationId] == null) {
+              _activeNotifications[notificationId] = [
+                displayedNotification.payload!
+              ];
+            } else {
+              _activeNotifications[notificationId]!
+                  .add(displayedNotification.payload!);
+            }
+          }
+        }
+      }
+    }
+  } on PlatformException {
+    // PlatformException is raised on Android < 6.0
+    // Simply ignoring this part
+  }
+
+  IsolateNameServer.registerPortWithName(
+      _receivePort.sendPort, 'talkjsFCMPort');
+  _receivePort
+      .listen((message) async => await _onReceiveMessageFromPort(message));
+
+  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
 }
-
