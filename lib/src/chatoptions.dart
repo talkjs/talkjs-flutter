@@ -42,9 +42,12 @@ class MessageFieldOptions {
   /// Defaults to false
   final bool? spellcheck;
 
-  /// TODO: visible
+  /// This makes the Message Field visible
+  /// 
+  /// Defaults to true
+  final bool visible;
 
-  const MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck});
+  const MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck, this.visible = true});
 
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
@@ -68,6 +71,8 @@ class MessageFieldOptions {
     if (autofocus != null) {
       result['spellcheck'] = spellcheck;
     }
+
+    result['visible'] = visible;
 
     return result;
   }
@@ -97,10 +102,14 @@ class MessageFieldOptions {
       return false;
     }
 
+    if (visible != other.visible) {
+      return false;
+    }
+
     return true;
   }
 
-  int get hashCode => Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck);
+  int get hashCode => Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck, visible);
 }
 
 /// The possible values for showTranslationToggle
