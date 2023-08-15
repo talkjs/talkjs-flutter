@@ -23,6 +23,7 @@ typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
+typedef ConversationActionHandler = void Function(ConversationActionEvent event);
 typedef NavigationHandler = UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
 
 class SendMessageEvent {
@@ -54,6 +55,15 @@ class MessageActionEvent {
   MessageActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
     message = Message.fromJson(json['message']);
+}
+
+class ConversationActionEvent {
+  final String action;
+  final ConversationData conversationData;
+
+  ConversationActionEvent.fromJson(Map<String, dynamic> json)
+      : action = json['action'],
+        conversationData = ConversationData.fromJson(json['conversation']);
 }
 
 class UrlNavigationRequest {
@@ -89,6 +99,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final Map<String, ConversationActionHandler>? onCustomConversationAction;
   final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
@@ -108,6 +119,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.onCustomConversationAction,
     this.onUrlNavigation,
   }) : super(key: key);
 
@@ -282,6 +294,15 @@ class ChatBoxState extends State<ChatBox> {
       _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
       for (var action in _oldCustomActions) {
         execute('chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
+      }
+    } else {
+      _oldCustomActions = {};
+    }
+
+    if (widget.onCustomConversationAction != null) {
+      _oldCustomActions = Set<String>.of(widget.onCustomConversationAction!.keys);
+      for (var action in _oldCustomActions) {
+        execute('chatBox.onCustomConversationAction("$action", customConversationActionHandler);');
       }
     } else {
       _oldCustomActions = {};
@@ -485,6 +506,19 @@ class ChatBoxState extends State<ChatBox> {
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
+  }
+
+  void _jscCustomConversationAction(List<dynamic> arguments) {
+    final conversationData = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscCustomConversationAction: $conversationData');
+    }
+
+    Map<String, dynamic> jsonConversationData = json.decode(conversationData);
+    String action = jsonConversationData['action'];
+
+    widget.onCustomConversationAction?[action]?.call(ConversationActionEvent.fromJson(jsonConversationData));
   }
 
   /// For internal use only. Implementation detail that may change anytime.
