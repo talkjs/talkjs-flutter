@@ -210,7 +210,8 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
         _createConversation();
       } else {
-        _checkActionHandlers();
+        _checkMessageActionHandlers();
+        _checkConversationActionHandlers();
         _checkMessageFilter();
         _checkHighlightedWords();
         _checkRecreateConversation();
@@ -336,16 +337,16 @@ class ChatBoxState extends State<ChatBox> {
     }
   }
 
-  bool _checkActionHandlers() {
+  bool _checkMessageActionHandlers() {
     // If there are no handlers specified, then we don't need to create new handlers
-    if (widget.onCustomMessageAction == null && widget.onCustomConversationAction == null) {
+    if (widget.onCustomMessageAction == null) {
       return false;
     }
 
     var customActions = Set<String>.of(widget.onCustomMessageAction!.keys);
-    var retval = false;
 
     if (!setEquals(customActions, _oldCustomMessageActions)) {
+      var retval = false;
 
       // Register only the new event handlers
       //
@@ -361,17 +362,28 @@ class ChatBoxState extends State<ChatBox> {
           retval = true;
         }
       }
-
       return retval;
+    } else {
+      return false;
+    }
+  }
+
+  bool _checkConversationActionHandlers() {
+    // If there are no handlers specified, then we don't need to create new handlers
+    if (widget.onCustomConversationAction == null) {
+      return false;
     }
 
+    var customActions = Set<String>.of(widget.onCustomConversationAction!.keys);
+
     if (!setEquals(customActions, _oldCustomConversationActions)) {
+      var retval = false;
 
       // Register only the new event handlers
       //
       // Possible memory leak: old event handlers are not getting unregistered
       // This should not be a big problem in practice, as it is *very* rare that
-      // custom message handlers are being constantly changed
+      // custom conversation handlers are being constantly changed
       for (var action in customActions) {
         if (!_oldCustomConversationActions.contains(action)) {
           _oldCustomConversationActions.add(action);
@@ -381,11 +393,10 @@ class ChatBoxState extends State<ChatBox> {
           retval = true;
         }
       }
-
       return retval;
+    } else {
+      return false;
     }
-
-    return retval;
   }
 
   void _createConversation() {
