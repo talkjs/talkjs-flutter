@@ -23,6 +23,7 @@ typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler = void Function(TranslationToggledEvent event);
 typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
+typedef ConversationActionHandler = void Function(ConversationActionEvent event);
 typedef NavigationHandler = UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
 
 class SendMessageEvent {
@@ -54,6 +55,15 @@ class MessageActionEvent {
   MessageActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
     message = Message.fromJson(json['message']);
+}
+
+class ConversationActionEvent {
+  final String action;
+  final ConversationData conversationData;
+
+  ConversationActionEvent.fromJson(Map<String, dynamic> json)
+      : action = json['action'],
+        conversationData = ConversationData.fromJson(json['conversation']);
 }
 
 class UrlNavigationRequest {
@@ -89,6 +99,7 @@ class ChatBox extends StatefulWidget {
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
   final Map<String, MessageActionHandler>? onCustomMessageAction;
+  final Map<String, ConversationActionHandler>? onCustomConversationAction;
   final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
@@ -108,6 +119,7 @@ class ChatBox extends StatefulWidget {
     this.onTranslationToggled,
     this.onLoadingStateChanged,
     this.onCustomMessageAction,
+    this.onCustomConversationAction,
     this.onUrlNavigation,
   }) : super(key: key);
 
@@ -146,7 +158,8 @@ class ChatBoxState extends State<ChatBox> {
   MessagePredicate _oldMessageFilter = const MessagePredicate();
   bool? _oldAsGuest;
   Conversation? _oldConversation;
-  Set<String> _oldCustomActions = {};
+  Set<String> _oldCustomMessageActions = {};
+  Set<String> _oldCustomConversationActions = {};
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +186,12 @@ class ChatBoxState extends State<ChatBox> {
         }
       ''');
 
+      execute('''
+        function customConversationActionHandler(event) {
+          window.flutter_inappwebview.callHandler("JSCCustomConversationAction", JSON.stringify(event));
+        }
+      ''');
+
       createSession(execute: execute, session: widget.session, variableName: getUserVariableName(widget.session.me));
       _createChatBox();
       // messageFilter and highlightedWords are set as options for the chatbox
@@ -191,7 +210,8 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
         _createConversation();
       } else {
-        _checkActionHandlers();
+        _checkMessageActionHandlers();
+        _checkConversationActionHandlers();
         _checkMessageFilter();
         _checkHighlightedWords();
         _checkRecreateConversation();
@@ -279,12 +299,21 @@ class ChatBoxState extends State<ChatBox> {
     execute('chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));');
 
     if (widget.onCustomMessageAction != null) {
-      _oldCustomActions = Set<String>.of(widget.onCustomMessageAction!.keys);
-      for (var action in _oldCustomActions) {
+      _oldCustomMessageActions = Set<String>.of(widget.onCustomMessageAction!.keys);
+      for (var action in _oldCustomMessageActions) {
         execute('chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
       }
     } else {
-      _oldCustomActions = {};
+      _oldCustomMessageActions = {};
+    }
+
+    if (widget.onCustomConversationAction != null) {
+      _oldCustomConversationActions = Set<String>.of(widget.onCustomConversationAction!.keys);
+      for (var action in _oldCustomConversationActions) {
+        execute('chatBox.onCustomConversationAction("$action", customConversationActionHandler);');
+      }
+    } else {
+      _oldCustomConversationActions = {};
     }
   }
 
@@ -308,7 +337,7 @@ class ChatBoxState extends State<ChatBox> {
     }
   }
 
-  bool _checkActionHandlers() {
+  bool _checkMessageActionHandlers() {
     // If there are no handlers specified, then we don't need to create new handlers
     if (widget.onCustomMessageAction == null) {
       return false;
@@ -316,7 +345,7 @@ class ChatBoxState extends State<ChatBox> {
 
     var customActions = Set<String>.of(widget.onCustomMessageAction!.keys);
 
-    if (!setEquals(customActions, _oldCustomActions)) {
+    if (!setEquals(customActions, _oldCustomMessageActions)) {
       var retval = false;
 
       // Register only the new event handlers
@@ -325,15 +354,45 @@ class ChatBoxState extends State<ChatBox> {
       // This should not be a big problem in practice, as it is *very* rare that
       // custom message handlers are being constantly changed
       for (var action in customActions) {
-        if (!_oldCustomActions.contains(action)) {
-          _oldCustomActions.add(action);
+        if (!_oldCustomMessageActions.contains(action)) {
+          _oldCustomMessageActions.add(action);
 
           execute('chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
 
           retval = true;
         }
       }
+      return retval;
+    } else {
+      return false;
+    }
+  }
 
+  bool _checkConversationActionHandlers() {
+    // If there are no handlers specified, then we don't need to create new handlers
+    if (widget.onCustomConversationAction == null) {
+      return false;
+    }
+
+    var customActions = Set<String>.of(widget.onCustomConversationAction!.keys);
+
+    if (!setEquals(customActions, _oldCustomConversationActions)) {
+      var retval = false;
+
+      // Register only the new event handlers
+      //
+      // Possible memory leak: old event handlers are not getting unregistered
+      // This should not be a big problem in practice, as it is *very* rare that
+      // custom conversation handlers are being constantly changed
+      for (var action in customActions) {
+        if (!_oldCustomConversationActions.contains(action)) {
+          _oldCustomConversationActions.add(action);
+
+          execute('chatBox.onCustomConversationAction("$action", customConversationActionHandler);');
+
+          retval = true;
+        }
+      }
       return retval;
     } else {
       return false;
@@ -411,6 +470,7 @@ class ChatBoxState extends State<ChatBox> {
     controller.addJavaScriptHandler(handlerName: 'JSCTranslationToggled', callback: _jscTranslationToggled);
     controller.addJavaScriptHandler(handlerName: 'JSCLoadingState', callback: _jscLoadingState);
     controller.addJavaScriptHandler(handlerName: 'JSCCustomMessageAction', callback: _jscCustomMessageAction);
+    controller.addJavaScriptHandler(handlerName: 'JSCCustomConversationAction', callback: _jscCustomConversationAction);
 
     String htmlData = await rootBundle.loadString('packages/talkjs_flutter/assets/index.html');
     controller.loadData(data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
@@ -485,6 +545,19 @@ class ChatBoxState extends State<ChatBox> {
     String action = jsonMessage['action'];
 
     widget.onCustomMessageAction?[action]?.call(MessageActionEvent.fromJson(jsonMessage));
+  }
+
+  void _jscCustomConversationAction(List<dynamic> arguments) {
+    final conversationData = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscCustomConversationAction: $conversationData');
+    }
+
+    Map<String, dynamic> jsonConversationData = json.decode(conversationData);
+    String action = jsonConversationData['action'];
+
+    widget.onCustomConversationAction?[action]?.call(ConversationActionEvent.fromJson(jsonConversationData));
   }
 
   /// For internal use only. Implementation detail that may change anytime.
