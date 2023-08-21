@@ -28,6 +28,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  husky: ^0.1.6
+  lint_staged: ^0.4.0
+
+lint_staged:
+  '**/*.dart': dart format && dart fix --apply
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

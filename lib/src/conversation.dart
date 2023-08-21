@@ -46,9 +46,9 @@ class Participant {
   const Participant(this.user, {this.access, this.notify});
 
   Participant.of(Participant other)
-    : user = User.of(other.user),
-    access = other.access,
-    notify = other.notify;
+      : user = User.of(other.user),
+        access = other.access,
+        notify = other.notify;
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -125,26 +125,29 @@ class Conversation extends _BaseConversation {
     String? photoUrl,
     String? subject,
     required this.participants,
-  })
-    : _session = session,
-    super(
-      id: id,
-      custom: custom,
-      welcomeMessages: welcomeMessages,
-      photoUrl: photoUrl,
-      subject: subject,
-    );
+  })  : _session = session,
+        super(
+          id: id,
+          custom: custom,
+          welcomeMessages: welcomeMessages,
+          photoUrl: photoUrl,
+          subject: subject,
+        );
 
   Conversation.of(Conversation other)
-    : _session = other._session,
-    participants = Set<Participant>.of(other.participants.map((participant) => Participant.of(participant))),
-    super(
-      id: other.id,
-      custom: (other.custom != null ? Map<String, String?>.of(other.custom!) : null),
-      welcomeMessages: (other.welcomeMessages != null ? List<String>.of(other.welcomeMessages!) : null),
-      photoUrl: other.photoUrl,
-      subject: other.subject
-    );
+      : _session = other._session,
+        participants = Set<Participant>.of(other.participants
+            .map((participant) => Participant.of(participant))),
+        super(
+            id: other.id,
+            custom: (other.custom != null
+                ? Map<String, String?>.of(other.custom!)
+                : null),
+            welcomeMessages: (other.welcomeMessages != null
+                ? List<String>.of(other.welcomeMessages!)
+                : null),
+            photoUrl: other.photoUrl,
+            subject: other.subject);
 
 /* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
   /// Sends a text message in a given conversation.
@@ -200,23 +203,29 @@ class Conversation extends _BaseConversation {
   }
 
   int get hashCode => Object.hash(
-    _session,
-    Object.hashAll(participants),
-    id,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
-    (welcomeMessages != null ? Object.hashAll(welcomeMessages!) : welcomeMessages),
-    photoUrl,
-    subject,
-  );
+        _session,
+        Object.hashAll(participants),
+        id,
+        (custom != null ? Object.hashAll(custom!.keys) : custom),
+        (custom != null ? Object.hashAll(custom!.values) : custom),
+        (welcomeMessages != null
+            ? Object.hashAll(welcomeMessages!)
+            : welcomeMessages),
+        photoUrl,
+        subject,
+      );
 }
 
 class ConversationData extends _BaseConversation {
   ConversationData.fromJson(Map<String, dynamic> json)
-    : super(id: json['id'],
-    custom: (json['custom'] != null ? Map<String, String?>.from(json['custom']) : null),
-    welcomeMessages: (json['welcomeMessages'] != null ? List<String>.from(json['welcomeMessages']) : null),
-    photoUrl: json['photoUrl'],
-    subject: json['subject']);
+      : super(
+            id: json['id'],
+            custom: (json['custom'] != null
+                ? Map<String, String?>.from(json['custom'])
+                : null),
+            welcomeMessages: (json['welcomeMessages'] != null
+                ? List<String>.from(json['welcomeMessages'])
+                : null),
+            photoUrl: json['photoUrl'],
+            subject: json['subject']);
 }
-

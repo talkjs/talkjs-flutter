@@ -6,10 +6,10 @@ import './chatbox.dart';
 enum TextDirection {
   /// right-to-left
   rtl,
+
   /// left-to-right
   ltr,
 }
-
 
 /// Settings that affect the behavior of the message field
 class MessageFieldOptions {
@@ -44,7 +44,11 @@ class MessageFieldOptions {
 
   /// TODO: visible
 
-  const MessageFieldOptions({this.autofocus, this.enterSendsMessage, this.placeholder, this.spellcheck});
+  const MessageFieldOptions(
+      {this.autofocus,
+      this.enterSendsMessage,
+      this.placeholder,
+      this.spellcheck});
 
   Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
@@ -100,7 +104,8 @@ class MessageFieldOptions {
     return true;
   }
 
-  int get hashCode => Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck);
+  int get hashCode =>
+      Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck);
 }
 
 /// The possible values for showTranslationToggle
@@ -253,12 +258,11 @@ class ChatBoxOptions {
   }
 
   int get hashCode => Object.hash(
-    dir,
-    messageField,
-    showChatHeader,
-    showTranslationToggle,
-    theme,
-    translateConversations,
-  );
+        dir,
+        messageField,
+        showChatHeader,
+        showTranslationToggle,
+        theme,
+        translateConversations,
+      );
 }
-
