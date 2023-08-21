@@ -32,7 +32,7 @@ dev_dependencies:
   lint_staged: ^0.4.0
 
 lint_staged:
-  '**/*.dart': dart format --fix && dart fix --apply
+  '**/*.dart': dart format && dart fix --apply
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
