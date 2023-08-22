@@ -91,7 +91,7 @@ class ChatBox extends StatefulWidget {
   final bool? showChatHeader;
   final TranslationToggle? showTranslationToggle;
   final String? theme;
-  final Map<String, String?>? custom;
+  final Map<String, dynamic>? custom;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords = const <String>[];
   final MessagePredicate messageFilter;

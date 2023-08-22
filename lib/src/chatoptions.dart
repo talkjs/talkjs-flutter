@@ -169,7 +169,7 @@ class ChatBoxOptions {
   /// Overrides the theme used for this chat UI.
   final String? theme;
 
-  final Map<String, String?>? custom;
+  final Map<String, dynamic>? custom;
 
   /// TODO: thirdparties
 
