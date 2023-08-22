@@ -4,7 +4,7 @@ class ThemeOptions {
   final String? theme;
   final Map<String, String?>? custom;
 
-  const ThemeOptions(this.theme, this.custom);
+  const ThemeOptions({this.theme, this.custom});
 
   String getJsonString() {
     final result = <String, dynamic>{};
