@@ -214,8 +214,7 @@ class ChatBoxOptions {
     }
 
     if (custom != null) {
-      result['theme'] =
-          ThemeOptions(theme: theme, custom: custom).getJsonString();
+      result['theme'] = ThemeOptions(name: theme, custom: custom).toJson();
     } else if (theme != null) {
       result['theme'] = theme;
     }

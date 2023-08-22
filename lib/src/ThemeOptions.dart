@@ -1,19 +1,18 @@
-import 'dart:convert';
 
 class ThemeOptions {
-  final String? theme;
-  final Map<String, String?>? custom;
+  final String? name;
+  final Map<String, dynamic>? custom;
 
-  const ThemeOptions({this.theme, this.custom});
+  const ThemeOptions({this.name, this.custom});
 
-  String getJsonString() {
+  Map<String, dynamic> toJson() {
     final result = <String, dynamic>{};
-    if (theme != null) {
-      result["theme"] = theme;
-      result["custom"] = custom;
+    if (name != null) {
+      result['name'] = name;
+      result['custom'] = custom;
     } else {
-      result["custom"] = custom;
+      result['custom'] = custom;
     }
-    return json.encode(result);
+    return result;
   }
 }
