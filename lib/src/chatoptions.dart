@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:talkjs_flutter/src/ThemeOptions.dart';
+
 import './chatbox.dart';
 
 /// The values that dictate the chat direction.
@@ -167,6 +169,8 @@ class ChatBoxOptions {
   /// Overrides the theme used for this chat UI.
   final String? theme;
 
+  final Map<String, String?>? custom;
+
   /// TODO: thirdparties
 
   /// Enables conversation translation with Google Translate.
@@ -178,6 +182,7 @@ class ChatBoxOptions {
     this.showChatHeader,
     this.showTranslationToggle,
     this.theme,
+    this.custom,
     this.translateConversations,
   });
 
@@ -208,7 +213,9 @@ class ChatBoxOptions {
       result['showTranslationToggle'] = showTranslationToggle!.getValue();
     }
 
-    if (theme != null) {
+    if (custom != null) {
+      result['theme'] = ThemeOptions(theme, custom).getJsonString();
+    } else if (theme != null) {
       result['theme'] = theme;
     }
 

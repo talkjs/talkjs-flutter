@@ -91,6 +91,7 @@ class ChatBox extends StatefulWidget {
   final bool? showChatHeader;
   final TranslationToggle? showTranslationToggle;
   final String? theme;
+  final Map<String, String?>? custom;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords = const <String>[];
   final MessagePredicate messageFilter;
@@ -113,6 +114,7 @@ class ChatBox extends StatefulWidget {
     this.showChatHeader,
     this.showTranslationToggle,
     this.theme,
+    this.custom,
     this.translateConversations,
     //this.highlightedWords = const <String>[], // Commented out due to bug #1953
     this.messageFilter = const MessagePredicate(),
@@ -307,6 +309,7 @@ class ChatBoxState extends State<ChatBox> {
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
       theme: widget.theme,
+      custom: widget.custom,
       translateConversations: widget.translateConversations,
     );
 
