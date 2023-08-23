@@ -1,4 +1,3 @@
-
 class ThemeOptions {
   final String? name;
   final Map<String, dynamic>? custom;

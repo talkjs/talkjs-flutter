@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:talkjs_flutter/src/themeoptions.dart';
 
 import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -91,7 +92,7 @@ class ChatBox extends StatefulWidget {
   final bool? showChatHeader;
   final TranslationToggle? showTranslationToggle;
   final String? theme;
-  final Map<String, dynamic>? custom;
+  final ThemeOptions? themeOptions;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords = const <String>[];
   final MessagePredicate messageFilter;
@@ -114,7 +115,7 @@ class ChatBox extends StatefulWidget {
     this.showChatHeader,
     this.showTranslationToggle,
     this.theme,
-    this.custom,
+    this.themeOptions,
     this.translateConversations,
     //this.highlightedWords = const <String>[], // Commented out due to bug #1953
     this.messageFilter = const MessagePredicate(),
@@ -309,7 +310,7 @@ class ChatBoxState extends State<ChatBox> {
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
       theme: widget.theme,
-      custom: widget.custom,
+      themeOptions: widget.themeOptions,
       translateConversations: widget.translateConversations,
     );
 
