@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+
+import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 
 import './user.dart';
 import './conversation.dart';
+import './webview_common.dart';
 
 /// A session represents a currently active user.
 class Session with ChangeNotifier {
@@ -19,12 +23,32 @@ class Session with ChangeNotifier {
     }
   }
 
+  // We have the following moving parts:
+  // - We need a `me` User before being able to create the session in the WebView
+  // - The `enablePushNotifications` property can change before the WebView is loaded
+  // - When the WebView loads or when the `me` user is passed, whichever comes last,
+  //   the session is created, and _sessionInitialized gets set to true.
+  //   At this point, any change to enablePushNotifications triggers setting or unsetting
+  //   the push notifications
+
   set me(User user) {
     if (_me != null) {
       throw StateError(
           'The me property has already been set for the Session object');
     } else {
       _me = user;
+
+      // If the WebView has loaded the page, but didn't initialize the session because of
+      // the missing `me` property, now is the time to initialize the session.
+      if ((_webViewController != null) && (!_sessionInitialized)) {
+        _sessionInitialized = true;
+        _execute('const me = new Talk.User(${me.getJsonString()});');
+        createSession(
+          execute: _execute,
+          session: this,
+          variableName: 'me',
+        );
+      }
     }
   }
 
@@ -36,12 +60,88 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
-  final bool enablePushNotifications;
+  HeadlessInAppWebView? _headlessWebView;
+  InAppWebViewController? _webViewController;
+  bool _sessionInitialized;
+
+  bool _enablePushNotifications;
+
+  bool get enablePushNotifications {
+    return _enablePushNotifications;
+  }
+
+  set enablePushNotifications(bool enable) {
+    if (enable != _enablePushNotifications) {
+      _enablePushNotifications = enable;
+
+      if (_sessionInitialized) {
+        setOrUnsetPushRegistration(
+            execute: _execute, enablePushNotifications: enable);
+      }
+    }
+  }
+
+  void _onWebViewCreated(InAppWebViewController controller) async {
+    if (kDebugMode) {
+      print('📗 session._onWebViewCreated');
+    }
+
+    String htmlData = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/index.html');
+    controller.loadData(
+        data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
+  }
+
+  void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
+    if (kDebugMode) {
+      print('📗 session._onLoadStop ($url)');
+    }
+
+    if (_webViewController == null) {
+      _webViewController = controller;
+
+      // Wait for TalkJS to be ready
+      final js = 'await Talk.ready;';
+
+      if (kDebugMode) {
+        print('📗 session callAsyncJavaScript: $js');
+      }
+
+      await controller.callAsyncJavaScript(functionBody: js);
+
+      // If the `me` property has already been initialized, then create the user and the session
+      if ((_me != null) && (!_sessionInitialized)) {
+        _sessionInitialized = true;
+        _execute('const me = new Talk.User(${me.getJsonString()});');
+        createSession(
+          execute: _execute,
+          session: this,
+          variableName: 'me',
+        );
+      }
+    }
+  }
+
+  void _execute(String statement) {
+    if (kDebugMode) {
+      print('📗 session.execute: $statement');
+    }
+
+    _webViewController?.evaluateJavascript(source: statement);
+  }
 
   Session(
-      {required this.appId,
-      this.signature,
-      this.enablePushNotifications = false});
+      {required this.appId, this.signature, enablePushNotifications = false})
+      : _enablePushNotifications = enablePushNotifications,
+        _sessionInitialized = false {
+    _headlessWebView = new HeadlessInAppWebView(
+        onWebViewCreated: _onWebViewCreated,
+        onLoadStop: _onLoadStop,
+        onConsoleMessage:
+            (InAppWebViewController controller, ConsoleMessage message) {
+          print("session [${message.messageLevel}] ${message.message}");
+        });
+  }
 
   User getUser({
     required String id,

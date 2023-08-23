@@ -25,7 +25,14 @@ void createSession({
 
   execute('const session = new Talk.Session(options);');
 
-  if (session.enablePushNotifications) {
+  setOrUnsetPushRegistration(
+      execute: execute,
+      enablePushNotifications: session.enablePushNotifications);
+}
+
+void setOrUnsetPushRegistration(
+    {required FnExecute execute, required bool enablePushNotifications}) {
+  if (enablePushNotifications) {
     if (fcmToken != null) {
       execute(
           'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
