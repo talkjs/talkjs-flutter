@@ -8,8 +8,8 @@ class ThemeOptions {
     final result = <String, dynamic>{};
     if (name != null) {
       result['name'] = name;
-      result['custom'] = custom;
-    } else {
+    }
+    if (custom != null) {
       result['custom'] = custom;
     }
     return result;
