@@ -24,10 +24,6 @@ void createSession({
   execute('options["me"] = $variableName;');
 
   execute('const session = new Talk.Session(options);');
-
-  setOrUnsetPushRegistration(
-      execute: execute,
-      enablePushNotifications: session.enablePushNotifications);
 }
 
 void setOrUnsetPushRegistration(
