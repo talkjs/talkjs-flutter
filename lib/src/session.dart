@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 
@@ -42,12 +44,16 @@ class Session with ChangeNotifier {
       // the missing `me` property, now is the time to initialize the session.
       if ((_webViewController != null) && (!_sessionInitialized)) {
         _sessionInitialized = true;
+        _completer.complete();
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
           session: this,
           variableName: 'me',
         );
+        setOrUnsetPushRegistration(
+            executeAsync: _executeAsync,
+            enablePushNotifications: _enablePushNotifications);
       }
     }
   }
@@ -63,6 +69,7 @@ class Session with ChangeNotifier {
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
   bool _sessionInitialized;
+  Completer<void> _completer;
 
   bool _enablePushNotifications;
 
@@ -76,7 +83,7 @@ class Session with ChangeNotifier {
 
       if (_sessionInitialized) {
         setOrUnsetPushRegistration(
-            execute: _execute, enablePushNotifications: enable);
+            executeAsync: _executeAsync, enablePushNotifications: enable);
       }
     }
   }
@@ -109,31 +116,48 @@ class Session with ChangeNotifier {
 
       await controller.callAsyncJavaScript(functionBody: js);
 
+      _execute('let futures = []');
+
       // If the `me` property has already been initialized, then create the user and the session
       if ((_me != null) && (!_sessionInitialized)) {
         _sessionInitialized = true;
+        _completer.complete();
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
           session: this,
           variableName: 'me',
         );
+        setOrUnsetPushRegistration(
+            executeAsync: _executeAsync,
+            enablePushNotifications: _enablePushNotifications);
       }
     }
   }
 
-  void _execute(String statement) {
+  Future<dynamic> _execute(String statement) {
     if (kDebugMode) {
       print('📗 session.execute: $statement');
     }
 
-    _webViewController?.evaluateJavascript(source: statement);
+    // We're sure that _execute only gets called with a valid _webViewController
+    return _webViewController!.evaluateJavascript(source: statement);
+  }
+
+  Future<dynamic> _executeAsync(String statement) {
+    if (kDebugMode) {
+      print('📗 session.executeAsync: $statement');
+    }
+
+    // We're sure that _execute only gets called with a valid _webViewController
+    return _webViewController!.callAsyncJavaScript(functionBody: statement);
   }
 
   Session(
       {required this.appId, this.signature, enablePushNotifications = false})
       : _enablePushNotifications = enablePushNotifications,
-        _sessionInitialized = false {
+        _sessionInitialized = false,
+        _completer = new Completer() {
     _headlessWebView = new HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
         onLoadStop: _onLoadStop,
@@ -188,4 +212,38 @@ class Session with ChangeNotifier {
         subject: subject,
         participants: participants,
       );
+
+  Future<void> setPushRegistration() async {
+    if (_enablePushNotifications) {
+      // no-op
+      return;
+    }
+
+    if (!_sessionInitialized) {
+      await _completer.future;
+    }
+
+    _enablePushNotifications = true;
+
+    await setOrUnsetPushRegistration(
+        executeAsync: _executeAsync,
+        enablePushNotifications: _enablePushNotifications);
+  }
+
+  Future<void> unsetPushRegistration() async {
+    if (!_enablePushNotifications) {
+      // no-op
+      return;
+    }
+
+    if (!_sessionInitialized) {
+      await _completer.future;
+    }
+
+    _enablePushNotifications = false;
+
+    await setOrUnsetPushRegistration(
+        executeAsync: _executeAsync,
+        enablePushNotifications: _enablePushNotifications);
+  }
 }
