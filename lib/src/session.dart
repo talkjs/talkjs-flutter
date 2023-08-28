@@ -66,7 +66,7 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
-  HeadlessInAppWebView? _headlessWebView;
+  late HeadlessInAppWebView _headlessWebView;
   InAppWebViewController? _webViewController;
   bool _sessionInitialized;
   Completer<void> _completer;
@@ -165,6 +165,9 @@ class Session with ChangeNotifier {
             (InAppWebViewController controller, ConsoleMessage message) {
           print("session [${message.messageLevel}] ${message.message}");
         });
+
+    // Runs the headless WebView
+    _headlessWebView.run();
   }
 
   User getUser({
