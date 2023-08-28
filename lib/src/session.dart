@@ -216,13 +216,24 @@ class Session with ChangeNotifier {
   Future<void> setPushRegistration() async {
     if (_enablePushNotifications) {
       // no-op
+      if (kDebugMode) {
+        print(
+            '📗 session setPushRegistration: Push notifications are already enabled');
+      }
       return;
     }
 
     if (!_sessionInitialized) {
+      if (kDebugMode) {
+        print(
+            '📗 session setPushRegistration: !_sessionInitialized, awaiting for _completer.future');
+      }
       await _completer.future;
     }
 
+    if (kDebugMode) {
+      print('📗 session setPushRegistration: Enabling push notifications');
+    }
     _enablePushNotifications = true;
 
     await setOrUnsetPushRegistration(
@@ -233,13 +244,24 @@ class Session with ChangeNotifier {
   Future<void> unsetPushRegistration() async {
     if (!_enablePushNotifications) {
       // no-op
+      if (kDebugMode) {
+        print(
+            '📗 session unsetPushRegistration: Push notifications are already disabled');
+      }
       return;
     }
 
     if (!_sessionInitialized) {
+      if (kDebugMode) {
+        print(
+            '📗 session unsetPushRegistration: !_sessionInitialized, awaiting for _completer.future');
+      }
       await _completer.future;
     }
 
+    if (kDebugMode) {
+      print('📗 session unsetPushRegistration: Disabling push notifications');
+    }
     _enablePushNotifications = false;
 
     await setOrUnsetPushRegistration(
