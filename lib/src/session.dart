@@ -120,17 +120,19 @@ class Session with ChangeNotifier {
 
       // If the `me` property has already been initialized, then create the user and the session
       if ((_me != null) && (!_sessionInitialized)) {
-        _sessionInitialized = true;
-        _completer.complete();
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
           session: this,
           variableName: 'me',
         );
-        setOrUnsetPushRegistration(
+
+        await setOrUnsetPushRegistration(
             executeAsync: _executeAsync,
             enablePushNotifications: _enablePushNotifications);
+
+        _sessionInitialized = true;
+        _completer.complete();
       }
     }
   }
