@@ -9,6 +9,15 @@ import './user.dart';
 import './conversation.dart';
 import './webview_common.dart';
 
+final Finalizer<HeadlessInAppWebView> _webViewFinalizer =
+    Finalizer((headlessWebView) {
+  if (kDebugMode) {
+    print('📗 session headlessWebView.dispose()');
+  }
+
+  headlessWebView.dispose();
+});
+
 /// A session represents a currently active user.
 class Session with ChangeNotifier {
   /// Your TalkJS AppId that can be found your TalkJS [dashboard](https://talkjs.com/dashboard).
@@ -168,6 +177,9 @@ class Session with ChangeNotifier {
           print("session [${message.messageLevel}] ${message.message}");
         });
 
+    // Call _headlessWebView.dispose() when the session gets garbage collected
+    _webViewFinalizer.attach(this, _headlessWebView);
+
     // Runs the headless WebView
     _headlessWebView.run();
   }
@@ -229,6 +241,11 @@ class Session with ChangeNotifier {
     }
 
     if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling setPushRegistration');
+      }
+
       if (kDebugMode) {
         print(
             '📗 session setPushRegistration: !_sessionInitialized, awaiting for _completer.future');
@@ -257,6 +274,11 @@ class Session with ChangeNotifier {
     }
 
     if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling unsetPushRegistration');
+      }
+
       if (kDebugMode) {
         print(
             '📗 session unsetPushRegistration: !_sessionInitialized, awaiting for _completer.future');
