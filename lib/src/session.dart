@@ -9,30 +9,13 @@ import './user.dart';
 import './conversation.dart';
 import './webview_common.dart';
 
-// The base problem is that the HeadlessInAppWebView docs state:
-//
-// caution
-//
-// Remember to dispose it when you don't need it anymore using the HeadlessInAppWebView.dispose method.
-//
-// So we need to call the HeadlessInAppWebView.dispose method when the Session gets garbage collected.
-// In order to do so, we keep the WebViews in a Map, so that the Session doesn't directly depend on the WebView
-// (or else the Session would never be garbage collected, if we passed directly the WebView to the Finalizer).
-
-int _headlessWebViewId = 0;
-final Map<int, HeadlessInAppWebView> _headlessWebViews =
-    Map<int, HeadlessInAppWebView>();
-final Map<int, InAppWebViewController> _webViewControllers =
-    Map<int, InAppWebViewController>();
-
-final Finalizer<int> _webViewFinalizer = Finalizer((index) {
+final Finalizer<HeadlessInAppWebView> _webViewFinalizer =
+    Finalizer((headlessWebView) {
   if (kDebugMode) {
     print('📗 session headlessWebView.dispose()');
   }
 
-  _headlessWebViews[index]!.dispose();
-  _headlessWebViews.remove(index);
-  _webViewControllers.remove(index);
+  headlessWebView.dispose();
 });
 
 /// A session represents a currently active user.
@@ -68,8 +51,7 @@ class Session with ChangeNotifier {
 
       // If the WebView has loaded the page, but didn't initialize the session because of
       // the missing `me` property, now is the time to initialize the session.
-      if ((_webViewControllers[_webViewIndex] != null) &&
-          (!_sessionInitialized)) {
+      if ((_webViewController != null) && (!_sessionInitialized)) {
         _sessionInitialized = true;
         _completer.complete();
         _execute('const me = new Talk.User(${me.getJsonString()});');
@@ -93,7 +75,8 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
-  final _webViewIndex;
+  late HeadlessInAppWebView _headlessWebView;
+  InAppWebViewController? _webViewController;
   bool _sessionInitialized;
   Completer<void> _completer;
 
@@ -130,8 +113,8 @@ class Session with ChangeNotifier {
       print('📗 session._onLoadStop ($url)');
     }
 
-    if (_webViewControllers[_webViewIndex] == null) {
-      _webViewControllers[_webViewIndex] = controller;
+    if (_webViewController == null) {
+      _webViewController = controller;
 
       // Wait for TalkJS to be ready
       final js = 'await Talk.ready;';
@@ -168,9 +151,8 @@ class Session with ChangeNotifier {
       print('📗 session.execute: $statement');
     }
 
-    // We're sure that _execute only gets called with a valid InAppWebViewController
-    return _webViewControllers[_webViewIndex]!
-        .evaluateJavascript(source: statement);
+    // We're sure that _execute only gets called with a valid _webViewController
+    return _webViewController!.evaluateJavascript(source: statement);
   }
 
   Future<dynamic> _executeAsync(String statement) {
@@ -178,20 +160,16 @@ class Session with ChangeNotifier {
       print('📗 session.executeAsync: $statement');
     }
 
-    // We're sure that _execute only gets called with a valid InAppWebViewController
-    return _webViewControllers[_webViewIndex]!
-        .callAsyncJavaScript(functionBody: statement);
+    // We're sure that _execute only gets called with a valid _webViewController
+    return _webViewController!.callAsyncJavaScript(functionBody: statement);
   }
 
   Session(
       {required this.appId, this.signature, enablePushNotifications = false})
       : _enablePushNotifications = enablePushNotifications,
-        _webViewIndex = _headlessWebViewId,
         _sessionInitialized = false,
         _completer = new Completer() {
-    _headlessWebViewId += 1;
-
-    _headlessWebViews[_webViewIndex] = new HeadlessInAppWebView(
+    _headlessWebView = new HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
         onLoadStop: _onLoadStop,
         onConsoleMessage:
@@ -200,10 +178,10 @@ class Session with ChangeNotifier {
         });
 
     // Call _headlessWebView.dispose() when the session gets garbage collected
-    _webViewFinalizer.attach(this, _webViewIndex);
+    _webViewFinalizer.attach(this, _headlessWebView);
 
     // Runs the headless WebView
-    _headlessWebViews[_webViewIndex]!.run();
+    _headlessWebView.run();
   }
 
   User getUser({
