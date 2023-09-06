@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import './session.dart';
+
 /// A user of your app.
 ///
 /// TalkJS uses the [id] to uniquely identify this user. All other fields of a
@@ -68,7 +70,11 @@ class User extends _BaseUser {
   // To support creating users with only an id
   final bool _idOnly;
 
+  // To tie the user to a session
+  final Session _session;
+
   const User({
+    required Session session,
     required String id,
     required String name,
     List<String>? email,
@@ -79,7 +85,8 @@ class User extends _BaseUser {
     String? role,
     Map<String, String?>? custom,
     String? welcomeMessage,
-  })  : _idOnly = false,
+  })  : _session = session,
+        _idOnly = false,
         super(
           id: id,
           name: name,
@@ -93,12 +100,14 @@ class User extends _BaseUser {
           welcomeMessage: welcomeMessage,
         );
 
-  const User.fromId(String id)
-      : _idOnly = true,
+  const User.fromId(String id, Session session)
+      : _session = session,
+        _idOnly = true,
         super(id: id, name: '');
 
   User.of(User other)
-      : _idOnly = other._idOnly,
+      : _session = other._session,
+        _idOnly = other._idOnly,
         super(
           id: other.id,
           name: other.name,
@@ -175,6 +184,10 @@ class User extends _BaseUser {
       return false;
     }
 
+    if (_session != other._session) {
+      return false;
+    }
+
     if (_idOnly != other._idOnly) {
       return false;
     }
@@ -223,6 +236,7 @@ class User extends _BaseUser {
   }
 
   int get hashCode => Object.hash(
+        _session,
         _idOnly,
         availabilityText,
         (custom != null ? Object.hashAll(custom!.keys) : custom),

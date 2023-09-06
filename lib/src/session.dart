@@ -219,6 +219,7 @@ class Session with ChangeNotifier {
     String? welcomeMessage,
   }) =>
       User(
+        session: this,
         id: id,
         name: name,
         email: email,
@@ -231,7 +232,7 @@ class Session with ChangeNotifier {
         welcomeMessage: welcomeMessage,
       );
 
-  User getUserById(String id) => User.fromId(id);
+  User getUserById(String id) => User.fromId(id, this);
 
   Conversation getConversation({
     required String id,
@@ -242,6 +243,7 @@ class Session with ChangeNotifier {
     Set<Participant> participants = const <Participant>{},
   }) =>
       Conversation(
+        session: this,
         id: id,
         custom: custom,
         welcomeMessages: welcomeMessages,
