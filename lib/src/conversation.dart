@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import './session.dart';
 import './user.dart';
 
 /// Possible values for participants' permissions
@@ -114,19 +113,14 @@ class Conversation extends _BaseConversation {
   // The participants for this conversation
   final Set<Participant> participants;
 
-  // To tie the conversation to a session
-  final Session _session;
-
   const Conversation({
-    required Session session,
     required String id,
     Map<String, String?>? custom,
     List<String>? welcomeMessages,
     String? photoUrl,
     String? subject,
     required this.participants,
-  })  : _session = session,
-        super(
+  }) : super(
           id: id,
           custom: custom,
           welcomeMessages: welcomeMessages,
@@ -135,8 +129,7 @@ class Conversation extends _BaseConversation {
         );
 
   Conversation.of(Conversation other)
-      : _session = other._session,
-        participants = Set<Participant>.of(other.participants
+      : participants = Set<Participant>.of(other.participants
             .map((participant) => Participant.of(participant))),
         super(
             id: other.id,
@@ -171,10 +164,6 @@ class Conversation extends _BaseConversation {
       return false;
     }
 
-    if (_session != other._session) {
-      return false;
-    }
-
     if (!setEquals(participants, other.participants)) {
       return false;
     }
@@ -203,7 +192,6 @@ class Conversation extends _BaseConversation {
   }
 
   int get hashCode => Object.hash(
-        _session,
         Object.hashAll(participants),
         id,
         (custom != null ? Object.hashAll(custom!.keys) : custom),
