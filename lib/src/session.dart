@@ -42,18 +42,22 @@ class Session with ChangeNotifier {
 
       // If the WebView has loaded the page, but didn't initialize the session because of
       // the missing `me` property, now is the time to initialize the session.
-      if ((_webViewController != null) && (!_sessionInitialized)) {
-        _sessionInitialized = true;
-        _completer.complete();
+      if ((_headlessWebView != null) &&
+          (_webViewController != null) &&
+          (!_sessionInitialized)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
           session: this,
           variableName: 'me',
         );
+
         setOrUnsetPushRegistration(
             executeAsync: _executeAsync,
             enablePushNotifications: _enablePushNotifications);
+
+        _sessionInitialized = true;
+        _completer.complete();
       }
     }
   }
@@ -66,7 +70,7 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
-  late HeadlessInAppWebView _headlessWebView;
+  HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
   bool _sessionInitialized;
   Completer<void> _completer;
@@ -81,7 +85,7 @@ class Session with ChangeNotifier {
     if (enable != _enablePushNotifications) {
       _enablePushNotifications = enable;
 
-      if (_sessionInitialized) {
+      if ((_headlessWebView != null) && _sessionInitialized) {
         setOrUnsetPushRegistration(
             executeAsync: _executeAsync, enablePushNotifications: enable);
       }
@@ -169,7 +173,7 @@ class Session with ChangeNotifier {
         });
 
     // Runs the headless WebView
-    _headlessWebView.run();
+    _headlessWebView!.run();
   }
 
   User getUser({
@@ -218,6 +222,11 @@ class Session with ChangeNotifier {
         participants: participants,
       );
 
+  // The functions that use the headless webview need to take into consideration the following things:
+  // - The session could have been destroyed, in which case _headlessWebView is null
+  // - The me user could not have been set, in which case _me is null
+  // - The webview might not have loaded yet, in which case _sessionInitialized is false, and you can await for the _completer.future
+
   Future<void> setPushRegistration() async {
     if (_enablePushNotifications) {
       // no-op
@@ -228,7 +237,17 @@ class Session with ChangeNotifier {
       return;
     }
 
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The setPushRegistration method cannot be called after destroying the session');
+    }
+
     if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling setPushRegistration');
+      }
+
       if (kDebugMode) {
         print(
             '📗 session setPushRegistration: !_sessionInitialized, awaiting for _completer.future');
@@ -256,7 +275,17 @@ class Session with ChangeNotifier {
       return;
     }
 
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The unsetPushRegistration method cannot be called after destroying the session');
+    }
+
     if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling unsetPushRegistration');
+      }
+
       if (kDebugMode) {
         print(
             '📗 session unsetPushRegistration: !_sessionInitialized, awaiting for _completer.future');
@@ -273,4 +302,48 @@ class Session with ChangeNotifier {
         executeAsync: _executeAsync,
         enablePushNotifications: _enablePushNotifications);
   }
+
+  Future<void> destroy() async {
+    if (_headlessWebView == null) {
+      // no-op
+      if (kDebugMode) {
+        print('📗 session destroy: Session already destroyed');
+      }
+      return;
+    }
+
+    if ((!_sessionInitialized) && (_me != null)) {
+      if (kDebugMode) {
+        print(
+            '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
+      }
+      await _completer.future;
+    }
+
+    if (kDebugMode) {
+      print('📗 session destroy: Destroying session');
+    }
+
+    if (_me != null) {
+      await _execute('session.destroy()');
+    }
+
+    _headlessWebView!.dispose();
+    _headlessWebView = null;
+    _webViewController = null;
+  }
+
+  // TODO:
+  // hasValidCredentials
+  // onMessage
+  // unreads
+  // conversation.leave
+  // conversation.sendMessage
+  // operator ==
+  // hashCode
+
+  // MAYBE:
+  // onBrowserPermissionDenied
+  // onBrowserPermissionNeeded
+  // conversation.setAttributes
 }
