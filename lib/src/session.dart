@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/services.dart';
@@ -8,6 +9,10 @@ import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 import './user.dart';
 import './conversation.dart';
 import './webview_common.dart';
+import './message.dart';
+import './unreads.dart';
+
+typedef MessageHandler = void Function(Message message);
 
 /// A session represents a currently active user.
 class Session with ChangeNotifier {
@@ -52,6 +57,16 @@ class Session with ChangeNotifier {
           variableName: 'me',
         );
 
+        if (onMessage != null) {
+          _execute(
+              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+        }
+
+        if ((unreads != null) && (unreads!.onChange != null)) {
+          _execute(
+              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+        }
+
         setOrUnsetPushRegistration(
             executeAsync: _executeAsync,
             enablePushNotifications: _enablePushNotifications);
@@ -77,24 +92,27 @@ class Session with ChangeNotifier {
 
   bool _enablePushNotifications;
 
+  // setter deliberately omitted, as the `enablePushNotifications` member is read-only
   bool get enablePushNotifications {
     return _enablePushNotifications;
   }
 
-  set enablePushNotifications(bool enable) {
-    if (enable != _enablePushNotifications) {
-      _enablePushNotifications = enable;
-
-      if ((_headlessWebView != null) && _sessionInitialized) {
-        setOrUnsetPushRegistration(
-            executeAsync: _executeAsync, enablePushNotifications: enable);
-      }
-    }
-  }
+  final MessageHandler? onMessage;
+  final Unreads? unreads;
 
   void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
       print('📗 session._onWebViewCreated');
+    }
+
+    if (onMessage != null) {
+      controller.addJavaScriptHandler(
+          handlerName: 'JSCOnMessage', callback: _jscOnMessage);
+    }
+
+    if ((unreads != null) && (unreads!.onChange != null)) {
+      controller.addJavaScriptHandler(
+          handlerName: 'JSCOnUnreadsChange', callback: _jscOnUnreadsChange);
     }
 
     String htmlData = await rootBundle
@@ -131,6 +149,16 @@ class Session with ChangeNotifier {
           variableName: 'me',
         );
 
+        if (onMessage != null) {
+          _execute(
+              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+        }
+
+        if ((unreads != null) && (unreads!.onChange != null)) {
+          _execute(
+              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+        }
+
         await setOrUnsetPushRegistration(
             executeAsync: _executeAsync,
             enablePushNotifications: _enablePushNotifications);
@@ -159,9 +187,35 @@ class Session with ChangeNotifier {
     return _webViewController!.callAsyncJavaScript(functionBody: statement);
   }
 
-  Session(
-      {required this.appId, this.signature, enablePushNotifications = false})
-      : _enablePushNotifications = enablePushNotifications,
+  void _jscOnMessage(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 session._jscOnMessage: $message');
+    }
+
+    onMessage?.call(Message.fromJson(json.decode(message)));
+  }
+
+  void _jscOnUnreadsChange(List<dynamic> arguments) {
+    final List<dynamic> unreadsJson = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 session._jscOnUnreadsChange: $unreadsJson');
+    }
+
+    unreads?.onChange?.call(unreadsJson
+        .map((unread) => UnreadConversation.fromJson(json.decode(unread)))
+        .toList());
+  }
+
+  Session({
+    required this.appId,
+    this.signature,
+    enablePushNotifications = false,
+    this.onMessage,
+    this.unreads,
+  })  : _enablePushNotifications = enablePushNotifications,
         _sessionInitialized = false,
         _completer = new Completer() {
     _headlessWebView = new HeadlessInAppWebView(
@@ -333,14 +387,83 @@ class Session with ChangeNotifier {
     _webViewController = null;
   }
 
+  Future<bool> hasValidCredentials() async {
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The hasValidCredentials method cannot be called after destroying the session');
+    }
+
+    if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling hasValidCredentials');
+      }
+
+      if (kDebugMode) {
+        print(
+            '📗 session hasValidCredentials: !_sessionInitialized, awaiting for _completer.future');
+      }
+      await _completer.future;
+    }
+
+    if (kDebugMode) {
+      print('📗 session hasValidCredentials: execute');
+    }
+
+    final bool isValid =
+        await _executeAsync('await session.hasValidCredentials();');
+
+    return isValid;
+  }
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is Session)) {
+      return false;
+    }
+
+    if (appId != other.appId) {
+      return false;
+    }
+
+    if (me != other.me) {
+      return false;
+    }
+
+    if (signature != other.signature) {
+      return false;
+    }
+
+    if (_enablePushNotifications != other._enablePushNotifications) {
+      return false;
+    }
+
+    if (onMessage != other.onMessage) {
+      return false;
+    }
+
+    if (unreads != other.unreads) {
+      return false;
+    }
+
+    return true;
+  }
+
+  int get hashCode => Object.hash(
+        appId,
+        me,
+        signature,
+        _enablePushNotifications,
+        onMessage,
+        unreads,
+      );
+
   // TODO:
-  // hasValidCredentials
-  // onMessage
-  // unreads
   // conversation.leave
   // conversation.sendMessage
-  // operator ==
-  // hashCode
 
   // MAYBE:
   // onBrowserPermissionDenied

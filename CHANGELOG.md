@@ -1,3 +1,9 @@
+## NEXT
+- Add `setPushRegistration` and `unsetPushRegistration` to the Session.
+- Add `destroy` and `hasValidCredentials` to the Session.
+- Add `onMessage` to the Session.
+- Add `unreads` to the Session.
+
 ## 0.8.1
 - Updated Firebase dependencies versions
 
