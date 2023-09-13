@@ -454,7 +454,6 @@ class Session with ChangeNotifier {
 
   int get hashCode => Object.hash(
         appId,
-        me,
         signature,
         _enablePushNotifications,
         onMessage,
