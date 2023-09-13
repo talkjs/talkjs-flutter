@@ -1,3 +1,4 @@
+import './conversation.dart';
 import './message.dart';
 
 typedef UnreadsChangeHandler = void Function(
@@ -30,6 +31,9 @@ class Unreads {
 }
 
 class UnreadConversation {
+  /// The ConversationData of the unread conversation.
+  final ConversationData conversation;
+
   /// Contains the last Message for this conversation.
   final Message lastMessage;
 
@@ -37,6 +41,7 @@ class UnreadConversation {
   final int unreadMessageCount;
 
   UnreadConversation.fromJson(Map<String, dynamic> json)
-      : lastMessage = Message.fromJson(json['lastMessage']),
+      : conversation = ConversationData.fromJson(json['conversation']),
+        lastMessage = Message.fromJson(json['lastMessage']),
         unreadMessageCount = json['unreadMessageCount'];
 }
