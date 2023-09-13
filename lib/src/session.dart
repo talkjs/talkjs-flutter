@@ -178,13 +178,15 @@ class Session with ChangeNotifier {
     return _webViewController!.evaluateJavascript(source: statement);
   }
 
-  Future<dynamic> _executeAsync(String statement) {
+  Future<dynamic> _executeAsync(String statement) async {
     if (kDebugMode) {
       print('📗 session.executeAsync: $statement');
     }
 
     // We're sure that _execute only gets called with a valid _webViewController
-    return _webViewController!.callAsyncJavaScript(functionBody: statement);
+    final result =
+        await _webViewController!.callAsyncJavaScript(functionBody: statement);
+    return result?.value;
   }
 
   void _jscOnMessage(List<dynamic> arguments) {
@@ -411,7 +413,7 @@ class Session with ChangeNotifier {
     }
 
     final bool isValid =
-        await _executeAsync('await session.hasValidCredentials();');
+        await _executeAsync('return await session.hasValidCredentials();');
 
     return isValid;
   }
