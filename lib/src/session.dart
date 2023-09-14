@@ -151,15 +151,14 @@ class Session with ChangeNotifier {
       controller.addJavaScriptHandler(
           handlerName: 'JSCOnUnreadsChange',
           callback: (List<dynamic> arguments) {
-            final List<dynamic> unreadsJson = arguments[0];
+            final List<dynamic> unreadsJson = json.decode(arguments[0]);
 
             if (kDebugMode) {
               print('📗 session._jscOnUnreadsChange: $unreadsJson');
             }
 
             unreads?.onChange?.call(unreadsJson
-                .map((unread) =>
-                    UnreadConversation.fromJson(json.decode(unread)))
+                .map((unread) => UnreadConversation.fromJson(unread))
                 .toList());
           });
     }
