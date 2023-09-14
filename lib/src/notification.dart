@@ -60,6 +60,8 @@ extension ImportanceToLocalNotification on AndroidImportance {
   }
 }
 
+enum Provider { fcm, apns }
+
 class AndroidChannel {
   final String channelId;
   final String channelName;
