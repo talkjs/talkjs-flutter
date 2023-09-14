@@ -107,7 +107,7 @@ class Session with ChangeNotifier {
   }
 
   void _initializeSession() {
-    _execute('const me = new Talk.User(${me.getJsonString()});');
+    _execute('const me = new Talk.User(${_me!.getJsonString()});');
     createSession(
       execute: _execute,
       session: this,
