@@ -454,10 +454,10 @@ class Session with ChangeNotifier {
     return true;
   }
 
+  // me and enablePushNotifications are deliberately omitted, so that this object has the exact same hash regardless of its state
   int get hashCode => Object.hash(
         appId,
         signature,
-        _enablePushNotifications,
         onMessage,
         unreads,
       );
