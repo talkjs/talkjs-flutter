@@ -98,15 +98,11 @@ class Session with ChangeNotifier {
     _headlessWebView!.run();
   }
 
-  bool isInitialized() {
+  bool _isInitialized() {
     return _me != null && _sessionInitialized;
   }
 
-  bool isDestroyed() {
-    return _headlessWebView == null;
-  }
-
-  void _initializeSession() {
+  void _initializeSession() async {
     _execute('const me = new Talk.User(${_me!.getJsonString()});');
     createSession(
       execute: _execute,
@@ -185,7 +181,7 @@ class Session with ChangeNotifier {
 
     await controller.callAsyncJavaScript(functionBody: js);
 
-    if (!isInitialized()) {
+    if (!_isInitialized()) {
       _initializeSession();
     }
   }
@@ -318,7 +314,7 @@ class Session with ChangeNotifier {
       return;
     }
 
-    if (!isInitialized()) {
+    if (!_isInitialized()) {
       if (kDebugMode) {
         print(
             '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
