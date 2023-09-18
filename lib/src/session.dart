@@ -48,7 +48,9 @@ class Session with ChangeNotifier {
 
       // If the WebView has loaded the page, but didn't initialize the session because of
       // the missing `me` property, now is the time to initialize the session.
-      if (!_sessionInitialized) {
+      if ((_headlessWebView != null) &&
+          (_webViewController != null) &&
+          (!_sessionInitialized)) {
         _initializeSession();
       }
     }
@@ -96,10 +98,6 @@ class Session with ChangeNotifier {
 
     // Runs the headless WebView
     _headlessWebView!.run();
-  }
-
-  bool _isInitialized() {
-    return _me != null && _sessionInitialized;
   }
 
   void _initializeSession() async {
@@ -181,7 +179,8 @@ class Session with ChangeNotifier {
 
     await controller.callAsyncJavaScript(functionBody: js);
 
-    if (!_isInitialized()) {
+    // If the `me` property has already been initialized, then create the user and the session
+    if ((_me != null) && (!_sessionInitialized)) {
       _initializeSession();
     }
   }
@@ -314,7 +313,8 @@ class Session with ChangeNotifier {
       return;
     }
 
-    if (!_isInitialized()) {
+    // We await for the completer only if the `me` property has been set
+    if ((!_sessionInitialized) && (_me != null)) {
       if (kDebugMode) {
         print(
             '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
@@ -322,11 +322,20 @@ class Session with ChangeNotifier {
       await _completer.future;
     }
 
-    await _execute('session.destroy()');
+    // If the `me` property has not been set, it means that nothing has been done
+    // in the WebView. As a matter of fact we don't even know if the WebView has finished initializing.
+    if (_me != null) {
+      await _execute('session.destroy()');
+    }
 
     _headlessWebView!.dispose();
     _headlessWebView = null;
     _webViewController = null;
+
+    // _completer.isCompleted could be false if we're calling `session.destroy()` beofre setting the `me` property
+    if (!_completer.isCompleted) {
+      _completer.completeError(StateError("The session has been destroyed"));
+    }
   }
 
   Future<bool> hasValidCredentials() async {
@@ -354,6 +363,8 @@ class Session with ChangeNotifier {
     return isValid;
   }
 
+  // enablePushNotifications is deliberately omitted, so that we can enable and disable push notifications at will,
+  // without necessarily recreating the ChatBox
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -372,10 +383,6 @@ class Session with ChangeNotifier {
     }
 
     if (signature != other.signature) {
-      return false;
-    }
-
-    if (_enablePushNotifications != other._enablePushNotifications) {
       return false;
     }
 
