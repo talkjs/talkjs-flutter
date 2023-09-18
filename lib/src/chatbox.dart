@@ -167,12 +167,6 @@ class ChatBoxState extends State<ChatBox> {
   Set<String> _oldCustomConversationActions = {};
 
   @override
-  void initState() {
-    widget.session.isHeadLess = false;
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
       print('📗 chatbox.build (_webViewCreated: $_webViewCreated)');
@@ -526,9 +520,7 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onLoadStop ($url)');
     }
 
-    if (!widget.session.isInitialized()) {
-      await widget.session.initializeSession(controller);
-    }
+    await widget.session.initializeSession(controller);
 
     // Execute any pending instructions
     for (var statement in _pending) {

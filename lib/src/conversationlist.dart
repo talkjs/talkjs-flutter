@@ -122,12 +122,6 @@ class ConversationListState extends State<ConversationList> {
   ConversationPredicate _oldFeedFilter = const ConversationPredicate();
 
   @override
-  void initState() {
-    widget.session.isHeadLess = false;
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
       print('📗 conversationlist.build (_webViewCreated: $_webViewCreated)');
@@ -229,9 +223,7 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._onLoadStop ($url)');
     }
 
-    if (!widget.session.isInitialized()) {
-      await widget.session.initializeSession(controller);
-    }
+    await widget.session.initializeSession(controller);
 
     // Execute any pending instructions
     for (var statement in _pending) {
