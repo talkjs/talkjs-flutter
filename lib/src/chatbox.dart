@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:talkjs_flutter/src/themeoptions.dart';
@@ -168,6 +167,12 @@ class ChatBoxState extends State<ChatBox> {
   Set<String> _oldCustomConversationActions = {};
 
   @override
+  void initState() {
+    widget.session.isHeadLess = false;
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
       print('📗 chatbox.build (_webViewCreated: $_webViewCreated)');
@@ -198,10 +203,6 @@ class ChatBoxState extends State<ChatBox> {
         }
       ''');
 
-      createSession(
-          execute: execute,
-          session: widget.session,
-          variableName: getUserVariableName(widget.session.me));
       _createChatBox();
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
@@ -240,6 +241,8 @@ class ChatBoxState extends State<ChatBox> {
         transparentBackground: true,
         useShouldOverrideUrlLoading: true,
       ),
+      initialData: InAppWebViewInitialData(
+          data: html, baseUrl: WebUri("https://app.talkjs.com")),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
@@ -515,10 +518,7 @@ class ChatBoxState extends State<ChatBox> {
         handlerName: 'JSCCustomConversationAction',
         callback: _jscCustomConversationAction);
 
-    String htmlData = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/index.html');
-    controller.loadData(
-        data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
+    _webViewController = controller;
   }
 
   void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
@@ -526,26 +526,17 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onLoadStop ($url)');
     }
 
-    if (_webViewController == null) {
-      _webViewController = controller;
+    if (!widget.session.isInitialized()) {
+      await widget.session.initializeSession(controller);
+    }
 
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
+    // Execute any pending instructions
+    for (var statement in _pending) {
       if (kDebugMode) {
-        print('📗 chatbox callAsyncJavaScript: $js');
+        print('📗 chatbox._onLoadStop _pending: $statement');
       }
 
-      await controller.callAsyncJavaScript(functionBody: js);
-
-      // Execute any pending instructions
-      for (var statement in _pending) {
-        if (kDebugMode) {
-          print('📗 chatbox._onLoadStop _pending: $statement');
-        }
-
-        controller.evaluateJavascript(source: statement);
-      }
+      controller.evaluateJavascript(source: statement);
     }
   }
 

@@ -1,46 +1,26 @@
-import 'dart:convert';
-
-import './session.dart';
-import './notification.dart';
-
-typedef FnExecute = void Function(String statement);
-
-void createSession({
-  required FnExecute execute,
-  required Session session,
-  required String variableName,
-}) {
-  // Initialize Session object
-  var signature = '';
-  if (session.signature != null) {
-    signature = '"signature": ${json.encode(session.signature)}';
-  }
-
-  execute('''
-    const options = {
-      "appId": "${session.appId}",
-      "me": $variableName,
-      $signature
-    };
-
-    const session = new Talk.Session(options);
-  ''');
-
-  if (session.enablePushNotifications) {
-    if (fcmToken != null) {
-      execute(
-          'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-    } else if (apnsToken != null) {
-      execute(
-          'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-    }
-  } else {
-    if (fcmToken != null) {
-      execute(
-          'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-    } else if (apnsToken != null) {
-      execute(
-          'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-    }
-  }
-}
+const html = '''
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <style>
+      html, body, #talkjs-container {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+      }
+    </style>
+    <script>
+      (function(t,a,l,k,j,s){
+      s=a.createElement('script');s.async=1;s.src="https://cdn.talkjs.com/talk.js";a.head.appendChild(s)
+      ;k=t.Promise;t.Talk={v:3,ready:{then:function(f){if(k)return new k(function(r,e){l.push([f,r,e])});l
+      .push([f])},catch:function(){return k&&new k()},c:l}};})(window,document,[]);
+    </script>
+  </head>
+  <body>
+    <div id="talkjs-container"></div>
+  </body>
+</html>
+''';
