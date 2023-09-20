@@ -67,9 +67,11 @@ class Session with ChangeNotifier {
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
 
-        setOrUnsetPushRegistration(
-            executeAsync: _executeAsync,
-            enablePushNotifications: _enablePushNotifications);
+        if (_enablePushNotifications != null) {
+          setOrUnsetPushRegistration(
+              executeAsync: _executeAsync,
+              enablePushNotifications: _enablePushNotifications!);
+        }
 
         _sessionInitialized = true;
         _completer.complete();
@@ -90,10 +92,10 @@ class Session with ChangeNotifier {
   bool _sessionInitialized;
   Completer<void> _completer;
 
-  bool _enablePushNotifications;
+  bool? _enablePushNotifications;
 
   // setter deliberately omitted, as the `enablePushNotifications` member is read-only
-  bool get enablePushNotifications {
+  bool? get enablePushNotifications {
     return _enablePushNotifications;
   }
 
@@ -159,9 +161,11 @@ class Session with ChangeNotifier {
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
 
-        await setOrUnsetPushRegistration(
-            executeAsync: _executeAsync,
-            enablePushNotifications: _enablePushNotifications);
+        if (_enablePushNotifications != null) {
+          await setOrUnsetPushRegistration(
+              executeAsync: _executeAsync,
+              enablePushNotifications: _enablePushNotifications!);
+        }
 
         _sessionInitialized = true;
         _completer.complete();
@@ -214,7 +218,7 @@ class Session with ChangeNotifier {
   Session({
     required this.appId,
     this.signature,
-    enablePushNotifications = false,
+    bool? enablePushNotifications = false,
     this.onMessage,
     this.unreads,
   })  : _enablePushNotifications = enablePushNotifications,
@@ -284,7 +288,7 @@ class Session with ChangeNotifier {
   // - The webview might not have loaded yet, in which case _sessionInitialized is false, and you can await for the _completer.future
 
   Future<void> setPushRegistration() async {
-    if (_enablePushNotifications) {
+    if (_enablePushNotifications == true) {
       // no-op
       if (kDebugMode) {
         print(
@@ -318,11 +322,11 @@ class Session with ChangeNotifier {
 
     await setOrUnsetPushRegistration(
         executeAsync: _executeAsync,
-        enablePushNotifications: _enablePushNotifications);
+        enablePushNotifications: _enablePushNotifications!);
   }
 
   Future<void> unsetPushRegistration() async {
-    if (!_enablePushNotifications) {
+    if (_enablePushNotifications == false) {
       // no-op
       if (kDebugMode) {
         print(
@@ -356,7 +360,7 @@ class Session with ChangeNotifier {
 
     await setOrUnsetPushRegistration(
         executeAsync: _executeAsync,
-        enablePushNotifications: _enablePushNotifications);
+        enablePushNotifications: _enablePushNotifications!);
   }
 
   Future<void> destroy() async {
