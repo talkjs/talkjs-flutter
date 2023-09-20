@@ -200,15 +200,15 @@ class Session with ChangeNotifier {
   }
 
   void _jscOnUnreadsChange(List<dynamic> arguments) {
-    final List<dynamic> unreadsJson = arguments[0];
+    final List<dynamic> unreadsJson = json.decode(arguments[0]);
 
     if (kDebugMode) {
       print('📗 session._jscOnUnreadsChange: $unreadsJson');
     }
 
-    unreads?.onChange?.call(unreadsJson
-        .map((unread) => UnreadConversation.fromJson(json.decode(unread)))
-        .toList());
+    unreads?.onChange?.call(
+      unreadsJson.map((unread) => UnreadConversation.fromJson(unread)).toList(),
+    );
   }
 
   Session({
