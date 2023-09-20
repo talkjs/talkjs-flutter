@@ -372,6 +372,7 @@ class Session with ChangeNotifier {
       return;
     }
 
+    // We await for the completer only if the `me` property has been set
     if ((!_sessionInitialized) && (_me != null)) {
       if (kDebugMode) {
         print(
@@ -384,6 +385,8 @@ class Session with ChangeNotifier {
       print('📗 session destroy: Destroying session');
     }
 
+    // If the `me` property has not been set, it means that nothing has been done
+    // in the WebView. As a matter of fact we don't even know if the WebView has finished initializing.
     if (_me != null) {
       await _execute('session.destroy()');
     }
@@ -391,6 +394,11 @@ class Session with ChangeNotifier {
     _headlessWebView!.dispose();
     _headlessWebView = null;
     _webViewController = null;
+
+    // _completer.isCompleted could be false if we're calling `session.destroy()` beofre setting the `me` property
+    if (!_completer.isCompleted) {
+      _completer.completeError(StateError("The session has been destroyed"));
+    }
   }
 
   Future<bool> hasValidCredentials() async {
@@ -422,6 +430,8 @@ class Session with ChangeNotifier {
     return isValid;
   }
 
+  // enablePushNotifications is deliberately omitted, so that we can enable and disable push notifications at will,
+  // without necessarily recreating the ChatBox
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -440,10 +450,6 @@ class Session with ChangeNotifier {
     }
 
     if (signature != other.signature) {
-      return false;
-    }
-
-    if (_enablePushNotifications != other._enablePushNotifications) {
       return false;
     }
 
