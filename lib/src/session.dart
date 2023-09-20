@@ -3,7 +3,6 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
-import 'package:talkjs_flutter/src/notification.dart';
 
 import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 
@@ -48,8 +47,32 @@ class Session with ChangeNotifier {
 
       // If the WebView has loaded the page, but didn't initialize the session because of
       // the missing `me` property, now is the time to initialize the session.
-      if (!_sessionInitialized) {
-        _initializeSession();
+      if ((_headlessWebView != null) &&
+          (_webViewController != null) &&
+          (!_sessionInitialized)) {
+        _execute('const me = new Talk.User(${me.getJsonString()});');
+        createSession(
+          execute: _execute,
+          session: this,
+          variableName: 'me',
+        );
+
+        if (onMessage != null) {
+          _execute(
+              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+        }
+
+        if ((unreads != null) && (unreads!.onChange != null)) {
+          _execute(
+              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+        }
+
+        setOrUnsetPushRegistration(
+            executeAsync: _executeAsync,
+            enablePushNotifications: _enablePushNotifications);
+
+        _sessionInitialized = true;
+        _completer.complete();
       }
     }
   }
@@ -77,57 +100,6 @@ class Session with ChangeNotifier {
   final MessageHandler? onMessage;
   final Unreads? unreads;
 
-  Session({
-    required this.appId,
-    this.signature,
-    enablePushNotifications = false,
-    this.onMessage,
-    this.unreads,
-  })  : _enablePushNotifications = enablePushNotifications,
-        _sessionInitialized = false,
-        _completer = new Completer() {
-    _headlessWebView = new HeadlessInAppWebView(
-        onWebViewCreated: _onWebViewCreated,
-        onLoadStop: _onLoadStop,
-        onConsoleMessage:
-            (InAppWebViewController controller, ConsoleMessage message) {
-          print("session [${message.messageLevel}] ${message.message}");
-        });
-
-    // Runs the headless WebView
-    _headlessWebView!.run();
-  }
-
-  bool isInitialized() {
-    return _me != null && _sessionInitialized;
-  }
-
-  bool isDestroyed() {
-    return _headlessWebView == null;
-  }
-
-  void _initializeSession() {
-    _execute('const me = new Talk.User(${me.getJsonString()});');
-    createSession(
-      execute: _execute,
-      session: this,
-      variableName: 'me',
-    );
-
-    if (onMessage != null) {
-      _execute(
-          'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
-    }
-
-    if ((unreads != null) && (unreads!.onChange != null)) {
-      _execute(
-          'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
-    }
-
-    _sessionInitialized = true;
-    _completer.complete();
-  }
-
   void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
       print('📗 session._onWebViewCreated');
@@ -135,41 +107,18 @@ class Session with ChangeNotifier {
 
     if (onMessage != null) {
       controller.addJavaScriptHandler(
-          handlerName: 'JSCOnMessage',
-          callback: (List<dynamic> arguments) {
-            final message = arguments[0];
-
-            if (kDebugMode) {
-              print('📗 session._jscOnMessage: $message');
-            }
-
-            onMessage?.call(Message.fromJson(json.decode(message)));
-          });
+          handlerName: 'JSCOnMessage', callback: _jscOnMessage);
     }
 
     if ((unreads != null) && (unreads!.onChange != null)) {
       controller.addJavaScriptHandler(
-          handlerName: 'JSCOnUnreadsChange',
-          callback: (List<dynamic> arguments) {
-            final List<dynamic> unreadsJson = arguments[0];
-
-            if (kDebugMode) {
-              print('📗 session._jscOnUnreadsChange: $unreadsJson');
-            }
-
-            unreads?.onChange?.call(unreadsJson
-                .map((unread) =>
-                    UnreadConversation.fromJson(json.decode(unread)))
-                .toList());
-          });
+          handlerName: 'JSCOnUnreadsChange', callback: _jscOnUnreadsChange);
     }
 
     String htmlData = await rootBundle
         .loadString('packages/talkjs_flutter/assets/index.html');
     controller.loadData(
         data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
-
-    _webViewController = controller;
   }
 
   void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
@@ -177,17 +126,46 @@ class Session with ChangeNotifier {
       print('📗 session._onLoadStop ($url)');
     }
 
-    // Wait for TalkJS to be ready
-    final js = 'await Talk.ready;';
+    if (_webViewController == null) {
+      _webViewController = controller;
 
-    if (kDebugMode) {
-      print('📗 session callAsyncJavaScript: $js');
-    }
+      // Wait for TalkJS to be ready
+      final js = 'await Talk.ready;';
 
-    await controller.callAsyncJavaScript(functionBody: js);
+      if (kDebugMode) {
+        print('📗 session callAsyncJavaScript: $js');
+      }
 
-    if (!isInitialized()) {
-      _initializeSession();
+      await controller.callAsyncJavaScript(functionBody: js);
+
+      _execute('let futures = []');
+
+      // If the `me` property has already been initialized, then create the user and the session
+      if ((_me != null) && (!_sessionInitialized)) {
+        _execute('const me = new Talk.User(${me.getJsonString()});');
+        createSession(
+          execute: _execute,
+          session: this,
+          variableName: 'me',
+        );
+
+        if (onMessage != null) {
+          _execute(
+              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+        }
+
+        if ((unreads != null) && (unreads!.onChange != null)) {
+          _execute(
+              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+        }
+
+        await setOrUnsetPushRegistration(
+            executeAsync: _executeAsync,
+            enablePushNotifications: _enablePushNotifications);
+
+        _sessionInitialized = true;
+        _completer.complete();
+      }
     }
   }
 
@@ -209,6 +187,49 @@ class Session with ChangeNotifier {
     final result =
         await _webViewController!.callAsyncJavaScript(functionBody: statement);
     return result?.value;
+  }
+
+  void _jscOnMessage(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 session._jscOnMessage: $message');
+    }
+
+    onMessage?.call(Message.fromJson(json.decode(message)));
+  }
+
+  void _jscOnUnreadsChange(List<dynamic> arguments) {
+    final List<dynamic> unreadsJson = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 session._jscOnUnreadsChange: $unreadsJson');
+    }
+
+    unreads?.onChange?.call(unreadsJson
+        .map((unread) => UnreadConversation.fromJson(json.decode(unread)))
+        .toList());
+  }
+
+  Session({
+    required this.appId,
+    this.signature,
+    enablePushNotifications = false,
+    this.onMessage,
+    this.unreads,
+  })  : _enablePushNotifications = enablePushNotifications,
+        _sessionInitialized = false,
+        _completer = new Completer() {
+    _headlessWebView = new HeadlessInAppWebView(
+        onWebViewCreated: _onWebViewCreated,
+        onLoadStop: _onLoadStop,
+        onConsoleMessage:
+            (InAppWebViewController controller, ConsoleMessage message) {
+          print("session [${message.messageLevel}] ${message.message}");
+        });
+
+    // Runs the headless WebView
+    _headlessWebView!.run();
   }
 
   User getUser({
@@ -262,8 +283,16 @@ class Session with ChangeNotifier {
   // - The me user could not have been set, in which case _me is null
   // - The webview might not have loaded yet, in which case _sessionInitialized is false, and you can await for the _completer.future
 
-  Future<void> setPushRegistration(
-      Provider provider, String pushRegistrationId) async {
+  Future<void> setPushRegistration() async {
+    if (_enablePushNotifications) {
+      // no-op
+      if (kDebugMode) {
+        print(
+            '📗 session setPushRegistration: Push notifications are already enabled');
+      }
+      return;
+    }
+
     if (_headlessWebView == null) {
       throw StateError(
           'The setPushRegistration method cannot be called after destroying the session');
@@ -282,12 +311,26 @@ class Session with ChangeNotifier {
       await _completer.future;
     }
 
-    _execute(
-        'session.setPushRegistration({provider: "${provider.name}", pushRegistrationId: "$pushRegistrationId"})');
+    if (kDebugMode) {
+      print('📗 session setPushRegistration: Enabling push notifications');
+    }
+    _enablePushNotifications = true;
+
+    await setOrUnsetPushRegistration(
+        executeAsync: _executeAsync,
+        enablePushNotifications: _enablePushNotifications);
   }
 
-  Future<void> unsetPushRegistration(
-      Provider provider, String pushRegistrationId) async {
+  Future<void> unsetPushRegistration() async {
+    if (!_enablePushNotifications) {
+      // no-op
+      if (kDebugMode) {
+        print(
+            '📗 session unsetPushRegistration: Push notifications are already disabled');
+      }
+      return;
+    }
+
     if (_headlessWebView == null) {
       throw StateError(
           'The unsetPushRegistration method cannot be called after destroying the session');
@@ -306,8 +349,14 @@ class Session with ChangeNotifier {
       await _completer.future;
     }
 
-    _execute(
-        'session.unsetPushRegistration({provider: "${provider.name}", pushRegistrationId: "$pushRegistrationId"})');
+    if (kDebugMode) {
+      print('📗 session unsetPushRegistration: Disabling push notifications');
+    }
+    _enablePushNotifications = false;
+
+    await setOrUnsetPushRegistration(
+        executeAsync: _executeAsync,
+        enablePushNotifications: _enablePushNotifications);
   }
 
   Future<void> destroy() async {
@@ -319,7 +368,7 @@ class Session with ChangeNotifier {
       return;
     }
 
-    if (!isInitialized()) {
+    if ((!_sessionInitialized) && (_me != null)) {
       if (kDebugMode) {
         print(
             '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
@@ -327,7 +376,13 @@ class Session with ChangeNotifier {
       await _completer.future;
     }
 
-    await _execute('session.destroy()');
+    if (kDebugMode) {
+      print('📗 session destroy: Destroying session');
+    }
+
+    if (_me != null) {
+      await _execute('session.destroy()');
+    }
 
     _headlessWebView!.dispose();
     _headlessWebView = null;
@@ -351,6 +406,10 @@ class Session with ChangeNotifier {
             '📗 session hasValidCredentials: !_sessionInitialized, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (kDebugMode) {
+      print('📗 session hasValidCredentials: execute');
     }
 
     final bool isValid =
@@ -408,5 +467,7 @@ class Session with ChangeNotifier {
   // conversation.sendMessage
 
   // MAYBE:
+  // onBrowserPermissionDenied
+  // onBrowserPermissionNeeded
   // conversation.setAttributes
 }
