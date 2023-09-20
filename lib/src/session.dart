@@ -63,6 +63,9 @@ class Session {
 
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
+
+  bool isHeadLess = true;
+
   Completer<void> _completer;
 
   bool _enablePushNotifications;
@@ -97,14 +100,15 @@ class Session {
     _headlessWebView!.run();
   }
 
-  bool _isInitialized() {
+  bool isInitialized() {
     return _me != null && _completer.isCompleted;
   }
 
   Future<void> initializeSession([InAppWebViewController? controller]) async {
-    var _controller = _webViewController!;
-    if (controller != null) {
-      _controller = controller;
+    if (controller == null) {
+      controller = _webViewController!;
+    } else {
+      _webViewController = controller;
     }
 
     // Wait for TalkJS to be ready
@@ -114,7 +118,7 @@ class Session {
       print('📗 session callAsyncJavaScript: $js');
     }
 
-    await _controller.callAsyncJavaScript(functionBody: js);
+    await controller.callAsyncJavaScript(functionBody: js);
 
     var _signature = '';
     if (signature != null) {
@@ -161,9 +165,7 @@ class Session {
           'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
     }
 
-    if (controller == null) {
-      _completer.complete();
-    }
+    _completer.complete();
   }
 
   void _onWebViewCreated(InAppWebViewController controller) async {
@@ -209,7 +211,7 @@ class Session {
       print('📗 session._onLoadStop ($url)');
     }
 
-    if (!_isInitialized()) {
+    if (!isInitialized() && isHeadLess) {
       initializeSession();
     }
   }
@@ -292,7 +294,7 @@ class Session {
           'The setPushRegistration method cannot be called after destroying the session');
     }
 
-    if (!_isInitialized()) {
+    if (!isInitialized()) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling setPushRegistration');
@@ -316,7 +318,7 @@ class Session {
           'The unsetPushRegistration method cannot be called after destroying the session');
     }
 
-    if (!_isInitialized()) {
+    if (!isInitialized()) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling unsetPushRegistration');
@@ -336,7 +338,7 @@ class Session {
   Future<void> destroy() async {
     if (_headlessWebView != null) {
       // We await for the completer only if the `me` property has been set
-      if (!_isInitialized()) {
+      if (!isInitialized()) {
         if (kDebugMode) {
           print(
               '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
@@ -363,7 +365,7 @@ class Session {
           'The hasValidCredentials method cannot be called after destroying the session');
     }
 
-    if (!_isInitialized()) {
+    if (!isInitialized()) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling hasValidCredentials');
