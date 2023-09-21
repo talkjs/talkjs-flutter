@@ -11,8 +11,23 @@ import './conversation.dart';
 import './webview_common.dart';
 import './message.dart';
 import './unreads.dart';
+import './notification.dart';
 
 typedef MessageHandler = void Function(Message message);
+
+enum Provider { fcm, apns }
+
+extension ProviderString on Provider {
+  /// Converts this enum's values to String.
+  String getValue() {
+    switch (this) {
+      case Provider.fcm:
+        return 'fcm';
+      case Provider.apns:
+        return 'apns';
+    }
+  }
+}
 
 /// A session represents a currently active user.
 class Session with ChangeNotifier {
@@ -68,9 +83,7 @@ class Session with ChangeNotifier {
         }
 
         if (_enablePushNotifications != null) {
-          setOrUnsetPushRegistration(
-              executeAsync: _executeAsync,
-              enablePushNotifications: _enablePushNotifications!);
+          _setOrUnsetPushRegistration();
         }
 
         _sessionInitialized = true;
@@ -162,9 +175,7 @@ class Session with ChangeNotifier {
         }
 
         if (_enablePushNotifications != null) {
-          await setOrUnsetPushRegistration(
-              executeAsync: _executeAsync,
-              enablePushNotifications: _enablePushNotifications!);
+          await _setOrUnsetPushRegistration();
         }
 
         _sessionInitialized = true;
@@ -213,6 +224,40 @@ class Session with ChangeNotifier {
     unreads?.onChange?.call(
       unreadsJson.map((unread) => UnreadConversation.fromJson(unread)).toList(),
     );
+  }
+
+  Future<dynamic> _setOrUnsetPushRegistration() {
+    List<String> statements = [];
+
+    if (_enablePushNotifications == true) {
+      if (fcmToken != null) {
+        statements.add(
+            'futures.push(session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}));');
+      }
+
+      if (apnsToken != null) {
+        statements.add(
+            'futures.push(session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}));');
+      }
+    } else if (_enablePushNotifications == false) {
+      if (fcmToken != null) {
+        statements.add(
+            'futures.push(session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}));');
+      }
+
+      if (apnsToken != null) {
+        statements.add(
+            'futures.push(session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}));');
+      }
+    }
+
+    if (statements.length != 0) {
+      statements.insert(0, 'futures = [];');
+      statements.add('await Promise.all(futures);');
+      return _executeAsync(statements.join('\n'));
+    }
+
+    return Future.value(false);
   }
 
   Session({
@@ -287,14 +332,28 @@ class Session with ChangeNotifier {
   // - The me user could not have been set, in which case _me is null
   // - The webview might not have loaded yet, in which case _sessionInitialized is false, and you can await for the _completer.future
 
-  Future<void> setPushRegistration() async {
-    if (_enablePushNotifications == true) {
+  /// Registers a single mobile device, as one user can be connected to multiple mobile devices.
+  ///
+  /// If the `provider` and `pushRegistrationId` parameters are not passed, it registers the default Firebase token
+  /// for Android, or the default Apns token for iOS, for this device.
+  ///
+  /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
+  Future<void> setPushRegistration(
+      {Provider? provider, String? pushRegistrationId}) async {
+    if (provider == null &&
+        pushRegistrationId == null &&
+        _enablePushNotifications == true) {
       // no-op
       if (kDebugMode) {
         print(
             '📗 session setPushRegistration: Push notifications are already enabled');
       }
       return;
+    }
+
+    if ((provider == null && pushRegistrationId != null) ||
+        (provider != null && pushRegistrationId == null)) {
+      throw StateError('provider and pushRegistrationId must both be non-null');
     }
 
     if (_headlessWebView == null) {
@@ -318,21 +377,39 @@ class Session with ChangeNotifier {
     if (kDebugMode) {
       print('📗 session setPushRegistration: Enabling push notifications');
     }
-    _enablePushNotifications = true;
 
-    await setOrUnsetPushRegistration(
-        executeAsync: _executeAsync,
-        enablePushNotifications: _enablePushNotifications!);
+    if (provider == null && pushRegistrationId == null) {
+      _enablePushNotifications = true;
+
+      await _setOrUnsetPushRegistration();
+    } else {
+      await _executeAsync(
+          'await session.setPushRegistration({provider: "${provider!.getValue()}", pushRegistrationId: "$pushRegistrationId"});');
+    }
   }
 
-  Future<void> unsetPushRegistration() async {
-    if (_enablePushNotifications == false) {
+  /// Unregisters a single mobile device, as one user can be connected to multiple mobile devices.
+  ///
+  /// If the `provider` and `pushRegistrationId` parameters are not passed, it unregisters the default Firebase token
+  /// for Android, or the default Apns token for iOS, for this device.
+  ///
+  /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
+  Future<void> unsetPushRegistration(
+      {Provider? provider, String? pushRegistrationId}) async {
+    if (provider == null &&
+        pushRegistrationId == null &&
+        _enablePushNotifications == false) {
       // no-op
       if (kDebugMode) {
         print(
             '📗 session unsetPushRegistration: Push notifications are already disabled');
       }
       return;
+    }
+
+    if ((provider == null && pushRegistrationId != null) ||
+        (provider != null && pushRegistrationId == null)) {
+      throw StateError('provider and pushRegistrationId must both be non-null');
     }
 
     if (_headlessWebView == null) {
@@ -356,13 +433,49 @@ class Session with ChangeNotifier {
     if (kDebugMode) {
       print('📗 session unsetPushRegistration: Disabling push notifications');
     }
-    _enablePushNotifications = false;
 
-    await setOrUnsetPushRegistration(
-        executeAsync: _executeAsync,
-        enablePushNotifications: _enablePushNotifications!);
+    if (provider == null && pushRegistrationId == null) {
+      _enablePushNotifications = false;
+
+      await _setOrUnsetPushRegistration();
+    } else {
+      await _executeAsync(
+          'await session.unsetPushRegistration({provider: "${provider!.getValue()}", pushRegistrationId: "$pushRegistrationId"});');
+    }
   }
 
+  /// Unregisters all the mobile devices for the user.
+  Future<void> clearPushRegistrations() async {
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The clearPushRegistrations method cannot be called after destroying the session');
+    }
+
+    if (!_sessionInitialized) {
+      if (_me == null) {
+        throw StateError(
+            'The me property needs to be set for the Session object before calling clearPushRegistrations');
+      }
+
+      if (kDebugMode) {
+        print(
+            '📗 session clearPushRegistrations: !_sessionInitialized, awaiting for _completer.future');
+      }
+      await _completer.future;
+    }
+
+    if (kDebugMode) {
+      print('📗 session clearPushRegistrations: Clearing push notifications');
+    }
+
+    await _executeAsync('await session.clearPushRegistrations();');
+  }
+
+  /// Invalidates this session
+  ///
+  /// You cannot use any objects that were created in this session after you destroy it.
+  ///
+  /// If you want to use TalkJS after having called `destroy()` you must instantiate a new Session instance.
   Future<void> destroy() async {
     if (_headlessWebView == null) {
       // no-op
@@ -401,6 +514,7 @@ class Session with ChangeNotifier {
     }
   }
 
+  /// Verifies whether the appId is valid
   Future<bool> hasValidCredentials() async {
     if (_headlessWebView == null) {
       throw StateError(
