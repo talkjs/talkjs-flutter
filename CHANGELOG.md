@@ -1,5 +1,5 @@
 ## NEXT
-- Add `setPushRegistration` and `unsetPushRegistration` to the Session.
+- Add `setPushRegistration`, `unsetPushRegistration`, and `clearPushRegistrations` to the Session.
 - Add `destroy` and `hasValidCredentials` to the Session.
 - Add `onMessage` to the Session.
 - Add `unreads` to the Session.

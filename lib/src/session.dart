@@ -17,18 +17,6 @@ typedef MessageHandler = void Function(Message message);
 
 enum Provider { fcm, apns }
 
-extension ProviderString on Provider {
-  /// Converts this enum's values to String.
-  String getValue() {
-    switch (this) {
-      case Provider.fcm:
-        return 'fcm';
-      case Provider.apns:
-        return 'apns';
-    }
-  }
-}
-
 /// A session represents a currently active user.
 class Session with ChangeNotifier {
   /// Your TalkJS AppId that can be found your TalkJS [dashboard](https://talkjs.com/dashboard).
@@ -82,8 +70,8 @@ class Session with ChangeNotifier {
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
 
-        if (_enablePushNotifications != null) {
-          _setOrUnsetPushRegistration();
+        if (enablePushNotifications != null) {
+          _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
         _sessionInitialized = true;
@@ -105,12 +93,7 @@ class Session with ChangeNotifier {
   bool _sessionInitialized;
   Completer<void> _completer;
 
-  bool? _enablePushNotifications;
-
-  // setter deliberately omitted, as the `enablePushNotifications` member is read-only
-  bool? get enablePushNotifications {
-    return _enablePushNotifications;
-  }
+  final bool? enablePushNotifications;
 
   final MessageHandler? onMessage;
   final Unreads? unreads;
@@ -153,8 +136,6 @@ class Session with ChangeNotifier {
 
       await controller.callAsyncJavaScript(functionBody: js);
 
-      _execute('let futures = []');
-
       // If the `me` property has already been initialized, then create the user and the session
       if ((_me != null) && (!_sessionInitialized)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
@@ -174,8 +155,8 @@ class Session with ChangeNotifier {
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
 
-        if (_enablePushNotifications != null) {
-          await _setOrUnsetPushRegistration();
+        if (enablePushNotifications != null) {
+          await _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
         _sessionInitialized = true;
@@ -226,35 +207,29 @@ class Session with ChangeNotifier {
     );
   }
 
-  Future<dynamic> _setOrUnsetPushRegistration() {
-    List<String> statements = [];
+  Future<dynamic> _setOrUnsetPushRegistration(bool enable) {
+    String statement = "";
 
-    if (_enablePushNotifications == true) {
+    if (enable) {
       if (fcmToken != null) {
-        statements.add(
-            'futures.push(session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}));');
+        statement =
+            'await session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+      } else if (apnsToken != null) {
+        statement =
+            'await session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
-
-      if (apnsToken != null) {
-        statements.add(
-            'futures.push(session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}));');
-      }
-    } else if (_enablePushNotifications == false) {
+    } else {
       if (fcmToken != null) {
-        statements.add(
-            'futures.push(session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}));');
-      }
-
-      if (apnsToken != null) {
-        statements.add(
-            'futures.push(session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}));');
+        statement =
+            'await session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+      } else if (apnsToken != null) {
+        statement =
+            'await session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
     }
 
-    if (statements.length != 0) {
-      statements.insert(0, 'futures = [];');
-      statements.add('await Promise.all(futures);');
-      return _executeAsync(statements.join('\n'));
+    if (statement != "") {
+      return _executeAsync(statement);
     }
 
     return Future.value(false);
@@ -263,11 +238,10 @@ class Session with ChangeNotifier {
   Session({
     required this.appId,
     this.signature,
-    bool? enablePushNotifications = false,
+    this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
-  })  : _enablePushNotifications = enablePushNotifications,
-        _sessionInitialized = false,
+  })  : _sessionInitialized = false,
         _completer = new Completer() {
     _headlessWebView = new HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
@@ -340,17 +314,6 @@ class Session with ChangeNotifier {
   /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
   Future<void> setPushRegistration(
       {Provider? provider, String? pushRegistrationId}) async {
-    if (provider == null &&
-        pushRegistrationId == null &&
-        _enablePushNotifications == true) {
-      // no-op
-      if (kDebugMode) {
-        print(
-            '📗 session setPushRegistration: Push notifications are already enabled');
-      }
-      return;
-    }
-
     if ((provider == null && pushRegistrationId != null) ||
         (provider != null && pushRegistrationId == null)) {
       throw StateError('provider and pushRegistrationId must both be non-null');
@@ -379,12 +342,10 @@ class Session with ChangeNotifier {
     }
 
     if (provider == null && pushRegistrationId == null) {
-      _enablePushNotifications = true;
-
-      await _setOrUnsetPushRegistration();
+      await _setOrUnsetPushRegistration(true);
     } else {
       await _executeAsync(
-          'await session.setPushRegistration({provider: "${provider!.getValue()}", pushRegistrationId: "$pushRegistrationId"});');
+          'await session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
     }
   }
 
@@ -396,17 +357,6 @@ class Session with ChangeNotifier {
   /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
   Future<void> unsetPushRegistration(
       {Provider? provider, String? pushRegistrationId}) async {
-    if (provider == null &&
-        pushRegistrationId == null &&
-        _enablePushNotifications == false) {
-      // no-op
-      if (kDebugMode) {
-        print(
-            '📗 session unsetPushRegistration: Push notifications are already disabled');
-      }
-      return;
-    }
-
     if ((provider == null && pushRegistrationId != null) ||
         (provider != null && pushRegistrationId == null)) {
       throw StateError('provider and pushRegistrationId must both be non-null');
@@ -435,12 +385,10 @@ class Session with ChangeNotifier {
     }
 
     if (provider == null && pushRegistrationId == null) {
-      _enablePushNotifications = false;
-
-      await _setOrUnsetPushRegistration();
+      await _setOrUnsetPushRegistration(false);
     } else {
       await _executeAsync(
-          'await session.unsetPushRegistration({provider: "${provider!.getValue()}", pushRegistrationId: "$pushRegistrationId"});');
+          'await session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
     }
   }
 
@@ -589,9 +537,4 @@ class Session with ChangeNotifier {
   // TODO:
   // conversation.leave
   // conversation.sendMessage
-
-  // MAYBE:
-  // onBrowserPermissionDenied
-  // onBrowserPermissionNeeded
-  // conversation.setAttributes
 }
