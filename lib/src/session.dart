@@ -50,9 +50,7 @@ class Session with ChangeNotifier {
 
       // If the WebView has loaded the page, but didn't initialize the session because of
       // the missing `me` property, now is the time to initialize the session.
-      if ((_headlessWebView != null) &&
-          (_webViewController != null) &&
-          (!_completer.isCompleted)) {
+      if ((_webViewController != null) && (!_completer.isCompleted)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
@@ -308,8 +306,10 @@ class Session with ChangeNotifier {
   /// for Android, or the default Apns token for iOS, for this device.
   ///
   /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
-  Future<void> setPushRegistration(
-      {Provider? provider, String? pushRegistrationId}) async {
+  Future<void> setPushRegistration({
+    Provider? provider,
+    String? pushRegistrationId,
+  }) async {
     if ((provider == null && pushRegistrationId != null) ||
         (provider != null && pushRegistrationId == null)) {
       throw StateError('provider and pushRegistrationId must both be non-null');
@@ -351,8 +351,10 @@ class Session with ChangeNotifier {
   /// for Android, or the default Apns token for iOS, for this device.
   ///
   /// If passing parameters to this function, both `provider` and `pushRegistrationId` must not be null
-  Future<void> unsetPushRegistration(
-      {Provider? provider, String? pushRegistrationId}) async {
+  Future<void> unsetPushRegistration({
+    Provider? provider,
+    String? pushRegistrationId,
+  }) async {
     if ((provider == null && pushRegistrationId != null) ||
         (provider != null && pushRegistrationId == null)) {
       throw StateError('provider and pushRegistrationId must both be non-null');
