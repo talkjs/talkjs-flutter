@@ -37,7 +37,7 @@ class Session with ChangeNotifier {
   // - We need a `me` User before being able to create the session in the WebView
   // - The `enablePushNotifications` property can change before the WebView is loaded
   // - When the WebView loads or when the `me` user is passed, whichever comes last,
-  //   the session is created, and _sessionInitialized gets set to true.
+  //   the session is created, and _completer.isCompleted gets set to true.
   //   At this point, any change to enablePushNotifications triggers setting or unsetting
   //   the push notifications
 
@@ -52,7 +52,7 @@ class Session with ChangeNotifier {
       // the missing `me` property, now is the time to initialize the session.
       if ((_headlessWebView != null) &&
           (_webViewController != null) &&
-          (!_sessionInitialized)) {
+          (!_completer.isCompleted)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
@@ -74,7 +74,6 @@ class Session with ChangeNotifier {
           _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
-        _sessionInitialized = true;
         _completer.complete();
       }
     }
@@ -90,7 +89,6 @@ class Session with ChangeNotifier {
 
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
-  bool _sessionInitialized;
   Completer<void> _completer;
 
   final bool? enablePushNotifications;
@@ -137,7 +135,7 @@ class Session with ChangeNotifier {
       await controller.callAsyncJavaScript(functionBody: js);
 
       // If the `me` property has already been initialized, then create the user and the session
-      if ((_me != null) && (!_sessionInitialized)) {
+      if ((_me != null) && (!_completer.isCompleted)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
         createSession(
           execute: _execute,
@@ -159,7 +157,6 @@ class Session with ChangeNotifier {
           await _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
-        _sessionInitialized = true;
         _completer.complete();
       }
     }
@@ -241,8 +238,7 @@ class Session with ChangeNotifier {
     this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
-  })  : _sessionInitialized = false,
-        _completer = new Completer() {
+  }) : _completer = new Completer() {
     _headlessWebView = new HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
         onLoadStop: _onLoadStop,
@@ -304,7 +300,7 @@ class Session with ChangeNotifier {
   // The functions that use the headless webview need to take into consideration the following things:
   // - The session could have been destroyed, in which case _headlessWebView is null
   // - The me user could not have been set, in which case _me is null
-  // - The webview might not have loaded yet, in which case _sessionInitialized is false, and you can await for the _completer.future
+  // - The webview might not have loaded yet, in which case _completer.isCompleted is false, and you can await for the _completer.future
 
   /// Registers a single mobile device, as one user can be connected to multiple mobile devices.
   ///
@@ -324,7 +320,7 @@ class Session with ChangeNotifier {
           'The setPushRegistration method cannot be called after destroying the session');
     }
 
-    if (!_sessionInitialized) {
+    if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling setPushRegistration');
@@ -332,7 +328,7 @@ class Session with ChangeNotifier {
 
       if (kDebugMode) {
         print(
-            '📗 session setPushRegistration: !_sessionInitialized, awaiting for _completer.future');
+            '📗 session setPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
     }
@@ -367,7 +363,7 @@ class Session with ChangeNotifier {
           'The unsetPushRegistration method cannot be called after destroying the session');
     }
 
-    if (!_sessionInitialized) {
+    if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling unsetPushRegistration');
@@ -375,7 +371,7 @@ class Session with ChangeNotifier {
 
       if (kDebugMode) {
         print(
-            '📗 session unsetPushRegistration: !_sessionInitialized, awaiting for _completer.future');
+            '📗 session unsetPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
     }
@@ -399,7 +395,7 @@ class Session with ChangeNotifier {
           'The clearPushRegistrations method cannot be called after destroying the session');
     }
 
-    if (!_sessionInitialized) {
+    if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling clearPushRegistrations');
@@ -407,7 +403,7 @@ class Session with ChangeNotifier {
 
       if (kDebugMode) {
         print(
-            '📗 session clearPushRegistrations: !_sessionInitialized, awaiting for _completer.future');
+            '📗 session clearPushRegistrations: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
     }
@@ -434,10 +430,10 @@ class Session with ChangeNotifier {
     }
 
     // We await for the completer only if the `me` property has been set
-    if ((!_sessionInitialized) && (_me != null)) {
+    if ((!_completer.isCompleted) && (_me != null)) {
       if (kDebugMode) {
         print(
-            '📗 session destroy: !_sessionInitialized, awaiting for _completer.future');
+            '📗 session destroy: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
     }
@@ -469,7 +465,7 @@ class Session with ChangeNotifier {
           'The hasValidCredentials method cannot be called after destroying the session');
     }
 
-    if (!_sessionInitialized) {
+    if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
             'The me property needs to be set for the Session object before calling hasValidCredentials');
@@ -477,7 +473,7 @@ class Session with ChangeNotifier {
 
       if (kDebugMode) {
         print(
-            '📗 session hasValidCredentials: !_sessionInitialized, awaiting for _completer.future');
+            '📗 session hasValidCredentials: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
     }
