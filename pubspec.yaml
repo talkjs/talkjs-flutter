@@ -15,14 +15,14 @@ dependencies:
   flutter:
     sdk: flutter
 
-  talkjs_flutter_inappwebview: ^6.0.3
+  talkjs_flutter_inappwebview: ^6.0.4
   crypto: ^3.0.2
-  firebase_core: ^2.13.0
-  firebase_messaging: ^14.6.1
-  flutter_local_notifications: ^14.0.0+1
-  http: ^0.13.5
+  firebase_core: ^2.16.0
+  firebase_messaging: ^14.6.8
+  flutter_local_notifications: ^14.1.1
+  http: ^0.13.6
   flutter_apns_only: ^1.6.0
-  permission_handler: ^10.2.0
+  permission_handler: ^10.4.5
   url_launcher: ^6.1.11
 
 dev_dependencies:
