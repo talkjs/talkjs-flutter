@@ -1,13 +1,17 @@
-## NEXT
+## 0.9.0
+
 - Add `setPushRegistration`, `unsetPushRegistration`, and `clearPushRegistrations` to the Session.
 - Add `destroy` and `hasValidCredentials` to the Session.
 - Add `onMessage` to the Session.
 - Add `unreads` to the Session.
+- Update dependencies' versions.
 
 ## 0.8.1
+
 - Updated Firebase dependencies versions
 
 ## 0.8.0
+
 - Add `lastMessageTs` and `subject` feedFilters.
 - Re-enable support for `onUrlNavigation` callback on the ChatBox.
 - Fix push notifications not working on Android in Flutter v3.3.0 and later.
