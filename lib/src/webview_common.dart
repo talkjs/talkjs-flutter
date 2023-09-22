@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import './session.dart';
-import './notification.dart';
 
 typedef FnExecute = void Function(String statement);
 
@@ -24,26 +23,4 @@ void createSession({
   execute('options["me"] = $variableName;');
 
   execute('const session = new Talk.Session(options);');
-
-  if (session.enablePushNotifications) {
-    if (fcmToken != null) {
-      execute(
-          'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-    }
-
-    if (apnsToken != null) {
-      execute(
-          'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-    }
-  } else {
-    if (fcmToken != null) {
-      execute(
-          'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});');
-    }
-
-    if (apnsToken != null) {
-      execute(
-          'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});');
-    }
-  }
 }
