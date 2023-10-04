@@ -198,6 +198,10 @@ class ChatBoxState extends State<ChatBox> {
         }
       ''');
 
+      // Use Web Visibility API to notify the backend when the UI/WebView is in focus
+      execute(
+          'document.addEventListener("visibilitychange", () => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"));');
+
       createSession(
           execute: execute,
           session: widget.session,
@@ -206,8 +210,15 @@ class ChatBoxState extends State<ChatBox> {
       // messageFilter and highlightedWords are set as options for the chatbox
       _createConversation();
 
-      execute(
-          'chatBox.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
+      execute('''
+        chatBox.mount(document.getElementById("talkjs-container")).then(() => {
+          window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded");
+
+          // Notify the backend of the UI's focus state
+          setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
+        });
+      '''
+          .trim());
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -229,7 +240,13 @@ class ChatBoxState extends State<ChatBox> {
 
       // Mount the chatbox only if it's new (else the existing chatbox has already been mounted)
       if (chatBoxRecreated) {
-        execute('chatBox.mount(document.getElementById("talkjs-container"));');
+        execute('''
+          chatBox.mount(document.getElementById("talkjs-container")).then(() => {
+            // Notify the backend of the UI's focus state
+            setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
+          });
+        '''
+            .trim());
       }
     }
 

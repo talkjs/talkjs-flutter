@@ -1,3 +1,8 @@
+## 0.9.1
+
+- Fix messages getting marked as read only after clicking the message field.
+  Now they should get marked after the Chatbox has loaded.
+
 ## 0.9.0
 
 - Add `setPushRegistration`, `unsetPushRegistration`, and `clearPushRegistrations` to the Session.
