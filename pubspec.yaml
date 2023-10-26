@@ -15,21 +15,21 @@ dependencies:
   flutter:
     sdk: flutter
 
-  talkjs_flutter_inappwebview: ^6.0.4
-  crypto: ^3.0.2
-  firebase_core: ^2.16.0
-  firebase_messaging: ^14.6.8
-  flutter_local_notifications: ^14.1.1
+  talkjs_flutter_inappwebview: ^6.0.6
+  crypto: ^3.0.3
+  firebase_core: ^2.20.0
+  firebase_messaging: ^14.7.2
+  flutter_local_notifications: ^16.1.0
   http: ^0.13.6
   flutter_apns_only: ^1.6.0
-  permission_handler: ^10.4.5
+  permission_handler: ^11.0.1
   url_launcher: ^6.1.11
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   husky: ^0.1.6
-  lint_staged: ^0.4.0
+  lint_staged: ^0.4.2
 
 lint_staged:
   '**/*.dart': dart format && dart fix --apply
