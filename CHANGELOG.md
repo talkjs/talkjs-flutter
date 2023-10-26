@@ -1,3 +1,9 @@
+## 0.9.2
+
+- Fix build issue on Xcode 15.
+- Fix runtime error on iOS.
+- Update dependencies' versions.
+
 ## 0.9.1
 
 - Fix messages getting marked as read only after clicking the message field.
