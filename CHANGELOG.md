@@ -1,3 +1,7 @@
+## 0.9.3
+
+- Fix links in Android not opening in the external browser by default.
+
 ## 0.9.2
 
 - Fix build issue on Xcode 15.

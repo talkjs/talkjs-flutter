@@ -296,17 +296,23 @@ class ChatBoxState extends State<ChatBox> {
       },
       shouldOverrideUrlLoading: (InAppWebViewController controller,
           NavigationAction navigationAction) async {
-        if (navigationAction.navigationType == NavigationType.LINK_ACTIVATED) {
-          if (widget.onUrlNavigation != null) {
-            // The onUrlNavigation function has been defined, so let's see if we should open the browser or not
-            if (widget.onUrlNavigation!(UrlNavigationRequest(
-                    navigationAction.request.url!.rawValue)) ==
-                UrlNavigationAction.deny) {
-              return NavigationActionPolicy.CANCEL;
-            }
+        if (Platform.isAndroid ||
+            (navigationAction.navigationType ==
+                NavigationType.LINK_ACTIVATED)) {
+          // NavigationType is only present in iOS devices (Also MacOS but our SDK doesn't support it.)
+
+          final webUri = navigationAction.request.url ?? WebUri("about:blank");
+
+          // If onUrlNavigation is null we default to allowing the navigation request.
+          final urlNavigationAction = widget.onUrlNavigation
+                  ?.call(UrlNavigationRequest(webUri.rawValue)) ??
+              UrlNavigationAction.allow;
+
+          if (urlNavigationAction == UrlNavigationAction.deny) {
+            return NavigationActionPolicy.CANCEL;
           }
 
-          if (await launchUrl(navigationAction.request.url!)) {
+          if (await launchUrl(webUri, mode: LaunchMode.externalApplication)) {
             // We launched the browser, so we don't navigate to the URL in the WebView
             return NavigationActionPolicy.CANCEL;
           } else {
