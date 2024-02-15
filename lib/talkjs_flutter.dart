@@ -35,13 +35,13 @@ class Talk {
   }
 
   static Future<void> registerPushNotificationHandlers(
-      {AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
-    if ((Platform.isAndroid) && (androidChannel != null)) {
-      await registerAndroidPushNotificationHandlers(androidChannel);
+      {AndroidSettings? androidSettings, IOSSettings? iosSettings}) async {
+    if ((Platform.isAndroid) && (androidSettings != null)) {
+      await registerAndroidPushNotificationHandlers(androidSettings);
     }
 
-    if ((Platform.isIOS) && (iosPermissions != null)) {
-      await registerIOSPushNotificationHandlers(iosPermissions);
+    if ((Platform.isIOS) && (iosSettings != null)) {
+      await registerIOSPushNotificationHandlers(iosSettings);
     }
   }
 }

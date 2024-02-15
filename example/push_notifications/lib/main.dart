@@ -1,28 +1,25 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:talkjs_flutter/talkjs_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'package:flutter_apns_only/flutter_apns_only.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isAndroid) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  final connector = ApnsPushConnectorOnly();
+  connector.requestNotificationPermissions(const IosNotificationSettings());
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   await Talk.registerPushNotificationHandlers(
-    androidChannel: const AndroidChannel(
+    androidSettings: const AndroidSettings(
       channelId: 'com.talkjs.flutter_push_example.messages',
       channelName: 'Messages',
     ),
-    iosPermissions: const IOSPermissions(
-      sound: true,
-      badge: true,
-      alert: true,
-    ),
+    iosSettings: const IOSSettings(useFirebase: true),
   );
 
   runApp(const MyApp());

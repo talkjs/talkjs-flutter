@@ -60,7 +60,7 @@ extension ImportanceToLocalNotification on AndroidImportance {
   }
 }
 
-class AndroidChannel {
+class AndroidSettings {
   final String channelId;
   final String channelName;
   final bool? badge;
@@ -73,7 +73,7 @@ class AndroidChannel {
   final bool? vibrate;
   final Int64List? vibrationPattern;
 
-  const AndroidChannel({
+  const AndroidSettings({
     required this.channelId,
     required this.channelName,
     this.badge,
@@ -88,15 +88,9 @@ class AndroidChannel {
   });
 }
 
-class IOSPermissions {
-  final bool alert;
-  final bool badge;
-  final bool sound;
-  const IOSPermissions({
-    this.alert = true,
-    this.badge = true,
-    this.sound = true,
-  });
+class IOSSettings {
+  final bool useFirebase;
+  const IOSSettings({this.useFirebase = false});
 }
 
 String? fcmToken;
@@ -104,7 +98,7 @@ String? apnsToken;
 
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
-AndroidChannel? _androidChannel;
+AndroidSettings? _androidSettings;
 final _activeNotifications = <String, List<String>>{};
 int _nextId = 0;
 final _showIdFromNotificationId = <String, int>{};
@@ -265,29 +259,29 @@ Future<void> _onReceiveMessageFromPort(
   }
 
   // We default to not playing sounds, unless a non-empty string is provided
-  final playSound = _androidChannel!.playSound.isNotEmpty;
+  final playSound = _androidSettings!.playSound.isNotEmpty;
   RawResourceAndroidNotificationSound? sound;
 
   // We use the string 'default' for the default sound (for compatibility with the React Natve SDK)
-  if (playSound && (_androidChannel!.playSound != 'default')) {
-    sound = RawResourceAndroidNotificationSound(_androidChannel!.playSound);
+  if (playSound && (_androidSettings!.playSound != 'default')) {
+    sound = RawResourceAndroidNotificationSound(_androidSettings!.playSound);
   }
 
   final platformChannelSpecifics = NotificationDetails(
     android: AndroidNotificationDetails(
-      _androidChannel!.channelId,
-      _androidChannel!.channelName,
-      channelDescription: _androidChannel!.channelDescription,
-      importance:
-          _androidChannel!.importance?.toLocalNotification() ?? Importance.high,
+      _androidSettings!.channelId,
+      _androidSettings!.channelName,
+      channelDescription: _androidSettings!.channelDescription,
+      importance: _androidSettings!.importance?.toLocalNotification() ??
+          Importance.high,
       playSound: playSound,
       sound: sound,
-      enableVibration: _androidChannel!.vibrate ?? true,
-      vibrationPattern: _androidChannel!.vibrationPattern,
-      channelShowBadge: _androidChannel!.badge ?? true,
-      enableLights: _androidChannel!.lights ?? false,
-      ledColor: _androidChannel!.lightColor,
-      visibility: _androidChannel!.visibility?.toLocalNotification(),
+      enableVibration: _androidSettings!.vibrate ?? true,
+      vibrationPattern: _androidSettings!.vibrationPattern,
+      channelShowBadge: _androidSettings!.badge ?? true,
+      enableLights: _androidSettings!.lights ?? false,
+      ledColor: _androidSettings!.lightColor,
+      visibility: _androidSettings!.visibility?.toLocalNotification(),
       styleInformation: styleInformation,
     ),
   );
@@ -323,7 +317,7 @@ void _onFCMTokenRefresh(String token) {
 }
 
 Future<void> registerAndroidPushNotificationHandlers(
-    AndroidChannel androidChannel) async {
+    AndroidSettings androidSettings) async {
   // Get the token each time the application loads
   fcmToken = await FirebaseMessaging.instance.getToken();
   print('📘 Firebase token: $fcmToken');
@@ -338,7 +332,7 @@ Future<void> registerAndroidPushNotificationHandlers(
     onDidReceiveNotificationResponse: _onSelectNotification,
   );
 
-  _androidChannel = androidChannel;
+  _androidSettings = androidSettings;
 
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
@@ -399,7 +393,7 @@ Future<void> _onPush(String name, ApnsRemoteMessage message) async {
 }
 
 Future<void> registerIOSPushNotificationHandlers(
-    IOSPermissions iosPermissions) async {
+    IOSSettings iosSettings) async {
   final connector = ApnsPushConnectorOnly();
 
   connector.configureApns(
@@ -409,15 +403,15 @@ Future<void> registerIOSPushNotificationHandlers(
     onBackgroundMessage: (data) => _onPush('onBackgroundMessage', data),
   );
 
-  connector.token.addListener(() {
-    print('📘 apns token refresh: ${connector.token.value}');
+  if (iosSettings.useFirebase) {
+    fcmToken = await FirebaseMessaging.instance.getToken();
 
-    apnsToken = connector.token.value;
-  });
+    print('📘 apns token refresh: $fcmToken');
+  } else {
+    connector.token.addListener(() {
+      print('📘 apns token refresh: ${connector.token.value}');
 
-  connector.requestNotificationPermissions(IosNotificationSettings(
-    sound: iosPermissions.sound,
-    alert: iosPermissions.alert,
-    badge: iosPermissions.badge,
-  ));
+      apnsToken = connector.token.value;
+    });
+  }
 }
