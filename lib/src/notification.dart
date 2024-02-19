@@ -105,22 +105,27 @@ final _showIdFromNotificationId = <String, int>{};
 final _receivePort = ReceivePort();
 final _imageCache = <String, Uint8List>{};
 
-Future<Uint8List> _imageDataFromUrl(String url) async {
+Future<Uint8List?> _imageDataFromUrl(String url) async {
   // Use the cached image
   if (_imageCache.containsKey(url)) {
     print("📘 _imageDataFromUrl ($url): Using cached image");
     return _imageCache[url]!;
   }
 
-  final response = await http.get(Uri.parse(url));
-  print("📘 _imageDataFromUrl ($url): $response");
+  try {
+    final response = await http.get(Uri.parse(url));
+    print("📘 _imageDataFromUrl ($url): $response");
 
-  // Cache the response only if the HTTP request was successful
-  if (response.statusCode < 400) {
-    _imageCache[url] = response.bodyBytes;
+    // Cache the response only if the HTTP request was successful
+    if (response.statusCode < 400) {
+      _imageCache[url] = response.bodyBytes;
+    }
+
+    return response.bodyBytes;
+  } on Exception catch (e) {
+    print("📘 _imageDataFromUrl Exception ($url): $e");
+    return null;
   }
-
-  return response.bodyBytes;
 }
 
 Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
@@ -128,7 +133,12 @@ Future<ByteArrayAndroidBitmap?> _androidBitmapFromUrl(String? url) async {
     return null;
   }
 
-  return ByteArrayAndroidBitmap(await _imageDataFromUrl(url));
+  final imageData = await _imageDataFromUrl(url);
+  if (imageData == null) {
+    return null;
+  }
+
+  return ByteArrayAndroidBitmap(imageData);
 }
 
 Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
@@ -136,7 +146,12 @@ Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
     return null;
   }
 
-  return ByteArrayAndroidIcon(await _imageDataFromUrl(url));
+  final imageData = await _imageDataFromUrl(url);
+  if (imageData == null) {
+    return null;
+  }
+
+  return ByteArrayAndroidIcon(imageData);
 }
 
 Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
