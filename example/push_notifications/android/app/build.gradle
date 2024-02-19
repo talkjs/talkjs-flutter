@@ -27,6 +27,7 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
+    namespace 'com.talkjs.flutter_push_example'
     compileSdkVersion 33
 
     compileOptions {
