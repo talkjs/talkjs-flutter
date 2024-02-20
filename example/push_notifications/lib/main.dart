@@ -11,12 +11,12 @@ Future<void> main() async {
 
   // Request push notification permissions
   if (Platform.isAndroid) {
-    FlutterLocalNotificationsPlugin()
+    await FlutterLocalNotificationsPlugin()
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()!
         .requestNotificationsPermission();
   } else if (Platform.isIOS) {
-    ApnsPushConnectorOnly().requestNotificationPermissions(
+    await ApnsPushConnectorOnly().requestNotificationPermissions(
         const IosNotificationSettings(sound: true, alert: true, badge: true));
   }
 
