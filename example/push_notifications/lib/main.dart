@@ -1,24 +1,13 @@
-import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:talkjs_flutter/talkjs_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:flutter_apns_only/flutter_apns_only.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Request push notification permissions
-  if (Platform.isAndroid) {
-    await FlutterLocalNotificationsPlugin()
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()!
-        .requestNotificationsPermission();
-  } else if (Platform.isIOS) {
-    await ApnsPushConnectorOnly().requestNotificationPermissions(
-        const IosNotificationSettings(sound: true, alert: true, badge: true));
-  }
+  await Talk.requestNotificationPermissions();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
