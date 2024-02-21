@@ -15,6 +15,7 @@ import './user.dart';
 import './predicate.dart';
 import './chatbox.dart';
 import './webview_common.dart';
+import './themeoptions.dart';
 
 typedef SelectConversationHandler = void Function(
     SelectConversationEvent event);
@@ -52,8 +53,13 @@ class ConversationListOptions {
 
   /// Overrides the theme used for this chat UI.
   final String? theme;
+  final ThemeOptions? themeOptions;
 
-  const ConversationListOptions({this.showFeedHeader, this.theme});
+  const ConversationListOptions({
+    this.showFeedHeader,
+    this.theme,
+    this.themeOptions,
+  });
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -68,7 +74,9 @@ class ConversationListOptions {
       result['showFeedHeader'] = showFeedHeader;
     }
 
-    if (theme != null) {
+    if (themeOptions != null) {
+      result['theme'] = themeOptions?.toJson();
+    } else if (theme != null) {
       result['theme'] = theme;
     }
 
@@ -84,6 +92,7 @@ class ConversationList extends StatefulWidget {
   final bool? showFeedHeader;
 
   final String? theme;
+  final ThemeOptions? themeOptions;
 
   final ConversationPredicate feedFilter;
 
@@ -95,6 +104,7 @@ class ConversationList extends StatefulWidget {
     required this.session,
     this.showFeedHeader,
     this.theme,
+    this.themeOptions,
     this.feedFilter = const ConversationPredicate(),
     this.onSelectConversation,
     this.onLoadingStateChanged,
@@ -179,6 +189,7 @@ class ConversationListState extends State<ConversationList> {
     final options = ConversationListOptions(
       showFeedHeader: widget.showFeedHeader,
       theme: widget.theme,
+      themeOptions: widget.themeOptions,
     );
 
     _oldFeedFilter = ConversationPredicate.of(widget.feedFilter);
