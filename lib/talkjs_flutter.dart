@@ -4,6 +4,8 @@ import 'dart:convert' show json, utf8;
 import 'dart:io' show Platform;
 import 'package:crypto/crypto.dart' show sha1;
 import 'src/notification.dart';
+import 'package:flutter_apns_only/flutter_apns_only.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 export 'src/chatoptions.dart';
 export 'src/conversation.dart';
@@ -35,13 +37,26 @@ class Talk {
   }
 
   static Future<void> registerPushNotificationHandlers(
-      {AndroidChannel? androidChannel, IOSPermissions? iosPermissions}) async {
-    if ((Platform.isAndroid) && (androidChannel != null)) {
-      await registerAndroidPushNotificationHandlers(androidChannel);
+      {AndroidSettings? androidSettings, IOSSettings? iosSettings}) async {
+    if ((Platform.isAndroid) && (androidSettings != null)) {
+      await registerAndroidPushNotificationHandlers(androidSettings);
     }
 
-    if ((Platform.isIOS) && (iosPermissions != null)) {
-      await registerIOSPushNotificationHandlers(iosPermissions);
+    if ((Platform.isIOS) && (iosSettings != null)) {
+      await registerIOSPushNotificationHandlers(iosSettings);
     }
+  }
+
+  static Future<bool?> requestNotificationPermissions() async {
+    if (Platform.isAndroid) {
+      return FlutterLocalNotificationsPlugin()
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()!
+          .requestNotificationsPermission();
+    } else if (Platform.isIOS) {
+      return ApnsPushConnectorOnly().requestNotificationPermissions();
+    }
+
+    return null;
   }
 }
