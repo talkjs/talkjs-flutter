@@ -61,13 +61,8 @@ class ConversationListOptions {
     this.themeOptions,
   });
 
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// This method is used instead of toJson for coherence with ChatBoxOptions.
-  /// The toJson method is intentionally omitted, to produce an error if
-  /// someone tries to convert this object to JSON instead of using the
-  /// getJsonString method.
-  String getJsonString(ConversationListState conversationList) {
+  @override
+  String toString() {
     final result = <String, dynamic>{};
 
     if (showFeedHeader != null) {
@@ -79,8 +74,6 @@ class ConversationListOptions {
     } else if (theme != null) {
       result['theme'] = theme;
     }
-
-    conversationList.setExtraOptions(result);
 
     return json.encode(result);
   }
@@ -192,10 +185,9 @@ class ConversationListState extends State<ConversationList> {
       themeOptions: widget.themeOptions,
     );
 
-    _oldFeedFilter = widget.feedFilter?.clone();
+    execute('const conversationList = session.createInbox(${options});');
 
-    execute(
-        'const conversationList = session.createInbox(${options.getJsonString(this)});');
+    _setFeedFilter();
 
     execute('''conversationList.onSelectConversation((event) => {
       event.preventDefault();
@@ -314,18 +306,6 @@ class ConversationListState extends State<ConversationList> {
     }
 
     return _users[user.id]!;
-  }
-
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// Sets the options for ConversationListOptions for the properties where there exists
-  /// both a declarative option and an imperative method
-  void setExtraOptions(Map<String, dynamic> result) {
-    if (widget.feedFilter != null) {
-      result['feedFilter'] = widget.feedFilter;
-    } else {
-      result['feedFilter'] = new Map<String, dynamic>();
-    }
   }
 
   /// For internal use only. Implementation detail that may change anytime.

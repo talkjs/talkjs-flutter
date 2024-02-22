@@ -186,14 +186,8 @@ class ChatBoxOptions {
     this.translateConversations,
   });
 
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// This method is used instead of toJson, as we need to output valid JS
-  /// that is not valid JSON.
-  /// The toJson method is intentionally omitted, to produce an error if
-  /// someone tries to convert this object to JSON instead of using the
-  /// getJsonString method.
-  String getJsonString(ChatBoxState chatBox) {
+  @override
+  String toString() {
     final result = <String, dynamic>{};
 
     if (dir != null) {
@@ -222,8 +216,6 @@ class ChatBoxOptions {
     if (translateConversations != null) {
       result['translateConversations'] = translateConversations!.getValue();
     }
-
-    chatBox.setExtraOptions(result);
 
     return json.encode(result);
   }
