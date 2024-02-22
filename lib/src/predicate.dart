@@ -255,7 +255,16 @@ class ConversationAccessLevel {
   String toString() => _value;
 }
 
-class ConversationPredicate {
+abstract class BaseConversationPredicate {
+  const BaseConversationPredicate();
+  String toString();
+  dynamic toJson();
+  BaseConversationPredicate clone();
+  bool operator ==(Object other);
+  int get hashCode;
+}
+
+class ConversationPredicate extends BaseConversationPredicate {
   /// Only select conversations that the current user as specific access to.
   final FieldPredicate<ConversationAccessLevel>? access;
 
@@ -294,11 +303,17 @@ class ConversationPredicate {
             : null);
 
   @override
+  BaseConversationPredicate clone() {
+    return ConversationPredicate.of(this);
+  }
+
+  @override
   String toString() {
     return json.encode(this);
   }
 
-  Map<String, dynamic> toJson() {
+  @override
+  dynamic toJson() {
     final result = <String, dynamic>{};
 
     if (access != null) {
@@ -324,6 +339,7 @@ class ConversationPredicate {
     return result;
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -356,6 +372,7 @@ class ConversationPredicate {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
         access,
         (custom != null ? Object.hashAll(custom!.keys) : custom),
@@ -364,6 +381,64 @@ class ConversationPredicate {
         lastMessageTs,
         subject,
       );
+}
+
+class CompoundConversationPredicate extends BaseConversationPredicate {
+  final String _operand;
+  List<ConversationPredicate> _values;
+
+  CompoundConversationPredicate.any(List<ConversationPredicate> predicates)
+      : _operand = 'any',
+        _values = predicates;
+
+  CompoundConversationPredicate.of(CompoundConversationPredicate other)
+      : _operand = other._operand,
+        _values = List<ConversationPredicate>.of(other._values);
+
+  @override
+  BaseConversationPredicate clone() {
+    return CompoundConversationPredicate.of(this);
+  }
+
+  @override
+  String toString() {
+    return json.encode(this);
+  }
+
+  @override
+  dynamic toJson() {
+    final result = <dynamic>[];
+
+    result.add(_operand);
+
+    result.add(_values);
+
+    return result;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is CompoundConversationPredicate)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(_operand, Object.hashAll(_values));
 }
 
 class MessageOrigin {
@@ -476,7 +551,16 @@ class SenderPredicate {
       );
 }
 
-class MessagePredicate {
+abstract class BaseMessagePredicate {
+  const BaseMessagePredicate();
+  String toString();
+  dynamic toJson();
+  BaseMessagePredicate clone();
+  bool operator ==(Object other);
+  int get hashCode;
+}
+
+class MessagePredicate extends BaseMessagePredicate {
   /// Only select messages that have particular custom fields set to particular values.
   final Map<String, CustomFieldPredicate>? custom;
 
@@ -506,11 +590,17 @@ class MessagePredicate {
             : null);
 
   @override
+  BaseMessagePredicate clone() {
+    return MessagePredicate.of(this);
+  }
+
+  @override
   String toString() {
     return json.encode(this);
   }
 
-  Map<String, dynamic> toJson() {
+  @override
+  dynamic toJson() {
     final result = <String, dynamic>{};
 
     if (custom != null) {
@@ -532,6 +622,7 @@ class MessagePredicate {
     return result;
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -560,6 +651,7 @@ class MessagePredicate {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
         (custom != null ? Object.hashAll(custom!.keys) : custom),
         (custom != null ? Object.hashAll(custom!.values) : custom),
@@ -567,4 +659,62 @@ class MessagePredicate {
         sender,
         type,
       );
+}
+
+class CompoundMessagePredicate extends BaseMessagePredicate {
+  final String _operand;
+  List<MessagePredicate> _values;
+
+  CompoundMessagePredicate.any(List<MessagePredicate> predicates)
+      : _operand = 'any',
+        _values = predicates;
+
+  CompoundMessagePredicate.of(CompoundMessagePredicate other)
+      : _operand = other._operand,
+        _values = List<MessagePredicate>.of(other._values);
+
+  @override
+  BaseMessagePredicate clone() {
+    return CompoundMessagePredicate.of(this);
+  }
+
+  @override
+  String toString() {
+    return json.encode(this);
+  }
+
+  @override
+  dynamic toJson() {
+    final result = <dynamic>[];
+
+    result.add(_operand);
+
+    result.add(_values);
+
+    return result;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) {
+      return true;
+    }
+
+    if (!(other is CompoundMessagePredicate)) {
+      return false;
+    }
+
+    if (_operand != other._operand) {
+      return false;
+    }
+
+    if (!listEquals(_values, other._values)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  @override
+  int get hashCode => Object.hash(_operand, Object.hashAll(_values));
 }

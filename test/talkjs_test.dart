@@ -11,255 +11,355 @@ void main() {
   });
 
   test('test FieldPredicate ==', () {
-    expect(FieldPredicate<ConversationAccessLevel>.equals(ConversationAccessLevel.readWrite) == FieldPredicate<ConversationAccessLevel>.equals(ConversationAccessLevel.readWrite), true);
-    expect(FieldPredicate<String>.notOneOf(['it', 'fr']) == FieldPredicate<String>.notOneOf(['it', 'fr']), true);
+    expect(
+        FieldPredicate<ConversationAccessLevel>.equals(
+                ConversationAccessLevel.readWrite) ==
+            FieldPredicate<ConversationAccessLevel>.equals(
+                ConversationAccessLevel.readWrite),
+        true);
+    expect(
+        FieldPredicate<String>.notOneOf(['it', 'fr']) ==
+            FieldPredicate<String>.notOneOf(['it', 'fr']),
+        true);
   });
 
   test('test CustomFieldPredicate ==', () {
-    expect(CustomFieldPredicate.exists() == CustomFieldPredicate.exists(), true);
-    expect(CustomFieldPredicate.equals('it') == CustomFieldPredicate.equals('it'), true);
-    expect(CustomFieldPredicate.oneOf(['it', 'fr']) == CustomFieldPredicate.oneOf(['it', 'fr']), true);
+    expect(
+        CustomFieldPredicate.exists() == CustomFieldPredicate.exists(), true);
+    expect(
+        CustomFieldPredicate.equals('it') == CustomFieldPredicate.equals('it'),
+        true);
+    expect(
+        CustomFieldPredicate.oneOf(['it', 'fr']) ==
+            CustomFieldPredicate.oneOf(['it', 'fr']),
+        true);
   });
 
   test('test ConversationPredicate ==', () {
     expect(
-      ConversationPredicate(
-        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        hasUnreadMessages: false,
-        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
-        subject: FieldPredicate.equals(null),
-      ) == ConversationPredicate(
-        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        hasUnreadMessages: false,
-        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
-        subject: FieldPredicate.equals(null),
-      )
-    , true);
+        ConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              hasUnreadMessages: false,
+              lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+              subject: FieldPredicate.equals(null),
+            ) ==
+            ConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              hasUnreadMessages: false,
+              lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+              subject: FieldPredicate.equals(null),
+            ),
+        true);
   });
 
   test('test SenderPredicate ==', () {
     expect(
-      SenderPredicate(
-        id: FieldPredicate.notEquals('INVALID_ID'),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        locale: FieldPredicate.notOneOf(['it', 'fr']),
-        role: FieldPredicate.notEquals('admin'),
-      ) == SenderPredicate(
-        id: FieldPredicate.notEquals('INVALID_ID'),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        locale: FieldPredicate.notOneOf(['it', 'fr']),
-        role: FieldPredicate.notEquals('admin'),
-      )
-    , true);
+        SenderPredicate(
+              id: FieldPredicate.notEquals('INVALID_ID'),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              locale: FieldPredicate.notOneOf(['it', 'fr']),
+              role: FieldPredicate.notEquals('admin'),
+            ) ==
+            SenderPredicate(
+              id: FieldPredicate.notEquals('INVALID_ID'),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              locale: FieldPredicate.notOneOf(['it', 'fr']),
+              role: FieldPredicate.notEquals('admin'),
+            ),
+        true);
   });
 
   test('test MessagePredicate ==', () {
     expect(
-      MessagePredicate(
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        origin: FieldPredicate.equals(MessageOrigin.web),
-        sender: SenderPredicate(
-          id: FieldPredicate.notEquals('INVALID_ID'),
-          custom: {
-            'seller': CustomFieldPredicate.exists(),
-            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-            'visibility': CustomFieldPredicate.equals('visible'),
-          },
-          locale: FieldPredicate.notOneOf(['it', 'fr']),
-          role: FieldPredicate.notEquals('admin'),
-        ),
-        type: FieldPredicate.notEquals(MessageType.systemMessage),
-      ) == MessagePredicate(
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        origin: FieldPredicate.equals(MessageOrigin.web),
-        sender: SenderPredicate(
-          id: FieldPredicate.notEquals('INVALID_ID'),
-          custom: {
-            'seller': CustomFieldPredicate.exists(),
-            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-            'visibility': CustomFieldPredicate.equals('visible'),
-          },
-          locale: FieldPredicate.notOneOf(['it', 'fr']),
-          role: FieldPredicate.notEquals('admin'),
-        ),
-        type: FieldPredicate.notEquals(MessageType.systemMessage),
-      )
-    , true);
+        MessagePredicate(
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              origin: FieldPredicate.equals(MessageOrigin.web),
+              sender: SenderPredicate(
+                id: FieldPredicate.notEquals('INVALID_ID'),
+                custom: {
+                  'seller': CustomFieldPredicate.exists(),
+                  'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                  'visibility': CustomFieldPredicate.equals('visible'),
+                },
+                locale: FieldPredicate.notOneOf(['it', 'fr']),
+                role: FieldPredicate.notEquals('admin'),
+              ),
+              type: FieldPredicate.notEquals(MessageType.systemMessage),
+            ) ==
+            MessagePredicate(
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              origin: FieldPredicate.equals(MessageOrigin.web),
+              sender: SenderPredicate(
+                id: FieldPredicate.notEquals('INVALID_ID'),
+                custom: {
+                  'seller': CustomFieldPredicate.exists(),
+                  'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                  'visibility': CustomFieldPredicate.equals('visible'),
+                },
+                locale: FieldPredicate.notOneOf(['it', 'fr']),
+                role: FieldPredicate.notEquals('admin'),
+              ),
+              type: FieldPredicate.notEquals(MessageType.systemMessage),
+            ),
+        true);
   });
 
   test('test FieldPredicate.of', () {
-    expect(FieldPredicate<ConversationAccessLevel>.of(FieldPredicate<ConversationAccessLevel>.equals(ConversationAccessLevel.readWrite)) == FieldPredicate<ConversationAccessLevel>.equals(ConversationAccessLevel.readWrite), true);
-    expect(FieldPredicate<String>.of(FieldPredicate<String>.notOneOf(['it', 'fr'])) == FieldPredicate<String>.notOneOf(['it', 'fr']), true);
+    expect(
+        FieldPredicate<ConversationAccessLevel>.of(
+                FieldPredicate<ConversationAccessLevel>.equals(
+                    ConversationAccessLevel.readWrite)) ==
+            FieldPredicate<ConversationAccessLevel>.equals(
+                ConversationAccessLevel.readWrite),
+        true);
+    expect(
+        FieldPredicate<String>.of(
+                FieldPredicate<String>.notOneOf(['it', 'fr'])) ==
+            FieldPredicate<String>.notOneOf(['it', 'fr']),
+        true);
   });
 
   test('test CustomFieldPredicate of', () {
-    expect(CustomFieldPredicate.of(CustomFieldPredicate.exists()) == CustomFieldPredicate.exists(), true);
-    expect(CustomFieldPredicate.of(CustomFieldPredicate.equals('it')) == CustomFieldPredicate.equals('it'), true);
-    expect(CustomFieldPredicate.of(CustomFieldPredicate.oneOf(['it', 'fr'])) == CustomFieldPredicate.oneOf(['it', 'fr']), true);
+    expect(
+        CustomFieldPredicate.of(CustomFieldPredicate.exists()) ==
+            CustomFieldPredicate.exists(),
+        true);
+    expect(
+        CustomFieldPredicate.of(CustomFieldPredicate.equals('it')) ==
+            CustomFieldPredicate.equals('it'),
+        true);
+    expect(
+        CustomFieldPredicate.of(CustomFieldPredicate.oneOf(['it', 'fr'])) ==
+            CustomFieldPredicate.oneOf(['it', 'fr']),
+        true);
   });
 
   test('test NumberPredicate.of', () {
-    expect(NumberPredicate.of(NumberPredicate.notBetween([100, 300])) == NumberPredicate.notBetween([100, 300]), true);
+    expect(
+        NumberPredicate.of(NumberPredicate.notBetween([100, 300])) ==
+            NumberPredicate.notBetween([100, 300]),
+        true);
   });
 
   test('test ConversationPredicate of', () {
     expect(
-      ConversationPredicate.of(ConversationPredicate(
-        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        hasUnreadMessages: false,
-        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
-        subject: FieldPredicate.notEquals('Pink shoes'),
-      )) == ConversationPredicate(
-        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        hasUnreadMessages: false,
-        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
-        subject: FieldPredicate.notEquals('Pink shoes'),
-      )
-    , true);
+        ConversationPredicate.of(ConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              hasUnreadMessages: false,
+              lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+              subject: FieldPredicate.notEquals('Pink shoes'),
+            )) ==
+            ConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              hasUnreadMessages: false,
+              lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+              subject: FieldPredicate.notEquals('Pink shoes'),
+            ),
+        true);
   });
 
   test('test SenderPredicate of', () {
     expect(
-      SenderPredicate.of(SenderPredicate(
-        id: FieldPredicate.notEquals('INVALID_ID'),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        locale: FieldPredicate.notOneOf(['it', 'fr']),
-        role: FieldPredicate.notEquals('admin'),
-      )) == SenderPredicate(
-        id: FieldPredicate.notEquals('INVALID_ID'),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        locale: FieldPredicate.notOneOf(['it', 'fr']),
-        role: FieldPredicate.notEquals('admin'),
-      )
-    , true);
+        SenderPredicate.of(SenderPredicate(
+              id: FieldPredicate.notEquals('INVALID_ID'),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              locale: FieldPredicate.notOneOf(['it', 'fr']),
+              role: FieldPredicate.notEquals('admin'),
+            )) ==
+            SenderPredicate(
+              id: FieldPredicate.notEquals('INVALID_ID'),
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              locale: FieldPredicate.notOneOf(['it', 'fr']),
+              role: FieldPredicate.notEquals('admin'),
+            ),
+        true);
   });
 
   test('test MessagePredicate of', () {
     expect(
-      MessagePredicate.of(MessagePredicate(
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        origin: FieldPredicate.equals(MessageOrigin.web),
-        sender: SenderPredicate(
-          id: FieldPredicate.notEquals('INVALID_ID'),
-          custom: {
-            'seller': CustomFieldPredicate.exists(),
-            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-            'visibility': CustomFieldPredicate.equals('visible'),
-          },
-          locale: FieldPredicate.notOneOf(['it', 'fr']),
-          role: FieldPredicate.notEquals('admin'),
-        ),
-        type: FieldPredicate.notEquals(MessageType.systemMessage),
-      )) == MessagePredicate(
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        origin: FieldPredicate.equals(MessageOrigin.web),
-        sender: SenderPredicate(
-          id: FieldPredicate.notEquals('INVALID_ID'),
-          custom: {
-            'seller': CustomFieldPredicate.exists(),
-            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-            'visibility': CustomFieldPredicate.equals('visible'),
-          },
-          locale: FieldPredicate.notOneOf(['it', 'fr']),
-          role: FieldPredicate.notEquals('admin'),
-        ),
-        type: FieldPredicate.notEquals(MessageType.systemMessage),
-      )
-    , true);
+        MessagePredicate.of(MessagePredicate(
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              origin: FieldPredicate.equals(MessageOrigin.web),
+              sender: SenderPredicate(
+                id: FieldPredicate.notEquals('INVALID_ID'),
+                custom: {
+                  'seller': CustomFieldPredicate.exists(),
+                  'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                  'visibility': CustomFieldPredicate.equals('visible'),
+                },
+                locale: FieldPredicate.notOneOf(['it', 'fr']),
+                role: FieldPredicate.notEquals('admin'),
+              ),
+              type: FieldPredicate.notEquals(MessageType.systemMessage),
+            )) ==
+            MessagePredicate(
+              custom: {
+                'seller': CustomFieldPredicate.exists(),
+                'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                'visibility': CustomFieldPredicate.equals('visible'),
+              },
+              origin: FieldPredicate.equals(MessageOrigin.web),
+              sender: SenderPredicate(
+                id: FieldPredicate.notEquals('INVALID_ID'),
+                custom: {
+                  'seller': CustomFieldPredicate.exists(),
+                  'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+                  'visibility': CustomFieldPredicate.equals('visible'),
+                },
+                locale: FieldPredicate.notOneOf(['it', 'fr']),
+                role: FieldPredicate.notEquals('admin'),
+              ),
+              type: FieldPredicate.notEquals(MessageType.systemMessage),
+            ),
+        true);
   });
 
   test('test ConversationPredicate string', () {
     expect(
-      json.encode(ConversationPredicate(
-        access: FieldPredicate.notEquals(ConversationAccessLevel.none),
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        hasUnreadMessages: false,
-        lastMessageTs: NumberPredicate.greaterThan(1679298371586),
-        subject: FieldPredicate.oneOf(['Pink shoes', null]),
-      )),
-      '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0],"subject":["oneOf",["Pink shoes",null]]}'
-    );
-  });
-
-  test('test MessagePredicate string', () {
-    expect(
-      json.encode(MessagePredicate(
-        custom: {
-          'seller': CustomFieldPredicate.exists(),
-          'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
-          'visibility': CustomFieldPredicate.equals('visible'),
-        },
-        origin: FieldPredicate.equals(MessageOrigin.web),
-        sender: SenderPredicate(
-          id: FieldPredicate.notEquals('INVALID_ID'),
+        json.encode(ConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
             'visibility': CustomFieldPredicate.equals('visible'),
           },
-          locale: FieldPredicate.notOneOf(['it', 'fr']),
-          role: FieldPredicate.notEquals('admin'),
+          hasUnreadMessages: false,
+          lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+          subject: FieldPredicate.oneOf(['Pink shoes', null]),
+        )),
+        '{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0],"subject":["oneOf",["Pink shoes",null]]}');
+  });
+
+  test('test MessagePredicate string', () {
+    expect(
+        json.encode(MessagePredicate(
+          custom: {
+            'seller': CustomFieldPredicate.exists(),
+            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+            'visibility': CustomFieldPredicate.equals('visible'),
+          },
+          origin: FieldPredicate.equals(MessageOrigin.web),
+          sender: SenderPredicate(
+            id: FieldPredicate.notEquals('INVALID_ID'),
+            custom: {
+              'seller': CustomFieldPredicate.exists(),
+              'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+              'visibility': CustomFieldPredicate.equals('visible'),
+            },
+            locale: FieldPredicate.notOneOf(['it', 'fr']),
+            role: FieldPredicate.notEquals('admin'),
+          ),
+          type: FieldPredicate.notEquals(MessageType.systemMessage),
+        )),
+        '{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]}');
+  });
+
+  test('test CompoundConversationPredicate', () {
+    expect(
+      json.encode(CompoundConversationPredicate.any([
+        ConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+          custom: {
+            'seller': CustomFieldPredicate.exists(),
+            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+            'visibility': CustomFieldPredicate.equals('visible'),
+          },
+          hasUnreadMessages: false,
+          lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+          subject: FieldPredicate.oneOf(['Pink shoes', null]),
         ),
-        type: FieldPredicate.notEquals(MessageType.systemMessage),
-      )),
-      '{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]}'
+        ConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+          custom: {
+            'seller': CustomFieldPredicate.exists(),
+            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+            'visibility': CustomFieldPredicate.equals('visible'),
+          },
+          hasUnreadMessages: false,
+          lastMessageTs: NumberPredicate.greaterThan(1679298371586),
+          subject: FieldPredicate.equals(null),
+        )
+      ])),
+      '["any",[{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0],"subject":["oneOf",["Pink shoes",null]]},{"access":["!=","None"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"hasUnreadMessages":false,"lastMessageTs":[">",1679298371586.0],"subject":["==",null]}]]',
+    );
+  });
+
+  test('test CompoundMessagePredicate', () {
+    expect(
+      json.encode(CompoundMessagePredicate.any([
+        MessagePredicate(
+          custom: {
+            'seller': CustomFieldPredicate.exists(),
+            'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+            'visibility': CustomFieldPredicate.equals('visible'),
+          },
+          origin: FieldPredicate.equals(MessageOrigin.web),
+          sender: SenderPredicate(
+            id: FieldPredicate.notEquals('INVALID_ID'),
+            custom: {
+              'seller': CustomFieldPredicate.exists(),
+              'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
+              'visibility': CustomFieldPredicate.equals('visible'),
+            },
+            locale: FieldPredicate.notOneOf(['it', 'fr']),
+            role: FieldPredicate.notEquals('admin'),
+          ),
+          type: FieldPredicate.notEquals(MessageType.systemMessage),
+        ),
+        MessagePredicate(
+          origin: FieldPredicate.notEquals(MessageOrigin.web),
+          type: FieldPredicate.equals(MessageType.systemMessage),
+        ),
+      ])),
+      '["any",[{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]},{"origin":["!=","web"],"type":["==","SystemMessage"]}]]',
     );
   });
 }
-
