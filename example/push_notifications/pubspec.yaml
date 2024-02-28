@@ -36,6 +36,7 @@ dependencies:
 
   talkjs_flutter:
     path: ../../
+  flutter_local_notifications: ^16.3.2
 
 dev_dependencies:
   flutter_test:
