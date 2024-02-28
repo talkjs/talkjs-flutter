@@ -94,8 +94,8 @@ class ChatBox extends StatefulWidget {
   final String? theme;
   final ThemeOptions? themeOptions;
   final TranslateConversations? translateConversations;
-  final List<String> highlightedWords = const <String>[];
-  final MessagePredicate messageFilter;
+  final List<String> highlightedWords;
+  final BaseMessagePredicate? messageFilter;
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -117,8 +117,8 @@ class ChatBox extends StatefulWidget {
     this.theme,
     this.themeOptions,
     this.translateConversations,
-    //this.highlightedWords = const <String>[], // Commented out due to bug #1953
-    this.messageFilter = const MessagePredicate(),
+    this.highlightedWords = const <String>[],
+    this.messageFilter,
     this.conversation,
     this.asGuest,
     this.onSendMessage,
@@ -161,7 +161,7 @@ class ChatBoxState extends State<ChatBox> {
   /// Objects stored for comparing changes
   ChatBoxOptions? _oldOptions;
   List<String> _oldHighlightedWords = [];
-  MessagePredicate _oldMessageFilter = const MessagePredicate();
+  BaseMessagePredicate? _oldMessageFilter;
   bool? _oldAsGuest;
   Conversation? _oldConversation;
   Set<String> _oldCustomMessageActions = {};
@@ -337,11 +337,10 @@ class ChatBoxState extends State<ChatBox> {
       translateConversations: widget.translateConversations,
     );
 
-    _oldHighlightedWords = List<String>.of(widget.highlightedWords);
-    _oldMessageFilter = MessagePredicate.of(widget.messageFilter);
+    execute('chatBox = session.createChatbox(${_oldOptions});');
 
-    execute(
-        'chatBox = session.createChatbox(${_oldOptions!.getJsonString(this)});');
+    _setMessageFilter();
+    _setHighlightedWords();
 
     execute(
         'chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event)));');
@@ -505,9 +504,13 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _setMessageFilter() {
-    _oldMessageFilter = MessagePredicate.of(widget.messageFilter);
+    _oldMessageFilter = widget.messageFilter?.clone();
 
-    execute('chatBox.setMessageFilter(${json.encode(_oldMessageFilter)});');
+    if (_oldMessageFilter != null) {
+      execute('chatBox.setMessageFilter(${json.encode(_oldMessageFilter)});');
+    } else {
+      execute('chatBox.setMessageFilter({});');
+    }
   }
 
   bool _checkMessageFilter() {
@@ -739,15 +742,6 @@ class ChatBoxState extends State<ChatBox> {
       execute(
           '$variableName.setParticipant($userVariableName, ${json.encode(result)});');
     }
-  }
-
-  /// For internal use only. Implementation detail that may change anytime.
-  ///
-  /// Sets the options for ChatBoxOptions for the properties where there exists
-  /// both a declarative option and an imperative method
-  void setExtraOptions(Map<String, dynamic> result) {
-    result['highlightedWords'] = widget.highlightedWords;
-    result['messageFilter'] = widget.messageFilter;
   }
 
   /// For internal use only. Implementation detail that may change anytime.
