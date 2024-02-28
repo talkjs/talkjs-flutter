@@ -1,3 +1,11 @@
+## 0.10.0
+
+- Add support for Firebase push notifications on iOS.
+- Add compound predicates to Chatbox and ConversationList.
+- Add missing `themeOptions` property in ConversationList.
+- Fix push notification error when sender's photoUrl is invalid.
+- Fix build issue on Android Gradle Plugin (AGP) 8.0+
+
 ## 0.9.3
 
 - Fix links in Android not opening in the external browser by default.
