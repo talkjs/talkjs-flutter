@@ -20,7 +20,7 @@ dependencies:
   firebase_core: ^2.25.4
   firebase_messaging: ^14.7.15
   flutter_local_notifications: ^16.3.2
-  http: '>=0.13.6'
+  http: '>=0.13.6 <2.0.0'
   flutter_apns_only: ^1.6.0
   permission_handler: ^11.0.1
   url_launcher: ^6.1.11
