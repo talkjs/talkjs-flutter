@@ -1,3 +1,7 @@
+## 0.10.1
+
+- Relaxed version requirements for the Dart SDK and http packages
+
 ## 0.10.0
 
 - Add support for Firebase push notifications on iOS.
