@@ -1,13 +1,12 @@
 import 'dart:core';
 import 'dart:typed_data';
-import 'dart:ui';
 import 'dart:convert';
-import 'dart:isolate';
 import 'package:flutter/services.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_apns_only/flutter_apns_only.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 enum AndroidVisibility {
   /// Show the notification on all lockscreens, but conceal sensitive or private information on secure lockscreens.
@@ -86,12 +85,60 @@ class AndroidSettings {
     this.vibrate,
     this.vibrationPattern,
   });
+
+  AndroidSettings.fromString(Map<String, dynamic> json)
+      : channelId = json['channelId'],
+        channelName = json['channelName'],
+        badge = json['badge'],
+        channelDescription = json['channelDescription'],
+        lights = json['lights'],
+        lightColor = json['lightColor'] == null
+            ? null
+            : Color.fromARGB(
+                json['lightColor']['alpha'],
+                json['lightColor']['red'],
+                json['lightColor']['green'],
+                json['lightColor']['blue']),
+        playSound = json['playSound'],
+        importance = AndroidImportance.values.asNameMap()[json['importance']],
+        visibility = AndroidVisibility.values.asNameMap()[json['visibility']],
+        vibrate = json['vibrate'],
+        vibrationPattern = json['vibrationPattern'] == null
+            ? null
+            : Int64List.fromList(List.from(
+                (json['vibrationPattern'] as List<dynamic>)
+                    .map((e) => e as int)));
+
+  Map<String, dynamic> toJson() {
+    return {
+      'channelId': channelId,
+      'channelName': channelName,
+      'badge': badge,
+      'channelDescription': channelDescription,
+      'lights': lights,
+      'lightColor': lightColor == null
+          ? null
+          : {
+              'alpha': lightColor!.alpha,
+              'red': lightColor!.red,
+              'green': lightColor!.green,
+              'blue': lightColor!.blue
+            },
+      'playSound': playSound,
+      'importance': importance?.name,
+      'visibility': visibility?.name,
+      'vibrate': vibrate,
+      'vibrationPattern': vibrationPattern
+    };
+  }
 }
 
 class IOSSettings {
   final bool useFirebase;
   const IOSSettings({this.useFirebase = false});
 }
+
+const ANDROID_SETTINGS = '__talkjs_android_push_settings';
 
 String? fcmToken;
 String? apnsToken;
@@ -102,7 +149,6 @@ AndroidSettings? _androidSettings;
 final _activeNotifications = <String, List<String>>{};
 int _nextId = 0;
 final _showIdFromNotificationId = <String, int>{};
-final _receivePort = ReceivePort();
 final _imageCache = <String, Uint8List>{};
 
 Future<Uint8List?> _imageDataFromUrl(String url) async {
@@ -154,6 +200,7 @@ Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
   return ByteArrayAndroidIcon(imageData);
 }
 
+@pragma("vm:entry-point")
 Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   print("📘 Handling a background message: ${firebaseMessage.messageId}");
 
@@ -163,16 +210,6 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
     print(
         '📘 Message also contained a notification: ${firebaseMessage.notification}');
   }
-
-  // onBackgroundMessage runs on a separate isolate, so we're passing the message to the main isolate
-  IsolateNameServer.lookupPortByName('talkjsFCMPort')
-      ?.send(firebaseMessage.toMap());
-}
-
-Future<void> _onReceiveMessageFromPort(
-    Map<String, dynamic> firebaseMessageMap) async {
-  final firebaseMessage = RemoteMessage.fromMap(firebaseMessageMap);
-  print("📘 _onReceiveMessageFromPort: ${firebaseMessage.messageId}");
 
   final data = firebaseMessage.data;
   StyleInformation styleInformation;
@@ -273,6 +310,11 @@ Future<void> _onReceiveMessageFromPort(
     styleInformation = DefaultStyleInformation(false, false);
   }
 
+  // Fetch the push notification settings from shared preferences.
+  final preferences = await SharedPreferences.getInstance();
+  final value = preferences.getString(ANDROID_SETTINGS);
+  _androidSettings = AndroidSettings.fromString(jsonDecode(value!));
+
   // We default to not playing sounds, unless a non-empty string is provided
   final playSound = _androidSettings!.playSound.isNotEmpty;
   RawResourceAndroidNotificationSound? sound;
@@ -349,6 +391,10 @@ Future<void> registerAndroidPushNotificationHandlers(
 
   _androidSettings = androidSettings;
 
+  // Save push notification settings to shared preferences.
+  final preferences = await SharedPreferences.getInstance();
+  preferences.setString(ANDROID_SETTINGS, jsonEncode(_androidSettings));
+
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
@@ -387,11 +433,6 @@ Future<void> registerAndroidPushNotificationHandlers(
     // PlatformException is raised on Android < 6.0
     // Simply ignoring this part
   }
-
-  IsolateNameServer.registerPortWithName(
-      _receivePort.sendPort, 'talkjsFCMPort');
-  _receivePort
-      .listen((message) async => await _onReceiveMessageFromPort(message));
 
   FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
 }

@@ -24,6 +24,7 @@ dependencies:
   flutter_apns_only: ^1.6.0
   permission_handler: ^11.0.1
   url_launcher: ^6.1.11
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
