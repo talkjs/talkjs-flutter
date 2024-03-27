@@ -86,7 +86,7 @@ class AndroidSettings {
     this.vibrationPattern,
   });
 
-  AndroidSettings.fromString(Map<String, dynamic> json)
+  AndroidSettings.fromJson(Map<String, dynamic> json)
       : channelId = json['channelId'],
         channelName = json['channelName'],
         badge = json['badge'],
@@ -313,7 +313,7 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
   // Fetch the push notification settings from shared preferences.
   final preferences = await SharedPreferences.getInstance();
   final value = preferences.getString(ANDROID_SETTINGS);
-  _androidSettings = AndroidSettings.fromString(jsonDecode(value!));
+  _androidSettings = AndroidSettings.fromJson(jsonDecode(value!));
 
   // We default to not playing sounds, unless a non-empty string is provided
   final playSound = _androidSettings!.playSound.isNotEmpty;
