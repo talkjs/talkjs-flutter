@@ -63,15 +63,15 @@ class MessageFieldOptions {
       }
     }
 
-    if (autofocus != null) {
+    if (enterSendsMessage != null) {
       result['enterSendsMessage'] = enterSendsMessage;
     }
 
-    if (autofocus != null) {
+    if (placeholder != null) {
       result['placeholder'] = placeholder;
     }
 
-    if (autofocus != null) {
+    if (spellcheck != null) {
       result['spellcheck'] = spellcheck;
     }
 
