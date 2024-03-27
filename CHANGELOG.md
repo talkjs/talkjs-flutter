@@ -1,3 +1,9 @@
+## 0.10.2
+
+- Fix push notifications not working on Android when app has been terminated.
+- Fix `MessageFieldOptions` not working.
+- Update dependencies' versions.
+
 ## 0.10.1
 
 - Relaxed version requirements for the Dart SDK and http packages
