@@ -100,6 +100,8 @@ class ChatBox extends StatefulWidget {
   final Conversation? conversation;
   final bool? asGuest;
 
+  final bool disableZoom;
+
   final SendMessageHandler? onSendMessage;
   final TranslationToggledHandler? onTranslationToggled;
   final LoadingStateHandler? onLoadingStateChanged;
@@ -121,6 +123,7 @@ class ChatBox extends StatefulWidget {
     this.messageFilter,
     this.conversation,
     this.asGuest,
+    this.disableZoom = true,
     this.onSendMessage,
     this.onTranslationToggled,
     this.onLoadingStateChanged,
@@ -166,6 +169,7 @@ class ChatBoxState extends State<ChatBox> {
   Conversation? _oldConversation;
   Set<String> _oldCustomMessageActions = {};
   Set<String> _oldCustomConversationActions = {};
+  bool _oldDisableZoom = true;
 
   @override
   Widget build(BuildContext context) {
@@ -184,6 +188,8 @@ class ChatBoxState extends State<ChatBox> {
       // Here a Timer is needed, as we can't change the widget's state while the widget
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
+
+      _updateDisableZoom();
 
       execute('let chatBox;');
       execute('''
@@ -222,6 +228,10 @@ class ChatBoxState extends State<ChatBox> {
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
+
+      if (widget.disableZoom != _oldDisableZoom) {
+        _updateDisableZoom();
+      }
 
       // TODO: If something has changed in the Session we should do something
 
@@ -324,6 +334,17 @@ class ChatBoxState extends State<ChatBox> {
         return NavigationActionPolicy.ALLOW;
       },
     );
+  }
+
+  void _updateDisableZoom() {
+    var content = 'width=device-width, initial-scale=1.0';
+    if (widget.disableZoom) {
+      content += ', user-scalable=no';
+    }
+
+     execute('''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
+
+    _oldDisableZoom = widget.disableZoom;
   }
 
   void _createChatBox() {
