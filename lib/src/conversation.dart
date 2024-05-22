@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 
 import './session.dart';
@@ -77,6 +79,20 @@ class Participant {
   int get hashCode => Object.hash(user, access, notify);
 }
 
+class SendMessageOptions {
+  final Map<String, String?> custom;
+
+  const SendMessageOptions({required this.custom});
+
+  Map<String, dynamic> toJson() {
+    final result = <String, dynamic>{};
+
+    result['custom'] = custom;
+
+    return result;
+  }
+}
+
 /// This represents a conversation that is about to be created, fetched, or
 /// updated.
 ///
@@ -117,7 +133,9 @@ class Conversation extends _BaseConversation {
   // To tie the conversation to a session
   final Session _session;
 
-  const Conversation({
+  bool _conversationCreated = false;
+
+  Conversation({
     required Session session,
     required String id,
     Map<String, String?>? custom,
@@ -149,18 +167,28 @@ class Conversation extends _BaseConversation {
             photoUrl: other.photoUrl,
             subject: other.subject);
 
-/* TODO: conversation.sendMessage is to be rewritten so that it works when we don't show the WebView
-  /// Sends a text message in a given conversation.
-  void sendMessage(String text, {Map<String, String>? custom}) {
-    final result = <String, dynamic>{};
+  void _createConversation() {
+    if (!_conversationCreated) {
+      _session.execute('conversations["${id}"] = session.getOrCreateConversation("${id}")');
 
-    if (custom != null) {
-      result['custom'] = custom;
+      _conversationCreated = true;
+    }
+  }
+
+  /// Sends a text message in a given conversation.
+  Future<void> sendMessage(String text, {SendMessageOptions? options}) {
+    _createConversation();
+
+    if (options != null) {
+      _session.execute('conversations["${id}"].sendMessage("$text", ${json.encode(options)});');
+    } else {
+      _session.execute('conversations["${id}"].sendMessage("$text");');
     }
 
-    session.execute('$variableName.sendMessage("$text", ${json.encode(result)});');
+    // We return a Future, because we expect to refactor this code to use the Data Layer,
+    // and handle failures as well.
+    return Future<void>.value();
   }
-  */
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
