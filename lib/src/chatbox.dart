@@ -100,7 +100,7 @@ class ChatBox extends StatefulWidget {
   final Conversation? conversation;
   final bool? asGuest;
 
-  final bool disableZoom;
+  final bool enableZoom;
 
   final SendMessageHandler? onSendMessage;
   final TranslationToggledHandler? onTranslationToggled;
@@ -123,7 +123,7 @@ class ChatBox extends StatefulWidget {
     this.messageFilter,
     this.conversation,
     this.asGuest,
-    this.disableZoom = true,
+    this.enableZoom = false,
     this.onSendMessage,
     this.onTranslationToggled,
     this.onLoadingStateChanged,
@@ -169,7 +169,7 @@ class ChatBoxState extends State<ChatBox> {
   Conversation? _oldConversation;
   Set<String> _oldCustomMessageActions = {};
   Set<String> _oldCustomConversationActions = {};
-  bool _oldDisableZoom = true;
+  bool _oldEnableZoom = true;
 
   @override
   Widget build(BuildContext context) {
@@ -189,7 +189,7 @@ class ChatBoxState extends State<ChatBox> {
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
 
-      _updateDisableZoom();
+      _updateEnableZoom();
 
       execute('let chatBox;');
       execute('''
@@ -229,8 +229,8 @@ class ChatBoxState extends State<ChatBox> {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
 
-      if (widget.disableZoom != _oldDisableZoom) {
-        _updateDisableZoom();
+      if (widget.enableZoom != _oldEnableZoom) {
+        _updateEnableZoom();
       }
 
       // TODO: If something has changed in the Session we should do something
@@ -336,15 +336,15 @@ class ChatBoxState extends State<ChatBox> {
     );
   }
 
-  void _updateDisableZoom() {
+  void _updateEnableZoom() {
     var content = 'width=device-width, initial-scale=1.0';
-    if (widget.disableZoom) {
+    if (!widget.enableZoom) {
       content += ', user-scalable=no';
     }
 
      execute('''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
 
-    _oldDisableZoom = widget.disableZoom;
+    _oldEnableZoom = widget.enableZoom;
   }
 
   void _createChatBox() {
