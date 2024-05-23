@@ -82,6 +82,8 @@ class ConversationListOptions {
 class ConversationList extends StatefulWidget {
   final Session session;
 
+  final bool enableZoom;
+
   final bool? showFeedHeader;
 
   final String? theme;
@@ -95,6 +97,7 @@ class ConversationList extends StatefulWidget {
   const ConversationList({
     Key? key,
     required this.session,
+    this.enableZoom = false,
     this.showFeedHeader,
     this.theme,
     this.themeOptions,
@@ -124,6 +127,7 @@ class ConversationListState extends State<ConversationList> {
 
   /// Objects stored for comparing changes
   BaseConversationPredicate? _oldFeedFilter;
+  bool _oldEnableZoom = true;
 
   @override
   Widget build(BuildContext context) {
@@ -142,6 +146,8 @@ class ConversationListState extends State<ConversationList> {
       // is being constructed, and the callback may very possibly change the state
       Timer.run(() => widget.onLoadingStateChanged?.call(LoadingState.loading));
 
+      _updateEnableZoom();
+
       createSession(
           execute: execute,
           session: widget.session,
@@ -154,6 +160,10 @@ class ConversationListState extends State<ConversationList> {
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
+
+      if (widget.enableZoom != _oldEnableZoom) {
+        _updateEnableZoom();
+      }
 
       // TODO: If something has changed in the Session we should do something
       _checkFeedFilter();
@@ -176,6 +186,17 @@ class ConversationListState extends State<ConversationList> {
         Factory(() => VerticalDragGestureRecognizer()),
       },
     );
+  }
+
+  void _updateEnableZoom() {
+    var content = 'width=device-width, initial-scale=1.0';
+    if (!widget.enableZoom) {
+      content += ', user-scalable=no';
+    }
+
+     execute('''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
+
+    _oldEnableZoom = widget.enableZoom;
   }
 
   void _createConversationList() {
