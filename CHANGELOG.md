@@ -1,3 +1,8 @@
+## 0.11.0
+
+- Add `enableZoom` property to Chatbox.
+- Add `sendMessage` method to Conversation.
+
 ## 0.10.2
 
 - Fix push notifications not working on Android when app has been terminated.

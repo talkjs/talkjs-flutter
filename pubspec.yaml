@@ -1,6 +1,6 @@
 name: talkjs_flutter
 description: Official TalkJS SDK for Flutter
-version: 0.10.2
+version: 0.11.0
 homepage: https://talkjs.com
 
 environment:
@@ -17,14 +17,14 @@ dependencies:
 
   talkjs_flutter_inappwebview: ^6.0.7
   crypto: ^3.0.3
-  firebase_core: ^2.27.2
-  firebase_messaging: ^14.7.21
-  flutter_local_notifications: ^16.3.2
+  firebase_core: ^2.31.1
+  firebase_messaging: ^14.9.3
+  flutter_local_notifications: ^17.1.2
   http: '>=0.13.6 <2.0.0'
   flutter_apns_only: ^1.6.0
   permission_handler: ^11.3.1
-  url_launcher: ^6.1.11
-  shared_preferences: ^2.2.2
+  url_launcher: ^6.2.6
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
