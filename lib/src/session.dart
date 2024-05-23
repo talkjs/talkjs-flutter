@@ -72,6 +72,19 @@ class Session with ChangeNotifier {
           _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
+        _execute('const conversations = {};');
+
+        // Execute any pending instructions
+        for (var statement in _pending) {
+          final controller = _webViewController!;
+
+          if (kDebugMode) {
+            print('📗 session.me _pending: $statement');
+          }
+
+          controller.evaluateJavascript(source: statement);
+        }
+
         _completer.complete();
       }
     }
@@ -88,6 +101,9 @@ class Session with ChangeNotifier {
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
   Completer<void> _completer;
+
+  /// List of JavaScript statements that haven't been executed.
+  final _pending = <String>[];
 
   final bool? enablePushNotifications;
 
@@ -155,6 +171,17 @@ class Session with ChangeNotifier {
           await _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
+        _execute('const conversations = {};');
+
+        // Execute any pending instructions
+        for (var statement in _pending) {
+          if (kDebugMode) {
+            print('📗 session._onLoadStop _pending: $statement');
+          }
+
+          controller.evaluateJavascript(source: statement);
+        }
+
         _completer.complete();
       }
     }
@@ -162,7 +189,7 @@ class Session with ChangeNotifier {
 
   Future<dynamic> _execute(String statement) {
     if (kDebugMode) {
-      print('📗 session.execute: $statement');
+      print('📗 session._execute: $statement');
     }
 
     // We're sure that _execute only gets called with a valid _webViewController
@@ -171,7 +198,7 @@ class Session with ChangeNotifier {
 
   Future<dynamic> _executeAsync(String statement) async {
     if (kDebugMode) {
-      print('📗 session.executeAsync: $statement');
+      print('📗 session._executeAsync: $statement');
     }
 
     // We're sure that _execute only gets called with a valid _webViewController
@@ -417,6 +444,28 @@ class Session with ChangeNotifier {
     await _executeAsync('await session.clearPushRegistrations();');
   }
 
+  /// For internal use only. Implementation detail that may change anytime.
+  ///
+  /// Evaluates the JavaScript statement given.
+  void execute(String statement) {
+    final controller = _webViewController;
+
+    if (_completer.isCompleted) {
+      if (kDebugMode) {
+        print('📗 session.execute: $statement');
+      }
+
+      controller!.evaluateJavascript(source: statement);
+    } else {
+      if (kDebugMode) {
+        print('📘 session.execute: $statement');
+      }
+
+      this._pending.add(statement);
+    }
+  }
+
+
   /// Invalidates this session
   ///
   /// You cannot use any objects that were created in this session after you destroy it.
@@ -534,5 +583,4 @@ class Session with ChangeNotifier {
 
   // TODO:
   // conversation.leave
-  // conversation.sendMessage
 }
