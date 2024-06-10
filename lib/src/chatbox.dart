@@ -342,7 +342,8 @@ class ChatBoxState extends State<ChatBox> {
       content += ', user-scalable=no';
     }
 
-     execute('''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
+    execute(
+        '''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
 
     _oldEnableZoom = widget.enableZoom;
   }
@@ -561,6 +562,8 @@ class ChatBoxState extends State<ChatBox> {
     controller.addJavaScriptHandler(
         handlerName: 'JSCCustomConversationAction',
         callback: _jscCustomConversationAction);
+    controller.addJavaScriptHandler(
+        handlerName: 'JSCTokenFetcher', callback: _jscTokenFetcher);
 
     String htmlData = await rootBundle
         .loadString('packages/talkjs_flutter/assets/index.html');
@@ -653,6 +656,16 @@ class ChatBoxState extends State<ChatBox> {
 
     widget.onCustomConversationAction?[action]
         ?.call(ConversationActionEvent.fromJson(jsonConversationData));
+  }
+
+  void _jscTokenFetcher(List<dynamic> arguments) {
+    if (kDebugMode) {
+      print('📗 chatbox._jscTokenFetcher');
+    }
+
+    widget.session.tokenFetcher!().then((token) {
+      execute('tokenFetcherResolve("$token");');
+    });
   }
 
   /// For internal use only. Implementation detail that may change anytime.

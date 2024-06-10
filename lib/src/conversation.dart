@@ -169,7 +169,8 @@ class Conversation extends _BaseConversation {
 
   void _createConversation() {
     if (!_conversationCreated) {
-      _session.execute('conversations["${id}"] = session.getOrCreateConversation("${id}")');
+      _session.execute(
+          'conversations["${id}"] = session.getOrCreateConversation("${id}")');
 
       _conversationCreated = true;
     }
@@ -180,7 +181,8 @@ class Conversation extends _BaseConversation {
     _createConversation();
 
     if (options != null) {
-      _session.execute('conversations["${id}"].sendMessage("$text", ${json.encode(options)});');
+      _session.execute(
+          'conversations["${id}"].sendMessage("$text", ${json.encode(options)});');
     } else {
       _session.execute('conversations["${id}"].sendMessage("$text");');
     }

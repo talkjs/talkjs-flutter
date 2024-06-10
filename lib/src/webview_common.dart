@@ -26,5 +26,24 @@ void createSession({
 
   execute('options["me"] = $variableName;');
 
+  if (session.tokenFetcher != null) {
+    execute('let tokenFetcherPromise;');
+    execute('let tokenFetcherResolve;');
+    execute('''tokenFetcherPromise = new Promise((resolve, _reject) => {
+      tokenFetcherResolve = resolve;
+    });''');
+    execute('''options["tokenFetcher"] = async () => {
+      window.flutter_inappwebview.callHandler("JSCTokenFetcher", null);
+
+      const token = await tokenFetcherPromise;
+
+      tokenFetcherPromise = new Promise((resolve, _reject) => {
+        tokenFetcherResolve = resolve;
+      });
+
+      return token;
+    };''');
+  }
+
   execute('const session = new Talk.Session(options);');
 }

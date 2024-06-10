@@ -14,6 +14,7 @@ import './unreads.dart';
 import './notification.dart';
 
 typedef MessageHandler = void Function(Message message);
+typedef TokenFetcherHandler = Future<String> Function();
 
 enum Provider { fcm, apns }
 
@@ -100,6 +101,7 @@ class Session with ChangeNotifier {
 
   /// An initial JWT authentication token.
   final String? token;
+  final TokenFetcherHandler? tokenFetcher;
 
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
@@ -120,12 +122,23 @@ class Session with ChangeNotifier {
 
     if (onMessage != null) {
       controller.addJavaScriptHandler(
-          handlerName: 'JSCOnMessage', callback: _jscOnMessage);
+        handlerName: 'JSCOnMessage',
+        callback: _jscOnMessage,
+      );
     }
 
     if ((unreads != null) && (unreads!.onChange != null)) {
       controller.addJavaScriptHandler(
-          handlerName: 'JSCOnUnreadsChange', callback: _jscOnUnreadsChange);
+        handlerName: 'JSCOnUnreadsChange',
+        callback: _jscOnUnreadsChange,
+      );
+    }
+
+    if (tokenFetcher != null) {
+      controller.addJavaScriptHandler(
+        handlerName: 'JSCTokenFetcher',
+        callback: _jscTokenFetcher,
+      );
     }
 
     String htmlData = await rootBundle
@@ -232,6 +245,16 @@ class Session with ChangeNotifier {
     );
   }
 
+  void _jscTokenFetcher(List<dynamic> arguments) {
+    if (kDebugMode) {
+      print('📗 session._jscTokenFetcher');
+    }
+
+    tokenFetcher!().then((token) {
+      execute('tokenFetcherResolve("$token");');
+    });
+  }
+
   Future<dynamic> _setOrUnsetPushRegistration(bool enable) {
     String statement = "";
 
@@ -264,6 +287,7 @@ class Session with ChangeNotifier {
     required this.appId,
     this.signature,
     this.token,
+    this.tokenFetcher,
     this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
@@ -469,7 +493,6 @@ class Session with ChangeNotifier {
     }
   }
 
-
   /// Invalidates this session
   ///
   /// You cannot use any objects that were created in this session after you destroy it.
@@ -570,6 +593,10 @@ class Session with ChangeNotifier {
       return false;
     }
 
+    if (tokenFetcher != other.tokenFetcher) {
+      return false;
+    }
+
     if (onMessage != other.onMessage) {
       return false;
     }
@@ -586,6 +613,7 @@ class Session with ChangeNotifier {
         appId,
         signature,
         token,
+        tokenFetcher,
         onMessage,
         unreads,
       );
