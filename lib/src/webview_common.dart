@@ -15,7 +15,11 @@ void createSession({
   options['appId'] = session.appId;
 
   if (session.signature != null) {
-    options["signature"] = session.signature;
+    options['signature'] = session.signature;
+  }
+
+  if (session.token != null) {
+    options['token'] = session.token;
   }
 
   execute('const options = ${json.encode(options)};');

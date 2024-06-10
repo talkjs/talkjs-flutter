@@ -98,6 +98,9 @@ class Session with ChangeNotifier {
   /// code.
   final String? signature;
 
+  /// An initial JWT authentication token.
+  final String? token;
+
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
   Completer<void> _completer;
@@ -260,6 +263,7 @@ class Session with ChangeNotifier {
   Session({
     required this.appId,
     this.signature,
+    this.token,
     this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
@@ -562,6 +566,10 @@ class Session with ChangeNotifier {
       return false;
     }
 
+    if (token != other.token) {
+      return false;
+    }
+
     if (onMessage != other.onMessage) {
       return false;
     }
@@ -577,6 +585,7 @@ class Session with ChangeNotifier {
   int get hashCode => Object.hash(
         appId,
         signature,
+        token,
         onMessage,
         unreads,
       );
