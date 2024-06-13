@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'dart:core';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -97,6 +98,7 @@ class Session with ChangeNotifier {
   /// TalkJS secret key.
   /// DO NOT embed your secret key within your mobile application / frontend
   /// code.
+  @Deprecated('Use [token] or [tokenFetcher] instead')
   final String? signature;
 
   /// An initial JWT authentication token.
@@ -283,7 +285,7 @@ class Session with ChangeNotifier {
 
   Session({
     required this.appId,
-    this.signature,
+    @Deprecated("Use [token] or [tokenFetcher] instead") this.signature,
     this.token,
     this.tokenFetcher,
     this.enablePushNotifications = false,
