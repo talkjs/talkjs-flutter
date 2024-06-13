@@ -245,14 +245,12 @@ class Session with ChangeNotifier {
     );
   }
 
-  void _jscTokenFetcher(List<dynamic> arguments) {
+  Future<String> _jscTokenFetcher(List<dynamic> arguments) {
     if (kDebugMode) {
       print('📗 session._jscTokenFetcher');
     }
 
-    tokenFetcher!().then((token) {
-      execute('tokenFetcherResolve("$token");');
-    });
+    return tokenFetcher!();
   }
 
   Future<dynamic> _setOrUnsetPushRegistration(bool enable) {

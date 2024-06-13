@@ -305,14 +305,12 @@ class ConversationListState extends State<ConversationList> {
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
   }
 
-  void _jscTokenFetcher(List<dynamic> arguments) {
+  Future<String> _jscTokenFetcher(List<dynamic> arguments) {
     if (kDebugMode) {
       print('📗 conversationlist._jscTokenFetcher');
     }
 
-    widget.session.tokenFetcher!().then((token) {
-      execute('tokenFetcherResolve("$token");');
-    });
+    return widget.session.tokenFetcher!();
   }
 
   /// For internal use only. Implementation detail that may change anytime.

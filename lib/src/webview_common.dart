@@ -27,22 +27,10 @@ void createSession({
   execute('options["me"] = $variableName;');
 
   if (session.tokenFetcher != null) {
-    execute('let tokenFetcherPromise;');
-    execute('let tokenFetcherResolve;');
-    execute('''tokenFetcherPromise = new Promise((resolve, _reject) => {
-      tokenFetcherResolve = resolve;
-    });''');
-    execute('''options["tokenFetcher"] = async () => {
-      window.flutter_inappwebview.callHandler("JSCTokenFetcher", null);
-
-      const token = await tokenFetcherPromise;
-
-      tokenFetcherPromise = new Promise((resolve, _reject) => {
-        tokenFetcherResolve = resolve;
-      });
-
-      return token;
-    };''');
+    // callHandler returns a Promise that can be used to get the json result returned by the
+    // callback. In this case "JSCTokenFetcher".
+    execute(
+        'options["tokenFetcher"] = () => window.flutter_inappwebview.callHandler("JSCTokenFetcher");');
   }
 
   execute('const session = new Talk.Session(options);');
