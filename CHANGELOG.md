@@ -1,3 +1,7 @@
+- Add `token` and `tokenFetcher` properties to Session. This part of our efforts at [impoving identity verification and authentication](https://talkjs.com/docs/Features/Security_Settings/Authentication/).
+
+[See the reference documentation](https://talkjs.com/docs/Features/Security_Settings/Advanced_Authentication/#token-reference) for full details on the technical requirements for the JSON Web Token(JWT).
+
 ## 0.11.0
 
 - Add `enableZoom` property to Chatbox.
