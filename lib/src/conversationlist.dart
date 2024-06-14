@@ -194,7 +194,8 @@ class ConversationListState extends State<ConversationList> {
       content += ', user-scalable=no';
     }
 
-     execute('''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
+    execute(
+        '''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
 
     _oldEnableZoom = widget.enableZoom;
   }
@@ -246,6 +247,8 @@ class ConversationListState extends State<ConversationList> {
         handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
     controller.addJavaScriptHandler(
         handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+    controller.addJavaScriptHandler(
+        handlerName: 'JSCTokenFetcher', callback: _jscTokenFetcher);
 
     String htmlData = await rootBundle
         .loadString('packages/talkjs_flutter/assets/index.html');
@@ -300,6 +303,14 @@ class ConversationListState extends State<ConversationList> {
     }
 
     widget.onLoadingStateChanged?.call(LoadingState.loaded);
+  }
+
+  Future<String> _jscTokenFetcher(List<dynamic> arguments) {
+    if (kDebugMode) {
+      print('📗 conversationlist._jscTokenFetcher');
+    }
+
+    return widget.session.tokenFetcher!();
   }
 
   /// For internal use only. Implementation detail that may change anytime.
