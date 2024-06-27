@@ -1,3 +1,7 @@
+## 0.12.1
+
+- Fix conflict with `flutter_inappwebview` package
+
 ## 0.12.0
 
 - Add `token` and `tokenFetcher` properties to Session. This part of our efforts at [improving identity verification and authentication](https://talkjs.com/docs/Features/Security_Settings/Authentication/). [See the reference documentation](https://talkjs.com/docs/Features/Security_Settings/Advanced_Authentication/#token-reference) for full details on the technical requirements for the JSON Web Token (JWT).
