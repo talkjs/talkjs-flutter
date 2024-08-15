@@ -171,10 +171,9 @@ class ConversationListState extends State<ConversationList> {
 
     return InAppWebView(
       initialSettings: InAppWebViewSettings(
-        useHybridComposition: true,
-        disableInputAccessoryView: true,
-        transparentBackground: true,
-      ),
+          useHybridComposition: true,
+          disableInputAccessoryView: true,
+          transparentBackground: true),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
@@ -243,6 +242,13 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._onWebViewCreated');
     }
 
+    final version = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt');
+    await controller.setSettings(
+        settings: InAppWebViewSettings(
+            applicationNameForUserAgent:
+                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
+
     controller.addJavaScriptHandler(
         handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
     controller.addJavaScriptHandler(
@@ -263,15 +269,6 @@ class ConversationListState extends State<ConversationList> {
 
     if (_webViewController == null) {
       _webViewController = controller;
-
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
-      if (kDebugMode) {
-        print('📗 conversationlist callAsyncJavaScript: $js');
-      }
-
-      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {

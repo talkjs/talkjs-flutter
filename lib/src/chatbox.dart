@@ -96,6 +96,7 @@ class ChatBox extends StatefulWidget {
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords;
   final BaseMessagePredicate? messageFilter;
+  final String? scrollToMessage;
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -130,6 +131,7 @@ class ChatBox extends StatefulWidget {
     this.onCustomMessageAction,
     this.onCustomConversationAction,
     this.onUrlNavigation,
+    this.scrollToMessage,
   }) : super(key: key);
 
   @override
@@ -170,6 +172,7 @@ class ChatBoxState extends State<ChatBox> {
   Set<String> _oldCustomMessageActions = {};
   Set<String> _oldCustomConversationActions = {};
   bool _oldEnableZoom = true;
+  String? _oldScrollToMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -262,11 +265,10 @@ class ChatBoxState extends State<ChatBox> {
 
     return InAppWebView(
       initialSettings: InAppWebViewSettings(
-        useHybridComposition: true,
-        disableInputAccessoryView: true,
-        transparentBackground: true,
-        useShouldOverrideUrlLoading: true,
-      ),
+          useHybridComposition: true,
+          disableInputAccessoryView: true,
+          transparentBackground: true,
+          useShouldOverrideUrlLoading: true),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
@@ -484,6 +486,11 @@ class ChatBoxState extends State<ChatBox> {
       result['asGuest'] = _oldAsGuest;
     }
 
+    _oldScrollToMessage = widget.scrollToMessage;
+    if (_oldScrollToMessage != null) {
+      result['messageId'] = _oldScrollToMessage;
+    }
+
     _oldConversation = widget.conversation;
     if (_oldConversation != null) {
       execute(
@@ -499,7 +506,8 @@ class ChatBoxState extends State<ChatBox> {
 
   bool _checkRecreateConversation() {
     if ((widget.asGuest != _oldAsGuest) ||
-        (widget.conversation != _oldConversation)) {
+        (widget.conversation != _oldConversation) ||
+        (widget.scrollToMessage != _oldScrollToMessage)) {
       _createConversation();
 
       return true;
@@ -550,6 +558,13 @@ class ChatBoxState extends State<ChatBox> {
       print('📗 chatbox._onWebViewCreated');
     }
 
+    final version = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt');
+    await controller.setSettings(
+        settings: InAppWebViewSettings(
+            applicationNameForUserAgent:
+                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
+
     controller.addJavaScriptHandler(
         handlerName: 'JSCSendMessage', callback: _jscSendMessage);
     controller.addJavaScriptHandler(
@@ -578,15 +593,6 @@ class ChatBoxState extends State<ChatBox> {
 
     if (_webViewController == null) {
       _webViewController = controller;
-
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
-      if (kDebugMode) {
-        print('📗 chatbox callAsyncJavaScript: $js');
-      }
-
-      await controller.callAsyncJavaScript(functionBody: js);
 
       // Execute any pending instructions
       for (var statement in _pending) {
