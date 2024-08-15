@@ -268,8 +268,7 @@ class ChatBoxState extends State<ChatBox> {
           useHybridComposition: true,
           disableInputAccessoryView: true,
           transparentBackground: true,
-          useShouldOverrideUrlLoading: true,
-          applicationNameForUserAgent: "TalkJS_Flutter/0.13.0"),
+          useShouldOverrideUrlLoading: true),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
@@ -558,6 +557,13 @@ class ChatBoxState extends State<ChatBox> {
     if (kDebugMode) {
       print('📗 chatbox._onWebViewCreated');
     }
+
+    final version = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt');
+    await controller.setSettings(
+        settings: InAppWebViewSettings(
+            applicationNameForUserAgent:
+                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
 
     controller.addJavaScriptHandler(
         handlerName: 'JSCSendMessage', callback: _jscSendMessage);

@@ -173,8 +173,7 @@ class ConversationListState extends State<ConversationList> {
       initialSettings: InAppWebViewSettings(
           useHybridComposition: true,
           disableInputAccessoryView: true,
-          transparentBackground: true,
-          applicationNameForUserAgent: "TalkJS_Flutter/0.13.0"),
+          transparentBackground: true),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
@@ -242,6 +241,13 @@ class ConversationListState extends State<ConversationList> {
     if (kDebugMode) {
       print('📗 conversationlist._onWebViewCreated');
     }
+
+    final version = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt');
+    await controller.setSettings(
+        settings: InAppWebViewSettings(
+            applicationNameForUserAgent:
+                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
 
     controller.addJavaScriptHandler(
         handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);

@@ -25,6 +25,9 @@ jobs:
       - name: 'Checkout'
         uses: actions/checkout@v2 # required!
 
+      - name: 'Update version string'
+        run: yq '.version' pubspec.yaml > lib/assets/version.txt
+
       - name: '>> Dart package <<'
         uses: k-paxian/dart-package-publisher@master
         with:

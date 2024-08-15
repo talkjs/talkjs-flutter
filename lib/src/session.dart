@@ -123,6 +123,13 @@ class Session with ChangeNotifier {
       print('📗 session._onWebViewCreated');
     }
 
+    final version = await rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt');
+    await controller.setSettings(
+        settings: InAppWebViewSettings(
+            applicationNameForUserAgent:
+                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
+
     if (onMessage != null) {
       controller.addJavaScriptHandler(
         handlerName: 'JSCOnMessage',
@@ -284,9 +291,7 @@ class Session with ChangeNotifier {
         onConsoleMessage:
             (InAppWebViewController controller, ConsoleMessage message) {
           print("session [${message.messageLevel}] ${message.message}");
-        },
-        initialSettings: InAppWebViewSettings(
-            applicationNameForUserAgent: 'TalkJS_Flutter/0.13.0'));
+        });
 
     // Runs the headless WebView
     _headlessWebView!.run();
