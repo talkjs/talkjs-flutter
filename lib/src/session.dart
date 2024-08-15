@@ -277,8 +277,8 @@ class Session with ChangeNotifier {
     this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
-  }) : _completer = new Completer() {
-    _headlessWebView = new HeadlessInAppWebView(
+  }) : _completer = Completer() {
+    _headlessWebView = HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
         onLoadStop: _onLoadStop,
         onConsoleMessage:
