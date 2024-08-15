@@ -499,15 +499,15 @@ packages:
       path: "../.."
       relative: true
     source: path
-    version: "0.11.0"
+    version: "0.12.1"
   talkjs_flutter_inappwebview:
     dependency: transitive
     description:
       name: talkjs_flutter_inappwebview
-      sha256: "7622377a1f21f7b0205cb5e4d6989687f98040e1a164e25726ed3638be77320d"
+      sha256: "7b074c5bb2da8306a7e08a78fd093cf150e0015d2ae3315ff257e456f2a806b5"
       url: "https://pub.dev"
     source: hosted
-    version: "6.0.7"
+    version: "6.0.8"
   term_glyph:
     dependency: transitive
     description:
