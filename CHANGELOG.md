@@ -1,3 +1,9 @@
+## 0.13.0
+
+- Add `scrollToMessage` property to Chatbox.
+- Fix push notification device token registration not working in release builds.
+- Fix `Session.hasValidCredentials` not working.
+
 ## 0.12.1
 
 - Fix conflict with `flutter_inappwebview` package
