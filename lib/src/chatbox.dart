@@ -96,6 +96,7 @@ class ChatBox extends StatefulWidget {
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords;
   final BaseMessagePredicate? messageFilter;
+  final String? scrollToMessage;
 
   final Conversation? conversation;
   final bool? asGuest;
@@ -130,6 +131,7 @@ class ChatBox extends StatefulWidget {
     this.onCustomMessageAction,
     this.onCustomConversationAction,
     this.onUrlNavigation,
+    this.scrollToMessage,
   }) : super(key: key);
 
   @override
@@ -170,6 +172,7 @@ class ChatBoxState extends State<ChatBox> {
   Set<String> _oldCustomMessageActions = {};
   Set<String> _oldCustomConversationActions = {};
   bool _oldEnableZoom = true;
+  String? _oldScrollToMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -484,6 +487,11 @@ class ChatBoxState extends State<ChatBox> {
       result['asGuest'] = _oldAsGuest;
     }
 
+    _oldScrollToMessage = widget.scrollToMessage;
+    if (_oldScrollToMessage != null) {
+      result['messageId'] = _oldScrollToMessage;
+    }
+
     _oldConversation = widget.conversation;
     if (_oldConversation != null) {
       execute(
@@ -499,7 +507,8 @@ class ChatBoxState extends State<ChatBox> {
 
   bool _checkRecreateConversation() {
     if ((widget.asGuest != _oldAsGuest) ||
-        (widget.conversation != _oldConversation)) {
+        (widget.conversation != _oldConversation) ||
+        (widget.scrollToMessage != _oldScrollToMessage)) {
       _createConversation();
 
       return true;
