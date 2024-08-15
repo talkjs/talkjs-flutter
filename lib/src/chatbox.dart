@@ -588,15 +588,6 @@ class ChatBoxState extends State<ChatBox> {
     if (_webViewController == null) {
       _webViewController = controller;
 
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
-      if (kDebugMode) {
-        print('📗 chatbox callAsyncJavaScript: $js');
-      }
-
-      await controller.callAsyncJavaScript(functionBody: js);
-
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {

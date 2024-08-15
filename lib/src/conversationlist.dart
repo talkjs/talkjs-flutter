@@ -264,15 +264,6 @@ class ConversationListState extends State<ConversationList> {
     if (_webViewController == null) {
       _webViewController = controller;
 
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
-      if (kDebugMode) {
-        print('📗 conversationlist callAsyncJavaScript: $js');
-      }
-
-      await controller.callAsyncJavaScript(functionBody: js);
-
       // Execute any pending instructions
       for (var statement in _pending) {
         if (kDebugMode) {

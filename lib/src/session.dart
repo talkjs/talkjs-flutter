@@ -108,6 +108,7 @@ class Session with ChangeNotifier {
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
   Completer<void> _completer;
+  Completer<bool>? _validCredentialsCompleter;
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -143,6 +144,11 @@ class Session with ChangeNotifier {
       );
     }
 
+    controller.addJavaScriptHandler(
+        handlerName: 'JSCValidCredentials',
+        callback: (args) =>
+            _validCredentialsCompleter!.complete(json.decode(args[0]) as bool));
+
     String htmlData = await rootBundle
         .loadString('packages/talkjs_flutter/assets/index.html');
     controller.loadData(
@@ -156,15 +162,6 @@ class Session with ChangeNotifier {
 
     if (_webViewController == null) {
       _webViewController = controller;
-
-      // Wait for TalkJS to be ready
-      final js = 'await Talk.ready;';
-
-      if (kDebugMode) {
-        print('📗 session callAsyncJavaScript: $js');
-      }
-
-      await controller.callAsyncJavaScript(functionBody: js);
 
       // If the `me` property has already been initialized, then create the user and the session
       if ((_me != null) && (!_completer.isCompleted)) {
@@ -186,7 +183,7 @@ class Session with ChangeNotifier {
         }
 
         if (enablePushNotifications != null) {
-          await _setOrUnsetPushRegistration(enablePushNotifications!);
+          _setOrUnsetPushRegistration(enablePushNotifications!);
         }
 
         _execute('const conversations = {};');
@@ -212,17 +209,6 @@ class Session with ChangeNotifier {
 
     // We're sure that _execute only gets called with a valid _webViewController
     return _webViewController!.evaluateJavascript(source: statement);
-  }
-
-  Future<dynamic> _executeAsync(String statement) async {
-    if (kDebugMode) {
-      print('📗 session._executeAsync: $statement');
-    }
-
-    // We're sure that _execute only gets called with a valid _webViewController
-    final result =
-        await _webViewController!.callAsyncJavaScript(functionBody: statement);
-    return result?.value;
   }
 
   void _jscOnMessage(List<dynamic> arguments) {
@@ -261,23 +247,23 @@ class Session with ChangeNotifier {
     if (enable) {
       if (fcmToken != null) {
         statement =
-            'await session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+            'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
       } else if (apnsToken != null) {
         statement =
-            'await session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
+            'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
     } else {
       if (fcmToken != null) {
         statement =
-            'await session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+            'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
       } else if (apnsToken != null) {
         statement =
-            'await session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
+            'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
     }
 
     if (statement != "") {
-      return _executeAsync(statement);
+      return _execute(statement);
     }
 
     return Future.value(false);
@@ -395,10 +381,10 @@ class Session with ChangeNotifier {
     }
 
     if (provider == null && pushRegistrationId == null) {
-      await _setOrUnsetPushRegistration(true);
+      _setOrUnsetPushRegistration(true);
     } else {
-      await _executeAsync(
-          'await session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
+      _execute(
+          'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
     }
   }
 
@@ -440,10 +426,10 @@ class Session with ChangeNotifier {
     }
 
     if (provider == null && pushRegistrationId == null) {
-      await _setOrUnsetPushRegistration(false);
+      _setOrUnsetPushRegistration(false);
     } else {
-      await _executeAsync(
-          'await session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
+      _execute(
+          'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
     }
   }
 
@@ -471,7 +457,7 @@ class Session with ChangeNotifier {
       print('📗 session clearPushRegistrations: Clearing push notifications');
     }
 
-    await _executeAsync('await session.clearPushRegistrations();');
+    _execute('session.clearPushRegistrations();');
   }
 
   /// For internal use only. Implementation detail that may change anytime.
@@ -562,10 +548,12 @@ class Session with ChangeNotifier {
       print('📗 session hasValidCredentials: execute');
     }
 
-    final bool isValid =
-        await _executeAsync('return await session.hasValidCredentials();');
+    _validCredentialsCompleter = Completer();
 
-    return isValid;
+    _execute(
+        'session.hasValidCredentials().then((value) => window.flutter_inappwebview.callHandler("JSCValidCredentials", JSON.stringify(value)));');
+
+    return _validCredentialsCompleter!.future;
   }
 
   // enablePushNotifications is deliberately omitted, so that we can enable and disable push notifications at will,
