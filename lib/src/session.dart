@@ -298,7 +298,9 @@ class Session with ChangeNotifier {
         onConsoleMessage:
             (InAppWebViewController controller, ConsoleMessage message) {
           print("session [${message.messageLevel}] ${message.message}");
-        });
+        },
+        initialSettings: InAppWebViewSettings(
+            applicationNameForUserAgent: 'TalkJS_Flutter/0.13.0'));
 
     // Runs the headless WebView
     _headlessWebView!.run();

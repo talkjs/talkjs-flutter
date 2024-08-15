@@ -171,10 +171,10 @@ class ConversationListState extends State<ConversationList> {
 
     return InAppWebView(
       initialSettings: InAppWebViewSettings(
-        useHybridComposition: true,
-        disableInputAccessoryView: true,
-        transparentBackground: true,
-      ),
+          useHybridComposition: true,
+          disableInputAccessoryView: true,
+          transparentBackground: true,
+          applicationNameForUserAgent: "TalkJS_Flutter/0.13.0"),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:

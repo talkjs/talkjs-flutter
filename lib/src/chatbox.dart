@@ -262,11 +262,11 @@ class ChatBoxState extends State<ChatBox> {
 
     return InAppWebView(
       initialSettings: InAppWebViewSettings(
-        useHybridComposition: true,
-        disableInputAccessoryView: true,
-        transparentBackground: true,
-        useShouldOverrideUrlLoading: true,
-      ),
+          useHybridComposition: true,
+          disableInputAccessoryView: true,
+          transparentBackground: true,
+          useShouldOverrideUrlLoading: true,
+          applicationNameForUserAgent: "TalkJS_Flutter/0.13.0"),
       onWebViewCreated: _onWebViewCreated,
       onLoadStop: _onLoadStop,
       onConsoleMessage:
