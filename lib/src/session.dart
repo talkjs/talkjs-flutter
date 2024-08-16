@@ -107,8 +107,9 @@ class Session with ChangeNotifier {
 
   HeadlessInAppWebView? _headlessWebView;
   InAppWebViewController? _webViewController;
+
   Completer<void> _completer;
-  Completer<bool>? _validCredentialsCompleter;
+  late Completer<bool> _validCredentialsCompleter;
 
   /// List of JavaScript statements that haven't been executed.
   final _pending = <String>[];
@@ -147,7 +148,7 @@ class Session with ChangeNotifier {
     controller.addJavaScriptHandler(
         handlerName: 'JSCValidCredentials',
         callback: (args) =>
-            _validCredentialsCompleter!.complete(json.decode(args[0]) as bool));
+            _validCredentialsCompleter.complete(json.decode(args[0]) as bool));
 
     String htmlData = await rootBundle
         .loadString('packages/talkjs_flutter/assets/index.html');
@@ -527,7 +528,7 @@ class Session with ChangeNotifier {
     _headlessWebView = null;
     _webViewController = null;
 
-    // _completer.isCompleted could be false if we're calling `session.destroy()` beofre setting the `me` property
+    // _completer.isCompleted could be false if we're calling `session.destroy()` before setting the `me` property
     if (!_completer.isCompleted) {
       _completer.completeError(StateError("The session has been destroyed"));
     }
@@ -563,7 +564,7 @@ class Session with ChangeNotifier {
     _execute(
         'session.hasValidCredentials().then((value) => window.flutter_inappwebview.callHandler("JSCValidCredentials", JSON.stringify(value)));');
 
-    return _validCredentialsCompleter!.future;
+    return _validCredentialsCompleter.future;
   }
 
   // enablePushNotifications is deliberately omitted, so that we can enable and disable push notifications at will,
