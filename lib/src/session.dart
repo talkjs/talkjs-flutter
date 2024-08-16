@@ -123,13 +123,6 @@ class Session with ChangeNotifier {
       print('📗 session._onWebViewCreated');
     }
 
-    final version = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/version.txt');
-    await controller.setSettings(
-        settings: InAppWebViewSettings(
-            applicationNameForUserAgent:
-                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
-
     if (onMessage != null) {
       controller.addJavaScriptHandler(
         handlerName: 'JSCOnMessage',
@@ -285,16 +278,23 @@ class Session with ChangeNotifier {
     this.onMessage,
     this.unreads,
   }) : _completer = Completer() {
-    _headlessWebView = HeadlessInAppWebView(
-        onWebViewCreated: _onWebViewCreated,
-        onLoadStop: _onLoadStop,
-        onConsoleMessage:
-            (InAppWebViewController controller, ConsoleMessage message) {
-          print("session [${message.messageLevel}] ${message.message}");
-        });
+    rootBundle
+        .loadString('packages/talkjs_flutter/assets/version.txt')
+        .then((version) {
+      _headlessWebView = HeadlessInAppWebView(
+          onWebViewCreated: _onWebViewCreated,
+          onLoadStop: _onLoadStop,
+          onConsoleMessage:
+              (InAppWebViewController controller, ConsoleMessage message) {
+            print("session [${message.messageLevel}] ${message.message}");
+          },
+          initialSettings: InAppWebViewSettings(
+              applicationNameForUserAgent:
+                  'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
 
-    // Runs the headless WebView
-    _headlessWebView!.run();
+      // Runs the headless WebView
+      _headlessWebView!.run();
+    });
   }
 
   User getUser({
@@ -363,11 +363,7 @@ class Session with ChangeNotifier {
       throw StateError('provider and pushRegistrationId must both be non-null');
     }
 
-    if (_headlessWebView == null) {
-      throw StateError(
-          'The setPushRegistration method cannot be called after destroying the session');
-    }
-
+    // We check the completer first because _headlessWebView may be null because we haven't loaded the version asset yet.
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
@@ -379,6 +375,11 @@ class Session with ChangeNotifier {
             '📗 session setPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The setPushRegistration method cannot be called after destroying the session');
     }
 
     if (kDebugMode) {
@@ -408,11 +409,7 @@ class Session with ChangeNotifier {
       throw StateError('provider and pushRegistrationId must both be non-null');
     }
 
-    if (_headlessWebView == null) {
-      throw StateError(
-          'The unsetPushRegistration method cannot be called after destroying the session');
-    }
-
+    // We check the completer first because _headlessWebView may be null because we haven't loaded the version asset yet.
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
@@ -424,6 +421,11 @@ class Session with ChangeNotifier {
             '📗 session unsetPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The unsetPushRegistration method cannot be called after destroying the session');
     }
 
     if (kDebugMode) {
@@ -440,11 +442,7 @@ class Session with ChangeNotifier {
 
   /// Unregisters all the mobile devices for the user.
   Future<void> clearPushRegistrations() async {
-    if (_headlessWebView == null) {
-      throw StateError(
-          'The clearPushRegistrations method cannot be called after destroying the session');
-    }
-
+    // We check the completer first because _headlessWebView may be null because we haven't loaded the version asset yet.
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
@@ -456,6 +454,11 @@ class Session with ChangeNotifier {
             '📗 session clearPushRegistrations: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The clearPushRegistrations method cannot be called after destroying the session');
     }
 
     if (kDebugMode) {
@@ -492,14 +495,7 @@ class Session with ChangeNotifier {
   ///
   /// If you want to use TalkJS after having called `destroy()` you must instantiate a new Session instance.
   Future<void> destroy() async {
-    if (_headlessWebView == null) {
-      // no-op
-      if (kDebugMode) {
-        print('📗 session destroy: Session already destroyed');
-      }
-      return;
-    }
-
+    // We check the completer first because _headlessWebView may be null because we haven't loaded the version asset yet.
     // We await for the completer only if the `me` property has been set
     if ((!_completer.isCompleted) && (_me != null)) {
       if (kDebugMode) {
@@ -507,6 +503,14 @@ class Session with ChangeNotifier {
             '📗 session destroy: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (_headlessWebView == null) {
+      // no-op
+      if (kDebugMode) {
+        print('📗 session destroy: Session already destroyed');
+      }
+      return;
     }
 
     if (kDebugMode) {
@@ -531,11 +535,7 @@ class Session with ChangeNotifier {
 
   /// Verifies whether the appId is valid
   Future<bool> hasValidCredentials() async {
-    if (_headlessWebView == null) {
-      throw StateError(
-          'The hasValidCredentials method cannot be called after destroying the session');
-    }
-
+    // We check the completer first because _headlessWebView may be null because we haven't loaded the version asset yet.
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
@@ -547,6 +547,11 @@ class Session with ChangeNotifier {
             '📗 session hasValidCredentials: !_completer.isCompleted, awaiting for _completer.future');
       }
       await _completer.future;
+    }
+
+    if (_headlessWebView == null) {
+      throw StateError(
+          'The hasValidCredentials method cannot be called after destroying the session');
     }
 
     if (kDebugMode) {

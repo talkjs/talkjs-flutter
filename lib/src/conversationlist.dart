@@ -129,6 +129,19 @@ class ConversationListState extends State<ConversationList> {
   BaseConversationPredicate? _oldFeedFilter;
   bool _oldEnableZoom = true;
 
+  late Future<String> userAgentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    userAgentFuture = Future.sync(() async {
+      final version = await rootBundle
+          .loadString('packages/talkjs_flutter/assets/version.txt');
+      return 'TalkJS_Flutter/${version.trim().replaceAll('"', '')}';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
@@ -169,22 +182,33 @@ class ConversationListState extends State<ConversationList> {
       _checkFeedFilter();
     }
 
-    return InAppWebView(
-      initialSettings: InAppWebViewSettings(
-          useHybridComposition: true,
-          disableInputAccessoryView: true,
-          transparentBackground: true),
-      onWebViewCreated: _onWebViewCreated,
-      onLoadStop: _onLoadStop,
-      onConsoleMessage:
-          (InAppWebViewController controller, ConsoleMessage message) {
-        print("conversationlist [${message.messageLevel}] ${message.message}");
-      },
-      gestureRecognizers: {
-        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
-        Factory(() => VerticalDragGestureRecognizer()),
-      },
-    );
+    return FutureBuilder(
+        future: userAgentFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                  useHybridComposition: true,
+                  disableInputAccessoryView: true,
+                  transparentBackground: true,
+                  applicationNameForUserAgent: snapshot.data),
+              onWebViewCreated: _onWebViewCreated,
+              onLoadStop: _onLoadStop,
+              onConsoleMessage:
+                  (InAppWebViewController controller, ConsoleMessage message) {
+                print(
+                    "conversationlist [${message.messageLevel}] ${message.message}");
+              },
+              gestureRecognizers: {
+                // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
+                Factory(() => VerticalDragGestureRecognizer()),
+              },
+            );
+          }
+
+          // Return an empty widget otherwise
+          return SizedBox.shrink();
+        });
   }
 
   void _updateEnableZoom() {
@@ -241,13 +265,6 @@ class ConversationListState extends State<ConversationList> {
     if (kDebugMode) {
       print('📗 conversationlist._onWebViewCreated');
     }
-
-    final version = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/version.txt');
-    await controller.setSettings(
-        settings: InAppWebViewSettings(
-            applicationNameForUserAgent:
-                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
 
     controller.addJavaScriptHandler(
         handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);

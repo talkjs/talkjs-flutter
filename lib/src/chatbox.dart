@@ -174,6 +174,19 @@ class ChatBoxState extends State<ChatBox> {
   bool _oldEnableZoom = true;
   String? _oldScrollToMessage;
 
+  late Future<String> userAgentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    userAgentFuture = Future.sync(() async {
+      final version = await rootBundle
+          .loadString('packages/talkjs_flutter/assets/version.txt');
+      return 'TalkJS_Flutter/${version.trim().replaceAll('"', '')}';
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (kDebugMode) {
@@ -263,79 +276,92 @@ class ChatBoxState extends State<ChatBox> {
       }
     }
 
-    return InAppWebView(
-      initialSettings: InAppWebViewSettings(
-          useHybridComposition: true,
-          disableInputAccessoryView: true,
-          transparentBackground: true,
-          useShouldOverrideUrlLoading: true),
-      onWebViewCreated: _onWebViewCreated,
-      onLoadStop: _onLoadStop,
-      onConsoleMessage:
-          (InAppWebViewController controller, ConsoleMessage message) {
-        print("chatbox [${message.messageLevel}] ${message.message}");
-      },
-      gestureRecognizers: {
-        // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
-        Factory(() => VerticalDragGestureRecognizer()),
-      },
-      onGeolocationPermissionsShowPrompt:
-          (InAppWebViewController controller, String origin) async {
-        print("📘 chatbox onGeolocationPermissionsShowPrompt ($origin)");
+    return FutureBuilder(
+        future: userAgentFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return InAppWebView(
+              initialSettings: InAppWebViewSettings(
+                  useHybridComposition: true,
+                  disableInputAccessoryView: true,
+                  transparentBackground: true,
+                  useShouldOverrideUrlLoading: true,
+                  applicationNameForUserAgent: snapshot.data),
+              onWebViewCreated: _onWebViewCreated,
+              onLoadStop: _onLoadStop,
+              onConsoleMessage:
+                  (InAppWebViewController controller, ConsoleMessage message) {
+                print("chatbox [${message.messageLevel}] ${message.message}");
+              },
+              gestureRecognizers: {
+                // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
+                Factory(() => VerticalDragGestureRecognizer()),
+              },
+              onGeolocationPermissionsShowPrompt:
+                  (InAppWebViewController controller, String origin) async {
+                print(
+                    "📘 chatbox onGeolocationPermissionsShowPrompt ($origin)");
 
-        final granted = await Permission.location.request().isGranted;
+                final granted = await Permission.location.request().isGranted;
 
-        return GeolocationPermissionShowPromptResponse(
-            origin: origin, allow: granted, retain: true);
-      },
-      onPermissionRequest: (InAppWebViewController controller,
-          PermissionRequest permissionRequest) async {
-        print("📘 chatbox onPermissionRequest");
+                return GeolocationPermissionShowPromptResponse(
+                    origin: origin, allow: granted, retain: true);
+              },
+              onPermissionRequest: (InAppWebViewController controller,
+                  PermissionRequest permissionRequest) async {
+                print("📘 chatbox onPermissionRequest");
 
-        var granted = false;
+                var granted = false;
 
-        if (permissionRequest.resources
-                .indexOf(PermissionResourceType.MICROPHONE) >=
-            0) {
-          granted = await Permission.microphone.request().isGranted;
-        }
+                if (permissionRequest.resources
+                        .indexOf(PermissionResourceType.MICROPHONE) >=
+                    0) {
+                  granted = await Permission.microphone.request().isGranted;
+                }
 
-        return PermissionResponse(
-            resources: permissionRequest.resources,
-            action: granted
-                ? PermissionResponseAction.GRANT
-                : PermissionResponseAction.DENY);
-      },
-      shouldOverrideUrlLoading: (InAppWebViewController controller,
-          NavigationAction navigationAction) async {
-        if (Platform.isAndroid ||
-            (navigationAction.navigationType ==
-                NavigationType.LINK_ACTIVATED)) {
-          // NavigationType is only present in iOS devices (Also MacOS but our SDK doesn't support it.)
+                return PermissionResponse(
+                    resources: permissionRequest.resources,
+                    action: granted
+                        ? PermissionResponseAction.GRANT
+                        : PermissionResponseAction.DENY);
+              },
+              shouldOverrideUrlLoading: (InAppWebViewController controller,
+                  NavigationAction navigationAction) async {
+                if (Platform.isAndroid ||
+                    (navigationAction.navigationType ==
+                        NavigationType.LINK_ACTIVATED)) {
+                  // NavigationType is only present in iOS devices (Also MacOS but our SDK doesn't support it.)
 
-          final webUri = navigationAction.request.url ?? WebUri("about:blank");
+                  final webUri =
+                      navigationAction.request.url ?? WebUri("about:blank");
 
-          // If onUrlNavigation is null we default to allowing the navigation request.
-          final urlNavigationAction = widget.onUrlNavigation
-                  ?.call(UrlNavigationRequest(webUri.rawValue)) ??
-              UrlNavigationAction.allow;
+                  // If onUrlNavigation is null we default to allowing the navigation request.
+                  final urlNavigationAction = widget.onUrlNavigation
+                          ?.call(UrlNavigationRequest(webUri.rawValue)) ??
+                      UrlNavigationAction.allow;
 
-          if (urlNavigationAction == UrlNavigationAction.deny) {
-            return NavigationActionPolicy.CANCEL;
+                  if (urlNavigationAction == UrlNavigationAction.deny) {
+                    return NavigationActionPolicy.CANCEL;
+                  }
+
+                  if (await launchUrl(webUri,
+                      mode: LaunchMode.externalApplication)) {
+                    // We launched the browser, so we don't navigate to the URL in the WebView
+                    return NavigationActionPolicy.CANCEL;
+                  } else {
+                    // We couldn't launch the external browser, so as a fallback we're using the default action
+                    return NavigationActionPolicy.ALLOW;
+                  }
+                }
+
+                return NavigationActionPolicy.ALLOW;
+              },
+            );
           }
 
-          if (await launchUrl(webUri, mode: LaunchMode.externalApplication)) {
-            // We launched the browser, so we don't navigate to the URL in the WebView
-            return NavigationActionPolicy.CANCEL;
-          } else {
-            // We couldn't launch the external browser, so as a fallback we're using the default action
-            return NavigationActionPolicy.ALLOW;
-          }
-        }
-
-        return NavigationActionPolicy.ALLOW;
-      },
-    );
+          // Return an empty widget otherwise
+          return SizedBox.shrink();
+        });
   }
 
   void _updateEnableZoom() {
@@ -557,13 +583,6 @@ class ChatBoxState extends State<ChatBox> {
     if (kDebugMode) {
       print('📗 chatbox._onWebViewCreated');
     }
-
-    final version = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/version.txt');
-    await controller.setSettings(
-        settings: InAppWebViewSettings(
-            applicationNameForUserAgent:
-                'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
 
     controller.addJavaScriptHandler(
         handlerName: 'JSCSendMessage', callback: _jscSendMessage);
