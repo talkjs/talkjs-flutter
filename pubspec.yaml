@@ -2,6 +2,7 @@ name: talkjs_flutter
 description: Official TalkJS SDK for Flutter
 version: 0.13.0
 homepage: https://talkjs.com
+publish_to: none
 
 environment:
   sdk: '>=2.19.0 <4.0.0'
@@ -15,7 +16,12 @@ dependencies:
   flutter:
     sdk: flutter
 
-  talkjs_flutter_inappwebview: ^6.0.8
+  flutter_inappwebview:
+    git: 
+      url: https://github.com/CZ-App/talkjs_flutter_inappwebview.git
+      path: flutter_inappwebview
+      ref: master
+
   crypto: ^3.0.3
   firebase_core: ^3.1.0
   firebase_messaging: ^15.0.1
