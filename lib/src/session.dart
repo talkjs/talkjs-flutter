@@ -582,7 +582,7 @@ class Session with ChangeNotifier {
       return false;
     }
 
-    if (me != other.me) {
+    if (me.id != other.me.id) {
       return false;
     }
 

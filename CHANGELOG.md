@@ -1,3 +1,7 @@
+## 0.13.1
+
+- Fix stack overflow when comparing sessions
+
 ## 0.13.0
 
 - Add `scrollToMessage` property to Chatbox.
