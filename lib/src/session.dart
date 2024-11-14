@@ -65,8 +65,7 @@ class Session with ChangeNotifier {
               'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
         }
 
-        if ((onUnreadsChange != null) ||
-            ((unreads != null) && (unreads!.onChange != null))) {
+        if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
@@ -136,8 +135,7 @@ class Session with ChangeNotifier {
       );
     }
 
-    if ((onUnreadsChange != null) ||
-        ((unreads != null) && (unreads!.onChange != null))) {
+    if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
       controller.addJavaScriptHandler(
         handlerName: 'JSCOnUnreadsChange',
         callback: _jscOnUnreadsChange,
@@ -184,8 +182,7 @@ class Session with ChangeNotifier {
               'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
         }
 
-        if ((onUnreadsChange != null) ||
-            ((unreads != null) && (unreads!.onChange != null))) {
+        if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
@@ -242,7 +239,7 @@ class Session with ChangeNotifier {
             .map((unread) => UnreadConversation.fromJson(unread))
             .toList(),
       );
-    } else if ((unreads != null) && (unreads!.onChange != null)) {
+    } else if (unreads?.onChange != null) {
       unreads!.onChange!.call(
         unreadsJson
             .map((unread) => UnreadConversation.fromJson(unread))
