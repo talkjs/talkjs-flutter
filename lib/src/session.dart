@@ -65,7 +65,7 @@ class Session with ChangeNotifier {
               'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
         }
 
-        if ((unreads != null) && (unreads!.onChange != null)) {
+        if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
@@ -117,7 +117,11 @@ class Session with ChangeNotifier {
   final bool? enablePushNotifications;
 
   final MessageHandler? onMessage;
+
+  /// Deprecated. Use onUnreadsChange instead
   final Unreads? unreads;
+
+  final UnreadsChangeHandler? onUnreadsChange;
 
   void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
@@ -131,7 +135,7 @@ class Session with ChangeNotifier {
       );
     }
 
-    if ((unreads != null) && (unreads!.onChange != null)) {
+    if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
       controller.addJavaScriptHandler(
         handlerName: 'JSCOnUnreadsChange',
         callback: _jscOnUnreadsChange,
@@ -178,7 +182,7 @@ class Session with ChangeNotifier {
               'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
         }
 
-        if ((unreads != null) && (unreads!.onChange != null)) {
+        if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
               'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
         }
@@ -229,9 +233,19 @@ class Session with ChangeNotifier {
       print('📗 session._jscOnUnreadsChange: $unreadsJson');
     }
 
-    unreads?.onChange?.call(
-      unreadsJson.map((unread) => UnreadConversation.fromJson(unread)).toList(),
-    );
+    if (onUnreadsChange != null) {
+      onUnreadsChange!.call(
+        unreadsJson
+            .map((unread) => UnreadConversation.fromJson(unread))
+            .toList(),
+      );
+    } else if (unreads?.onChange != null) {
+      unreads!.onChange!.call(
+        unreadsJson
+            .map((unread) => UnreadConversation.fromJson(unread))
+            .toList(),
+      );
+    }
   }
 
   Future<String> _jscTokenFetcher(List<dynamic> arguments) {
@@ -278,6 +292,7 @@ class Session with ChangeNotifier {
     this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
+    this.onUnreadsChange,
   }) : _completer = Completer() {
     rootBundle
         .loadString('packages/talkjs_flutter/assets/version.txt')
@@ -606,6 +621,10 @@ class Session with ChangeNotifier {
       return false;
     }
 
+    if (onUnreadsChange != other.onUnreadsChange) {
+      return false;
+    }
+
     return true;
   }
 
@@ -617,6 +636,7 @@ class Session with ChangeNotifier {
         tokenFetcher,
         onMessage,
         unreads,
+        onUnreadsChange,
       );
 
   // TODO:

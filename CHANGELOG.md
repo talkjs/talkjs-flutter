@@ -1,3 +1,8 @@
+## 0.14.0
+
+- Add `onUnreadsChange` property to Session
+- Deprecate `unreads` property of Session
+
 ## 0.13.1
 
 - Fix stack overflow when comparing sessions
