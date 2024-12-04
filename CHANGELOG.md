@@ -1,3 +1,8 @@
+## 0.15.0
+
+- Add `registerBackgroundHandler` property to AndroidOptions
+- Add `Talk.handleFCMBackgroundMessage` function
+
 ## 0.14.0
 
 - Add `onUnreadsChange` property to Session
