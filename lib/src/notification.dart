@@ -71,6 +71,7 @@ class AndroidSettings {
   final AndroidVisibility? visibility;
   final bool? vibrate;
   final Int64List? vibrationPattern;
+  final bool? registerBackgroundHandler;
 
   const AndroidSettings({
     required this.channelId,
@@ -84,6 +85,7 @@ class AndroidSettings {
     this.visibility,
     this.vibrate,
     this.vibrationPattern,
+    this.registerBackgroundHandler,
   });
 
   AndroidSettings.fromJson(Map<String, dynamic> json)
@@ -107,7 +109,8 @@ class AndroidSettings {
             ? null
             : Int64List.fromList(List.from(
                 (json['vibrationPattern'] as List<dynamic>)
-                    .map((e) => e as int)));
+                    .map((e) => e as int))),
+        registerBackgroundHandler = json['registerBackgroundHandler'];
 
   Map<String, dynamic> toJson() {
     return {
@@ -128,7 +131,8 @@ class AndroidSettings {
       'importance': importance?.name,
       'visibility': visibility?.name,
       'vibrate': vibrate,
-      'vibrationPattern': vibrationPattern
+      'vibrationPattern': vibrationPattern,
+      'registerBackgroundHandler': registerBackgroundHandler,
     };
   }
 }
@@ -202,112 +206,114 @@ Future<ByteArrayAndroidIcon?> _androidIconFromUrl(String? url) async {
 
 @pragma("vm:entry-point")
 Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
+  await handleTalkJSFCMBackgroundMessage(firebaseMessage);
+}
+
+Future<bool> handleTalkJSFCMBackgroundMessage(
+    RemoteMessage firebaseMessage) async {
   print("📘 Handling a background message: ${firebaseMessage.messageId}");
 
   print('📘 Message data: ${firebaseMessage.data}');
 
   if (firebaseMessage.notification != null) {
     print(
-        '📘 Message also contained a notification: ${firebaseMessage.notification}');
+      '📘 Message also contained a notification: ${firebaseMessage.notification}',
+    );
   }
 
   final data = firebaseMessage.data;
   StyleInformation styleInformation;
   styleInformation = MessagingStyleInformation(Person(name: 'me'));
   int showId;
-  if (data['talkjs'] is String) {
-    print("📘 _onFCMBackgroundMessage: data['talkjs'] is String");
-    final Map<String, dynamic> talkjsData = json.decode(data['talkjs']);
-    final String notificationId = talkjsData['conversation']['id'];
 
-    if (!_showIdFromNotificationId.containsKey(notificationId)) {
-      _showIdFromNotificationId[notificationId] = _nextId;
-      _nextId += 1;
-    }
+  if (!(data['talkjs'] is String)) {
+    print("📘 _onFCMBackgroundMessage: data['talkjs'] is NOT String");
+    return false;
+  }
 
-    showId = _showIdFromNotificationId[notificationId]!;
+  print("📘 _onFCMBackgroundMessage: data['talkjs'] is String");
+  final Map<String, dynamic> talkjsData = json.decode(data['talkjs']);
+  final String notificationId = talkjsData['conversation']['id'];
 
-    final timestamp =
-        DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
+  if (!_showIdFromNotificationId.containsKey(notificationId)) {
+    _showIdFromNotificationId[notificationId] = _nextId;
+    _nextId += 1;
+  }
 
-    final activeNotifications = _activeNotifications[notificationId];
+  showId = _showIdFromNotificationId[notificationId]!;
 
-    if (activeNotifications == null) {
-      print("📘 _onFCMBackgroundMessage: activeNotifications == null");
-      _activeNotifications[notificationId] = [data['talkjs']];
+  final timestamp =
+      DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
 
-      final attachment = talkjsData['message']['attachment'];
+  final activeNotifications = _activeNotifications[notificationId];
 
-      if (attachment != null) {
-        print("📘 _onFCMBackgroundMessage: attachment != null");
-        final picture = await _androidBitmapFromUrl(attachment['url']);
-        if (picture != null) {
-          print("📘 _onFCMBackgroundMessage: picture != null");
-          styleInformation = BigPictureStyleInformation(picture);
-        } else {
-          print("📘 _onFCMBackgroundMessage: picture == null");
-        }
+  if (activeNotifications == null) {
+    print("📘 _onFCMBackgroundMessage: activeNotifications == null");
+    _activeNotifications[notificationId] = [data['talkjs']];
+
+    final attachment = talkjsData['message']['attachment'];
+
+    if (attachment != null) {
+      print("📘 _onFCMBackgroundMessage: attachment != null");
+      final picture = await _androidBitmapFromUrl(attachment['url']);
+      if (picture != null) {
+        print("📘 _onFCMBackgroundMessage: picture != null");
+        styleInformation = BigPictureStyleInformation(picture);
       } else {
-        print("📘 _onFCMBackgroundMessage: attachment == null");
-        final sender = talkjsData['sender'];
-        styleInformation = MessagingStyleInformation(
-          Person(
-            name: 'me',
-          ),
-          groupConversation:
-              talkjsData['conversation']['participants'].length > 2,
-          messages: [
-            Message(
-              talkjsData['message']['text'],
-              timestamp,
-              Person(
-                icon: await _androidIconFromUrl(sender['photoUrl']),
-                key: sender['id'],
-                name: sender['name'],
-              ),
-            ),
-          ],
-        );
+        print("📘 _onFCMBackgroundMessage: picture == null");
       }
     } else {
-      print("📘 _onFCMBackgroundMessage: activeNotifications != null");
-      activeNotifications.add(data['talkjs']);
-      final messages = <Message>[];
-      for (final talkjsString in activeNotifications) {
-        final Map<String, dynamic> messageTalkjsData =
-            json.decode(talkjsString);
-        final messageTimestamp =
-            DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
-        final messageSender = talkjsData['sender'];
-
-        messages.add(
-          Message(
-            messageTalkjsData['message']['text'],
-            messageTimestamp,
-            Person(
-              icon: await _androidIconFromUrl(messageSender['photoUrl']),
-              key: messageSender['id'],
-              name: messageSender['name'],
-            ),
-          ),
-        );
-      }
-
+      print("📘 _onFCMBackgroundMessage: attachment == null");
+      final sender = talkjsData['sender'];
       styleInformation = MessagingStyleInformation(
         Person(
           name: 'me',
         ),
         groupConversation:
             talkjsData['conversation']['participants'].length > 2,
-        messages: messages,
+        messages: [
+          Message(
+            talkjsData['message']['text'],
+            timestamp,
+            Person(
+              icon: await _androidIconFromUrl(sender['photoUrl']),
+              key: sender['id'],
+              name: sender['name'],
+            ),
+          ),
+        ],
       );
     }
   } else {
-    print("📘 _onFCMBackgroundMessage: data['talkjs'] is NOT String");
-    showId = _nextId;
-    _nextId += 1;
+    print("📘 _onFCMBackgroundMessage: activeNotifications != null");
+    activeNotifications.add(data['talkjs']);
+    final messages = <Message>[];
+    for (final talkjsString in activeNotifications) {
+      final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
+      final messageTimestamp =
+          DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
+      final messageSender = talkjsData['sender'];
 
-    styleInformation = DefaultStyleInformation(false, false);
+      messages.add(
+        Message(
+          messageTalkjsData['message']['text'],
+          messageTimestamp,
+          Person(
+            icon: await _androidIconFromUrl(messageSender['photoUrl']),
+            key: messageSender['id'],
+            name: messageSender['name'],
+          ),
+        ),
+      );
+    }
+
+    styleInformation = MessagingStyleInformation(
+      Person(
+        name: 'me',
+      ),
+      groupConversation: talkjsData['conversation']['participants'].length > 2,
+      messages: messages,
+    );
   }
 
   // Fetch the push notification settings from shared preferences.
@@ -350,6 +356,8 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
     platformChannelSpecifics, // notificationDetails
     payload: data['talkjs'],
   );
+
+  return true;
 }
 
 // The commented code is for when we will upgrade to flutter_local_notifications version 10
@@ -374,7 +382,8 @@ void _onFCMTokenRefresh(String token) {
 }
 
 Future<void> registerAndroidPushNotificationHandlers(
-    AndroidSettings androidSettings) async {
+  AndroidSettings androidSettings,
+) async {
   // Get the token each time the application loads
   fcmToken = await FirebaseMessaging.instance.getToken();
   print('📘 Firebase token: $fcmToken');
@@ -434,7 +443,15 @@ Future<void> registerAndroidPushNotificationHandlers(
     // Simply ignoring this part
   }
 
-  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+  // Default to registering the background handler for backward compatibility
+  final registerBackgroundHandler =
+      androidSettings.registerBackgroundHandler == null
+          ? true
+          : androidSettings.registerBackgroundHandler!;
+
+  if (registerBackgroundHandler) {
+    FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+  }
 }
 
 Future<void> _onPush(String name, ApnsRemoteMessage message) async {
@@ -449,7 +466,8 @@ Future<void> _onPush(String name, ApnsRemoteMessage message) async {
 }
 
 Future<void> registerIOSPushNotificationHandlers(
-    IOSSettings iosSettings) async {
+  IOSSettings iosSettings,
+) async {
   final connector = ApnsPushConnectorOnly();
 
   connector.configureApns(
