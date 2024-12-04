@@ -34,14 +34,27 @@ class Talk {
     return hash.substring(0, 20);
   }
 
-  static Future<void> registerPushNotificationHandlers(
-      {AndroidSettings? androidSettings, IOSSettings? iosSettings}) async {
+  static Future<void> registerPushNotificationHandlers({
+    AndroidSettings? androidSettings,
+    IOSSettings? iosSettings,
+  }) async {
     if ((Platform.isAndroid) && (androidSettings != null)) {
       await registerAndroidPushNotificationHandlers(androidSettings);
-    }
-
-    if ((Platform.isIOS) && (iosSettings != null)) {
+    } else if ((Platform.isIOS) && (iosSettings != null)) {
       await registerIOSPushNotificationHandlers(iosSettings);
     }
   }
+
+  static Future<void> initPushNotificationHandlers({
+    AndroidSettings? androidSettings,
+    IOSSettings? iosSettings,
+  }) async {
+    if ((Platform.isAndroid) && (androidSettings != null)) {
+      await initAndroidPushNotificationHandlers(androidSettings);
+    } else if ((Platform.isIOS) && (iosSettings != null)) {
+      await initIOSPushNotificationHandlers(iosSettings);
+    }
+  }
+
+  static const handleFCMBackgroundMessage = handleTalkJSFCMBackgroundMessage;
 }
