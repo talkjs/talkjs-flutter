@@ -71,6 +71,7 @@ class AndroidSettings {
   final AndroidVisibility? visibility;
   final bool? vibrate;
   final Int64List? vibrationPattern;
+  final bool? registerBackgroundHandler;
 
   const AndroidSettings({
     required this.channelId,
@@ -84,6 +85,7 @@ class AndroidSettings {
     this.visibility,
     this.vibrate,
     this.vibrationPattern,
+    this.registerBackgroundHandler,
   });
 
   AndroidSettings.fromJson(Map<String, dynamic> json)
@@ -107,7 +109,8 @@ class AndroidSettings {
             ? null
             : Int64List.fromList(List.from(
                 (json['vibrationPattern'] as List<dynamic>)
-                    .map((e) => e as int)));
+                    .map((e) => e as int))),
+        registerBackgroundHandler = json['registerBackgroundHandler'];
 
   Map<String, dynamic> toJson() {
     return {
@@ -128,7 +131,8 @@ class AndroidSettings {
       'importance': importance?.name,
       'visibility': visibility?.name,
       'vibrate': vibrate,
-      'vibrationPattern': vibrationPattern
+      'vibrationPattern': vibrationPattern,
+      'registerBackgroundHandler': registerBackgroundHandler,
     };
   }
 }
@@ -377,7 +381,7 @@ void _onFCMTokenRefresh(String token) {
   // TODO: Update the token on the Talkjs server once we have the data layer SDK ready
 }
 
-Future<void> initAndroidPushNotificationHandlers(
+Future<void> registerAndroidPushNotificationHandlers(
   AndroidSettings androidSettings,
 ) async {
   // Get the token each time the application loads
@@ -438,14 +442,16 @@ Future<void> initAndroidPushNotificationHandlers(
     // PlatformException is raised on Android < 6.0
     // Simply ignoring this part
   }
-}
 
-Future<void> registerAndroidPushNotificationHandlers(
-  AndroidSettings androidSettings,
-) async {
-  await initAndroidPushNotificationHandlers(androidSettings);
+  // Default to registering the background handler for backward compatibility
+  final registerBackgroundHandler =
+      androidSettings.registerBackgroundHandler == null
+          ? true
+          : androidSettings.registerBackgroundHandler!;
 
-  FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+  if (registerBackgroundHandler) {
+    FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
+  }
 }
 
 Future<void> _onPush(String name, ApnsRemoteMessage message) async {
@@ -459,7 +465,7 @@ Future<void> _onPush(String name, ApnsRemoteMessage message) async {
   }
 }
 
-Future<void> initIOSPushNotificationHandlers(
+Future<void> registerIOSPushNotificationHandlers(
   IOSSettings iosSettings,
 ) async {
   final connector = ApnsPushConnectorOnly();
@@ -482,10 +488,4 @@ Future<void> initIOSPushNotificationHandlers(
       apnsToken = connector.token.value;
     });
   }
-}
-
-Future<void> registerIOSPushNotificationHandlers(
-  IOSSettings iosSettings,
-) async {
-  await initIOSPushNotificationHandlers(iosSettings);
 }

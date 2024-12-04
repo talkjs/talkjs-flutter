@@ -45,16 +45,5 @@ class Talk {
     }
   }
 
-  static Future<void> initPushNotificationHandlers({
-    AndroidSettings? androidSettings,
-    IOSSettings? iosSettings,
-  }) async {
-    if ((Platform.isAndroid) && (androidSettings != null)) {
-      await initAndroidPushNotificationHandlers(androidSettings);
-    } else if ((Platform.isIOS) && (iosSettings != null)) {
-      await initIOSPushNotificationHandlers(iosSettings);
-    }
-  }
-
   static const handleFCMBackgroundMessage = handleTalkJSFCMBackgroundMessage;
 }
