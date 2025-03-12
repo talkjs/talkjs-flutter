@@ -2,6 +2,7 @@
 
 - Add `registerBackgroundHandler` property to AndroidSettings passed to `registerPushNotificationHandlers()`
 - Add `Talk.handleFCMBackgroundMessage` function
+- Fix the SDK processing non-TalkJS related push notifications.
 
 ## 0.14.0
 
