@@ -1,3 +1,7 @@
+## 0.15.1
+
+- Upgrade `talkjs_flutter_inappwebview` dependency.
+
 ## 0.15.0
 
 - Add `registerBackgroundHandler` property to AndroidSettings passed to `registerPushNotificationHandlers()`
