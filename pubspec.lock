@@ -513,10 +513,10 @@ packages:
     dependency: "direct main"
     description:
       name: talkjs_flutter_inappwebview
-      sha256: "01b21bc3287220e6a61c8b6a853a6e8658b83a731e06314a17321cbef3ff71d2"
+      sha256: "40597b94ea8097d3e8a045f636900d20b922e258b00009246cc7fb96e4c8c982"
       url: "https://pub.dev"
     source: hosted
-    version: "6.1.5+1"
+    version: "6.1.5+2"
   talkjs_flutter_inappwebview_android:
     dependency: transitive
     description:
@@ -529,10 +529,10 @@ packages:
     dependency: transitive
     description:
       name: talkjs_flutter_inappwebview_ios
-      sha256: "109cb14b74ed681663750069acff7dcddbf9efbb34de245ed8381ba3677a8083"
+      sha256: cbeb4d1b0383ba90563c6745d8cc28c9ba2a98fe16c99211ac0bade1dfc30df0
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.2+1"
+    version: "1.1.2+2"
   talkjs_flutter_inappwebview_macos:
     dependency: transitive
     description:
