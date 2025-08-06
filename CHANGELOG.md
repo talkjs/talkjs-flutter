@@ -1,3 +1,8 @@
+## 0.16.0
+
+- **Breaking change:** Updated version numbers for Firebase dependencies. This may require you to update
+  your build versions on Android and iOS.
+
 ## 0.15.1
 
 - Upgrade `talkjs_flutter_inappwebview` dependency.
