@@ -27,7 +27,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace 'com.talkjs.flutter_push_example'
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     compileOptions {
         coreLibraryDesugaringEnabled true
@@ -48,7 +48,7 @@ android {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.talkjs.flutter_push_example"
         minSdkVersion 23
-        targetSdkVersion 34
+        targetSdkVersion 36
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
     }
@@ -67,5 +67,5 @@ flutter {
 }
 
 dependencies {
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.3'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 }
