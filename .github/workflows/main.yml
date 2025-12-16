@@ -1,37 +1,39 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Publish to Pub.dev
 
-# Controls when the workflow will run
 on:
-  ## Triggers the workflow on push or pull request events but only for the main branch
-  #push:
-  #  branches: [ main ]
-  #pull_request:
-  #  branches: [ main ]
+  push:
+    tags:
+      # must align with the tag-pattern configured on pub.dev
+      - '[0-9]+.[0-9]+.[0-9]+' # tag-pattern on pub.dev: '{{version}}'
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   publishing:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: 'Checkout'
-        uses: actions/checkout@v2 # required!
+    permissions:
+      id-token: write # Required for authentication using OIDC
 
-      - name: 'Update version string'
+    environment: pub.dev
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
+
+      - name: Setup Dart SDK and provision OIDC token
+        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c #v1.7.1
+
+      - name: Setup Flutter SDK - needed for publishing Flutter packages.
+        uses: flutter-actions/setup-flutter@6d11b83d56c388d0b6fe865194248a01a48548b5 #v4.1
+
+      - name: Update version string
         run: yq '.version' pubspec.yaml > lib/assets/version.txt
 
-      - name: '>> Dart package <<'
-        uses: k-paxian/dart-package-publisher@master
-        with:
-          accessToken: ${{ secrets.OAUTH_ACCESS_TOKEN }}
-          refreshToken: ${{ secrets.OAUTH_REFRESH_TOKEN }}
-          flutter: true
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Publish (Dry run)
+        run: dart pub publish --dry-run
+
+        # If the package has errors, it won't upload.
+      - name: Publish
+        run: dart pub publish --force
 
