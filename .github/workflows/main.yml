@@ -4,7 +4,9 @@ on:
   push:
     tags:
       # must align with the tag-pattern configured on pub.dev
-      - '[0-9]+.[0-9]+.[0-9]+' # tag-pattern on pub.dev: '{{version}}'
+      # tag-pattern on pub.dev: 'v{{version}}'
+      # where {{version}} is identical to what we have in pubspec.yaml
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   publishing:
@@ -36,4 +38,3 @@ jobs:
         # If the package has errors, it won't upload.
       - name: Publish
         run: dart pub publish --force
-
