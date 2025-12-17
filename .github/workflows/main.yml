@@ -6,7 +6,7 @@ on:
       # must align with the tag-pattern configured on pub.dev
       # tag-pattern on pub.dev: 'v{{version}}'
       # where {{version}} is identical to what we have in pubspec.yaml
-      - "[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   publishing:
