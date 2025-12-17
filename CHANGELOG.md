@@ -1,3 +1,7 @@
+## 0.16.1
+
+- Update dependencies.
+
 ## 0.16.0
 
 - **Breaking change:** Updated Firebase dependencies. This upgrades the Firebase iOS SDK version to `12.0.0` and the Firebase Android SDK version to `34.0.0`.
