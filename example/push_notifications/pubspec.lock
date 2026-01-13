@@ -555,7 +555,7 @@ packages:
       path: "../.."
       relative: true
     source: path
-    version: "0.16.0"
+    version: "0.16.2"
   talkjs_flutter_inappwebview:
     dependency: transitive
     description:

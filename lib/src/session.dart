@@ -262,18 +262,18 @@ class Session with ChangeNotifier {
     if (enable) {
       if (fcmToken != null) {
         statement =
-            'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+            'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}); true;';
       } else if (apnsToken != null) {
         statement =
-            'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
+            'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}); true;';
       }
     } else {
       if (fcmToken != null) {
         statement =
-            'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
+            'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}); true;';
       } else if (apnsToken != null) {
         statement =
-            'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
+            'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}); true;';
       }
     }
 
@@ -406,7 +406,7 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(true);
     } else {
       _execute(
-          'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
+          'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;');
     }
   }
 
@@ -452,7 +452,7 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(false);
     } else {
       _execute(
-          'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});');
+          'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;');
     }
   }
 
@@ -481,7 +481,7 @@ class Session with ChangeNotifier {
       print('📗 session clearPushRegistrations: Clearing push notifications');
     }
 
-    _execute('session.clearPushRegistrations();');
+    _execute('session.clearPushRegistrations(); true;');
   }
 
   /// For internal use only. Implementation detail that may change anytime.
