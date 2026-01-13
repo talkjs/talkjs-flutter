@@ -1,3 +1,8 @@
+## 0.16.2
+
+- Fix crash when building on Xcode 26.2 and deploying to iOS 26.2.
+- Fix audio waveform not getting generated until user interacts with the audio.
+
 ## 0.16.1
 
 - Update dependencies.
@@ -6,7 +11,7 @@
 
 - **Breaking change:** Updated Firebase dependencies. This upgrades the Firebase iOS SDK version to `12.0.0` and the Firebase Android SDK version to `34.0.0`.
 
-    As a result the `minSdkVersion` on Android is **API Level 23 (Android 6.0)** and the minimum iOS version supported is **iOS 15**. See the Firebase [Android](https://firebase.google.com/support/release-notes/android) and [iOS](https://firebase.google.com/support/release-notes/ios#version_1200_-_july_15_2025) release notes for more information
+  As a result the `minSdkVersion` on Android is **API Level 23 (Android 6.0)** and the minimum iOS version supported is **iOS 15**. See the Firebase [Android](https://firebase.google.com/support/release-notes/android) and [iOS](https://firebase.google.com/support/release-notes/ios#version_1200_-_july_15_2025) release notes for more information
 
 ## 0.15.1
 
