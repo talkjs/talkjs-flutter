@@ -282,11 +282,13 @@ class ChatBoxState extends State<ChatBox> {
           if (snapshot.connectionState == ConnectionState.done) {
             return InAppWebView(
               initialSettings: InAppWebViewSettings(
-                  useHybridComposition: true,
-                  disableInputAccessoryView: true,
-                  transparentBackground: true,
-                  useShouldOverrideUrlLoading: true,
-                  applicationNameForUserAgent: snapshot.data),
+                useHybridComposition: true,
+                disableInputAccessoryView: true,
+                transparentBackground: true,
+                useShouldOverrideUrlLoading: true,
+                applicationNameForUserAgent: snapshot.data,
+                mediaPlaybackRequiresUserGesture: false,
+              ),
               onWebViewCreated: _onWebViewCreated,
               onLoadStop: _onLoadStop,
               onConsoleMessage:
