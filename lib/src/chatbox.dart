@@ -238,7 +238,7 @@ class ChatBoxState extends State<ChatBox> {
 
           // Notify the backend of the UI's focus state
           setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
-        });
+        }); true;
       '''
           .trim());
     } else {
@@ -270,7 +270,7 @@ class ChatBoxState extends State<ChatBox> {
           chatBox.mount(document.getElementById("talkjs-container")).then(() => {
             // Notify the backend of the UI's focus state
             setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
-          });
+          }); true;
         '''
             .trim());
       }
@@ -395,16 +395,16 @@ class ChatBoxState extends State<ChatBox> {
     _setHighlightedWords();
 
     execute(
-        'chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event)));');
+        'chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event))); true;');
     execute(
-        'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));');
+        'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event))); true;');
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomMessageActions =
           Set<String>.of(widget.onCustomMessageAction!.keys);
       for (var action in _oldCustomMessageActions) {
         execute(
-            'chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
+            'chatBox.onCustomMessageAction("$action", customMessageActionHandler); true;');
       }
     } else {
       _oldCustomMessageActions = {};
@@ -415,7 +415,7 @@ class ChatBoxState extends State<ChatBox> {
           Set<String>.of(widget.onCustomConversationAction!.keys);
       for (var action in _oldCustomConversationActions) {
         execute(
-            'chatBox.onCustomConversationAction("$action", customConversationActionHandler);');
+            'chatBox.onCustomConversationAction("$action", customConversationActionHandler); true;');
       }
     } else {
       _oldCustomConversationActions = {};
@@ -463,7 +463,7 @@ class ChatBoxState extends State<ChatBox> {
           _oldCustomMessageActions.add(action);
 
           execute(
-              'chatBox.onCustomMessageAction("$action", customMessageActionHandler);');
+              'chatBox.onCustomMessageAction("$action", customMessageActionHandler); true;');
 
           retval = true;
         }
@@ -495,7 +495,7 @@ class ChatBoxState extends State<ChatBox> {
           _oldCustomConversationActions.add(action);
 
           execute(
-              'chatBox.onCustomConversationAction("$action", customConversationActionHandler);');
+              'chatBox.onCustomConversationAction("$action", customConversationActionHandler); true;');
 
           retval = true;
         }
@@ -522,12 +522,12 @@ class ChatBoxState extends State<ChatBox> {
     _oldConversation = widget.conversation;
     if (_oldConversation != null) {
       execute(
-          'chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)});');
+          'chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)}); true;');
     } else {
       if (result.isNotEmpty) {
-        execute('chatBox.select(undefined, ${json.encode(result)});');
+        execute('chatBox.select(undefined, ${json.encode(result)}); true;');
       } else {
-        execute('chatBox.select(undefined);');
+        execute('chatBox.select(undefined); true;');
       }
     }
   }
@@ -548,7 +548,7 @@ class ChatBoxState extends State<ChatBox> {
     _oldHighlightedWords = List<String>.of(widget.highlightedWords);
 
     execute(
-        'chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)});');
+        'chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)}); true;');
   }
 
   bool _checkHighlightedWords() {
@@ -715,13 +715,14 @@ class ChatBoxState extends State<ChatBox> {
 
       _users[user.id] = variableName;
 
-      execute('let $variableName = new Talk.User(${user.getJsonString()});');
+      execute(
+          'let $variableName = new Talk.User(${user.getJsonString()}); true;');
 
       _userObjs[user.id] = User.of(user);
     } else if (_userObjs[user.id] != user) {
       final variableName = _users[user.id]!;
 
-      execute('$variableName = new Talk.User(${user.getJsonString()});');
+      execute('$variableName = new Talk.User(${user.getJsonString()}); true;');
 
       _userObjs[user.id] = User.of(user);
     }
@@ -737,7 +738,7 @@ class ChatBoxState extends State<ChatBox> {
       _conversations[conversation.id] = variableName;
 
       execute(
-          'let $variableName = session.getOrCreateConversation("${conversation.id}")');
+          'let $variableName = session.getOrCreateConversation("${conversation.id}"); true;');
 
       _setConversationAttributes(variableName, conversation);
       _setConversationParticipants(variableName, conversation);
