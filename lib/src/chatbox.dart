@@ -387,7 +387,9 @@ class ChatBoxState extends State<ChatBox> {
       translateConversations: widget.translateConversations,
     );
 
-    execute('chatBox = session.createChatbox(${_oldOptions});');
+    // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+    // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+    execute('chatBox = session.createChatbox(${_oldOptions}); true;');
 
     _setMessageFilter();
     _setHighlightedWords();
