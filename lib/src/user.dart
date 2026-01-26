@@ -85,29 +85,29 @@ class User extends _BaseUser {
     super.role,
     super.custom,
     super.welcomeMessage,
-  })  : _session = session,
-        _idOnly = false;
+  }) : _session = session,
+       _idOnly = false;
 
   const User.fromId(String id, Session session)
-      : _session = session,
-        _idOnly = true,
-        super(id: id, name: '');
+    : _session = session,
+      _idOnly = true,
+      super(id: id, name: '');
 
   User.of(User other)
-      : _session = other._session,
-        _idOnly = other._idOnly,
-        super(
-          id: other.id,
-          name: other.name,
-          email: (other.email != null ? List.of(other.email!) : null),
-          phone: (other.phone != null ? List.of(other.phone!) : null),
-          availabilityText: other.availabilityText,
-          locale: other.locale,
-          photoUrl: other.photoUrl,
-          role: other.role,
-          custom: (other.custom != null ? Map.of(other.custom!) : null),
-          welcomeMessage: other.welcomeMessage,
-        );
+    : _session = other._session,
+      _idOnly = other._idOnly,
+      super(
+        id: other.id,
+        name: other.name,
+        email: (other.email != null ? List.of(other.email!) : null),
+        phone: (other.phone != null ? List.of(other.phone!) : null),
+        availabilityText: other.availabilityText,
+        locale: other.locale,
+        photoUrl: other.photoUrl,
+        role: other.role,
+        custom: (other.custom != null ? Map.of(other.custom!) : null),
+        welcomeMessage: other.welcomeMessage,
+      );
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -219,42 +219,42 @@ class User extends _BaseUser {
   }
 
   int get hashCode => Object.hash(
-        _session,
-        _idOnly,
-        availabilityText,
-        (custom != null ? Object.hashAll(custom!.keys) : custom),
-        (custom != null ? Object.hashAll(custom!.values) : custom),
-        (email != null ? Object.hashAll(email!) : email),
-        (phone != null ? Object.hashAll(phone!) : phone),
-        id,
-        name,
-        locale,
-        photoUrl,
-        role,
-        welcomeMessage,
-      );
+    _session,
+    _idOnly,
+    availabilityText,
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (email != null ? Object.hashAll(email!) : email),
+    (phone != null ? Object.hashAll(phone!) : phone),
+    id,
+    name,
+    locale,
+    photoUrl,
+    role,
+    welcomeMessage,
+  );
 }
 
 class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
-      : super(
-          availabilityText: json['availabilityText'],
-          custom: (json['custom'] != null ? Map.from(json['custom']) : null),
-          email: (json['email'] != null
-              ? (json['email'] is String
+    : super(
+        availabilityText: json['availabilityText'],
+        custom: (json['custom'] != null ? Map.from(json['custom']) : null),
+        email: (json['email'] != null
+            ? (json['email'] is String
                   ? [json['email']]
                   : List.from(json['email']))
-              : null),
-          phone: (json['phone'] != null
-              ? (json['phone'] is String
+            : null),
+        phone: (json['phone'] != null
+            ? (json['phone'] is String
                   ? [json['phone']]
                   : List.from(json['phone']))
-              : null),
-          id: json['id'],
-          name: json['name'],
-          locale: json['locale'],
-          photoUrl: json['photoUrl'],
-          role: json['role'],
-          welcomeMessage: json['welcomeMessage'],
-        );
+            : null),
+        id: json['id'],
+        name: json['name'],
+        locale: json['locale'],
+        photoUrl: json['photoUrl'],
+        role: json['role'],
+        welcomeMessage: json['welcomeMessage'],
+      );
 }

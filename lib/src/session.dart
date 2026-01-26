@@ -46,7 +46,8 @@ class Session with ChangeNotifier {
   set me(User user) {
     if (_me != null) {
       throw StateError(
-          'The me property has already been set for the Session object');
+        'The me property has already been set for the Session object',
+      );
     } else {
       _me = user;
 
@@ -54,20 +55,18 @@ class Session with ChangeNotifier {
       // the missing `me` property, now is the time to initialize the session.
       if ((_webViewController != null) && (!_completer.isCompleted)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
-        createSession(
-          execute: _execute,
-          session: this,
-          variableName: 'me',
-        );
+        createSession(execute: _execute, session: this, variableName: 'me');
 
         if (onMessage != null) {
           _execute(
-              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+            'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));',
+          );
         }
 
         if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
-              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+            'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));',
+          );
         }
 
         if (enablePushNotifications != null) {
@@ -150,14 +149,18 @@ class Session with ChangeNotifier {
     }
 
     controller.addJavaScriptHandler(
-        handlerName: 'JSCValidCredentials',
-        callback: (args) =>
-            _validCredentialsCompleter.complete(json.decode(args[0]) as bool));
+      handlerName: 'JSCValidCredentials',
+      callback: (args) =>
+          _validCredentialsCompleter.complete(json.decode(args[0]) as bool),
+    );
 
-    String htmlData = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/index.html');
+    String htmlData = await rootBundle.loadString(
+      'packages/talkjs_flutter/assets/index.html',
+    );
     controller.loadData(
-        data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
+      data: htmlData,
+      baseUrl: WebUri("https://app.talkjs.com"),
+    );
   }
 
   void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
@@ -171,20 +174,18 @@ class Session with ChangeNotifier {
       // If the `me` property has already been initialized, then create the user and the session
       if ((_me != null) && (!_completer.isCompleted)) {
         _execute('const me = new Talk.User(${me.getJsonString()});');
-        createSession(
-          execute: _execute,
-          session: this,
-          variableName: 'me',
-        );
+        createSession(execute: _execute, session: this, variableName: 'me');
 
         if (onMessage != null) {
           _execute(
-              'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));');
+            'session.onMessage((event) => window.flutter_inappwebview.callHandler("JSCOnMessage", JSON.stringify(event)));',
+          );
         }
 
         if ((onUnreadsChange != null) || (unreads?.onChange != null)) {
           _execute(
-              'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));');
+            'session.unreads.onChange((event) => window.flutter_inappwebview.callHandler("JSCOnUnreadsChange", JSON.stringify(event)));',
+          );
         }
 
         if (enablePushNotifications != null) {
@@ -294,19 +295,21 @@ class Session with ChangeNotifier {
     this.enablePushNotifications = false,
     @Deprecated("Use [token] or [tokenFetcher] instead") this.signature,
   }) : _completer = Completer() {
-    rootBundle
-        .loadString('packages/talkjs_flutter/assets/version.txt')
-        .then((version) {
+    rootBundle.loadString('packages/talkjs_flutter/assets/version.txt').then((
+      version,
+    ) {
       _headlessWebView = HeadlessInAppWebView(
-          onWebViewCreated: _onWebViewCreated,
-          onLoadStop: _onLoadStop,
-          onConsoleMessage:
-              (InAppWebViewController controller, ConsoleMessage message) {
-            print("session [${message.messageLevel}] ${message.message}");
-          },
-          initialSettings: InAppWebViewSettings(
-              applicationNameForUserAgent:
-                  'TalkJS_Flutter/${version.trim().replaceAll('"', '')}'));
+        onWebViewCreated: _onWebViewCreated,
+        onLoadStop: _onLoadStop,
+        onConsoleMessage:
+            (InAppWebViewController controller, ConsoleMessage message) {
+              print("session [${message.messageLevel}] ${message.message}");
+            },
+        initialSettings: InAppWebViewSettings(
+          applicationNameForUserAgent:
+              'TalkJS_Flutter/${version.trim().replaceAll('"', '')}',
+        ),
+      );
 
       // Runs the headless WebView
       _headlessWebView!.run();
@@ -324,20 +327,19 @@ class Session with ChangeNotifier {
     String? role,
     Map<String, String?>? custom,
     String? welcomeMessage,
-  }) =>
-      User(
-        session: this,
-        id: id,
-        name: name,
-        email: email,
-        phone: phone,
-        availabilityText: availabilityText,
-        locale: locale,
-        photoUrl: photoUrl,
-        role: role,
-        custom: custom,
-        welcomeMessage: welcomeMessage,
-      );
+  }) => User(
+    session: this,
+    id: id,
+    name: name,
+    email: email,
+    phone: phone,
+    availabilityText: availabilityText,
+    locale: locale,
+    photoUrl: photoUrl,
+    role: role,
+    custom: custom,
+    welcomeMessage: welcomeMessage,
+  );
 
   User getUserById(String id) => User.fromId(id, this);
 
@@ -348,16 +350,15 @@ class Session with ChangeNotifier {
     String? photoUrl,
     String? subject,
     Set<Participant> participants = const {},
-  }) =>
-      Conversation(
-        session: this,
-        id: id,
-        custom: custom,
-        welcomeMessages: welcomeMessages,
-        photoUrl: photoUrl,
-        subject: subject,
-        participants: participants,
-      );
+  }) => Conversation(
+    session: this,
+    id: id,
+    custom: custom,
+    welcomeMessages: welcomeMessages,
+    photoUrl: photoUrl,
+    subject: subject,
+    participants: participants,
+  );
 
   // The functions that use the headless webview need to take into consideration the following things:
   // - The session could have been destroyed, in which case _headlessWebView is null
@@ -383,19 +384,22 @@ class Session with ChangeNotifier {
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
-            'The me property needs to be set for the Session object before calling setPushRegistration');
+          'The me property needs to be set for the Session object before calling setPushRegistration',
+        );
       }
 
       if (kDebugMode) {
         print(
-            '📗 session setPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
+          '📗 session setPushRegistration: !_completer.isCompleted, awaiting for _completer.future',
+        );
       }
       await _completer.future;
     }
 
     if (_headlessWebView == null) {
       throw StateError(
-          'The setPushRegistration method cannot be called after destroying the session');
+        'The setPushRegistration method cannot be called after destroying the session',
+      );
     }
 
     if (kDebugMode) {
@@ -406,7 +410,8 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(true);
     } else {
       _execute(
-          'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;');
+        'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;',
+      );
     }
   }
 
@@ -429,19 +434,22 @@ class Session with ChangeNotifier {
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
-            'The me property needs to be set for the Session object before calling unsetPushRegistration');
+          'The me property needs to be set for the Session object before calling unsetPushRegistration',
+        );
       }
 
       if (kDebugMode) {
         print(
-            '📗 session unsetPushRegistration: !_completer.isCompleted, awaiting for _completer.future');
+          '📗 session unsetPushRegistration: !_completer.isCompleted, awaiting for _completer.future',
+        );
       }
       await _completer.future;
     }
 
     if (_headlessWebView == null) {
       throw StateError(
-          'The unsetPushRegistration method cannot be called after destroying the session');
+        'The unsetPushRegistration method cannot be called after destroying the session',
+      );
     }
 
     if (kDebugMode) {
@@ -452,7 +460,8 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(false);
     } else {
       _execute(
-          'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;');
+        'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;',
+      );
     }
   }
 
@@ -462,19 +471,22 @@ class Session with ChangeNotifier {
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
-            'The me property needs to be set for the Session object before calling clearPushRegistrations');
+          'The me property needs to be set for the Session object before calling clearPushRegistrations',
+        );
       }
 
       if (kDebugMode) {
         print(
-            '📗 session clearPushRegistrations: !_completer.isCompleted, awaiting for _completer.future');
+          '📗 session clearPushRegistrations: !_completer.isCompleted, awaiting for _completer.future',
+        );
       }
       await _completer.future;
     }
 
     if (_headlessWebView == null) {
       throw StateError(
-          'The clearPushRegistrations method cannot be called after destroying the session');
+        'The clearPushRegistrations method cannot be called after destroying the session',
+      );
     }
 
     if (kDebugMode) {
@@ -516,7 +528,8 @@ class Session with ChangeNotifier {
     if ((!_completer.isCompleted) && (_me != null)) {
       if (kDebugMode) {
         print(
-            '📗 session destroy: !_completer.isCompleted, awaiting for _completer.future');
+          '📗 session destroy: !_completer.isCompleted, awaiting for _completer.future',
+        );
       }
       await _completer.future;
     }
@@ -555,19 +568,22 @@ class Session with ChangeNotifier {
     if (!_completer.isCompleted) {
       if (_me == null) {
         throw StateError(
-            'The me property needs to be set for the Session object before calling hasValidCredentials');
+          'The me property needs to be set for the Session object before calling hasValidCredentials',
+        );
       }
 
       if (kDebugMode) {
         print(
-            '📗 session hasValidCredentials: !_completer.isCompleted, awaiting for _completer.future');
+          '📗 session hasValidCredentials: !_completer.isCompleted, awaiting for _completer.future',
+        );
       }
       await _completer.future;
     }
 
     if (_headlessWebView == null) {
       throw StateError(
-          'The hasValidCredentials method cannot be called after destroying the session');
+        'The hasValidCredentials method cannot be called after destroying the session',
+      );
     }
 
     if (kDebugMode) {
@@ -577,7 +593,8 @@ class Session with ChangeNotifier {
     _validCredentialsCompleter = Completer();
 
     _execute(
-        'session.hasValidCredentials().then((value) => window.flutter_inappwebview.callHandler("JSCValidCredentials", JSON.stringify(value)));');
+      'session.hasValidCredentials().then((value) => window.flutter_inappwebview.callHandler("JSCValidCredentials", JSON.stringify(value)));',
+    );
 
     return _validCredentialsCompleter.future;
   }
@@ -630,14 +647,14 @@ class Session with ChangeNotifier {
 
   // me and enablePushNotifications are deliberately omitted, so that this object has the exact same hash regardless of its state
   int get hashCode => Object.hash(
-        appId,
-        signature,
-        token,
-        tokenFetcher,
-        onMessage,
-        unreads,
-        onUnreadsChange,
-      );
+    appId,
+    signature,
+    token,
+    tokenFetcher,
+    onMessage,
+    unreads,
+    onUnreadsChange,
+  );
 
   // TODO:
   // conversation.leave

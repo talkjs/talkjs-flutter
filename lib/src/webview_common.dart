@@ -30,7 +30,8 @@ void createSession({
     // callHandler returns a Promise that can be used to get the json result returned by the
     // callback. In this case "JSCTokenFetcher".
     execute(
-        'options["tokenFetcher"] = () => window.flutter_inappwebview.callHandler("JSCTokenFetcher");');
+      'options["tokenFetcher"] = () => window.flutter_inappwebview.callHandler("JSCTokenFetcher");',
+    );
   }
 
   execute('const session = new Talk.Session(options);');

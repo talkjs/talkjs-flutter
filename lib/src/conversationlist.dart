@@ -17,8 +17,8 @@ import './chatbox.dart';
 import './webview_common.dart';
 import './themeoptions.dart';
 
-typedef SelectConversationHandler = void Function(
-    SelectConversationEvent event);
+typedef SelectConversationHandler =
+    void Function(SelectConversationEvent event);
 
 class SelectConversationEvent {
   final ConversationData conversation;
@@ -26,9 +26,9 @@ class SelectConversationEvent {
   final List<UserData> others;
 
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
-      : conversation = ConversationData.fromJson(json['conversation']),
-        me = UserData.fromJson(json['me']),
-        others = json['others'].map(UserData.fromJson).toList();
+    : conversation = ConversationData.fromJson(json['conversation']),
+      me = UserData.fromJson(json['me']),
+      others = json['others'].map(UserData.fromJson).toList();
 }
 
 class ConversationListOptions {
@@ -134,8 +134,9 @@ class ConversationListState extends State<ConversationList> {
     super.initState();
 
     userAgentFuture = Future.sync(() async {
-      final version = await rootBundle
-          .loadString('packages/talkjs_flutter/assets/version.txt');
+      final version = await rootBundle.loadString(
+        'packages/talkjs_flutter/assets/version.txt',
+      );
       return 'TalkJS_Flutter/${version.trim().replaceAll('"', '')}';
     });
   }
@@ -160,14 +161,16 @@ class ConversationListState extends State<ConversationList> {
       _updateEnableZoom();
 
       createSession(
-          execute: execute,
-          session: widget.session,
-          variableName: getUserVariableName(widget.session.me));
+        execute: execute,
+        session: widget.session,
+        variableName: getUserVariableName(widget.session.me),
+      );
       _createConversationList();
       // feedFilter is set as an option for the inbox
 
       execute(
-          'conversationList.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));');
+        'conversationList.mount(document.getElementById("talkjs-container")).then(() => window.flutter_inappwebview.callHandler("JSCLoadingState", "loaded"));',
+      );
     } else {
       // If it's not the first time that the widget is built,
       // then check what needs to be rebuilt
@@ -181,32 +184,35 @@ class ConversationListState extends State<ConversationList> {
     }
 
     return FutureBuilder(
-        future: userAgentFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return InAppWebView(
-              initialSettings: InAppWebViewSettings(
-                  useHybridComposition: true,
-                  disableInputAccessoryView: true,
-                  transparentBackground: true,
-                  applicationNameForUserAgent: snapshot.data),
-              onWebViewCreated: _onWebViewCreated,
-              onLoadStop: _onLoadStop,
-              onConsoleMessage:
-                  (InAppWebViewController controller, ConsoleMessage message) {
-                print(
-                    "conversationlist [${message.messageLevel}] ${message.message}");
-              },
-              gestureRecognizers: {
-                // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
-                Factory(() => VerticalDragGestureRecognizer()),
-              },
-            );
-          }
+      future: userAgentFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return InAppWebView(
+            initialSettings: InAppWebViewSettings(
+              useHybridComposition: true,
+              disableInputAccessoryView: true,
+              transparentBackground: true,
+              applicationNameForUserAgent: snapshot.data,
+            ),
+            onWebViewCreated: _onWebViewCreated,
+            onLoadStop: _onLoadStop,
+            onConsoleMessage:
+                (InAppWebViewController controller, ConsoleMessage message) {
+                  print(
+                    "conversationlist [${message.messageLevel}] ${message.message}",
+                  );
+                },
+            gestureRecognizers: {
+              // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations
+              Factory(() => VerticalDragGestureRecognizer()),
+            },
+          );
+        }
 
-          // Return an empty widget otherwise
-          return SizedBox.shrink();
-        });
+        // Return an empty widget otherwise
+        return SizedBox.shrink();
+      },
+    );
   }
 
   void _updateEnableZoom() {
@@ -216,7 +222,8 @@ class ConversationListState extends State<ConversationList> {
     }
 
     execute(
-        '''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''');
+      '''document.querySelector('meta[name="viewport"]').setAttribute("content", "${content}");''',
+    );
 
     _oldEnableZoom = widget.enableZoom;
   }
@@ -243,7 +250,8 @@ class ConversationListState extends State<ConversationList> {
 
     if (_oldFeedFilter != null) {
       execute(
-          'conversationList.setFeedFilter(${json.encode(_oldFeedFilter)});');
+        'conversationList.setFeedFilter(${json.encode(_oldFeedFilter)});',
+      );
     } else {
       execute('conversationList.setFeedFilter({});');
     }
@@ -265,16 +273,25 @@ class ConversationListState extends State<ConversationList> {
     }
 
     controller.addJavaScriptHandler(
-        handlerName: 'JSCSelectConversation', callback: _jscSelectConversation);
+      handlerName: 'JSCSelectConversation',
+      callback: _jscSelectConversation,
+    );
     controller.addJavaScriptHandler(
-        handlerName: 'JSCLoadingState', callback: _jscLoadingState);
+      handlerName: 'JSCLoadingState',
+      callback: _jscLoadingState,
+    );
     controller.addJavaScriptHandler(
-        handlerName: 'JSCTokenFetcher', callback: _jscTokenFetcher);
+      handlerName: 'JSCTokenFetcher',
+      callback: _jscTokenFetcher,
+    );
 
-    String htmlData = await rootBundle
-        .loadString('packages/talkjs_flutter/assets/index.html');
+    String htmlData = await rootBundle.loadString(
+      'packages/talkjs_flutter/assets/index.html',
+    );
     controller.loadData(
-        data: htmlData, baseUrl: WebUri("https://app.talkjs.com"));
+      data: htmlData,
+      baseUrl: WebUri("https://app.talkjs.com"),
+    );
   }
 
   void _onLoadStop(InAppWebViewController controller, WebUri? url) async {
@@ -303,8 +320,9 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._jscSelectConversation: $message');
     }
 
-    widget.onSelectConversation
-        ?.call(SelectConversationEvent.fromJson(json.decode(message)));
+    widget.onSelectConversation?.call(
+      SelectConversationEvent.fromJson(json.decode(message)),
+    );
   }
 
   void _jscLoadingState(List<dynamic> arguments) {

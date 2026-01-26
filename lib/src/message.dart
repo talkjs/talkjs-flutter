@@ -11,8 +11,8 @@ class Attachment {
   final int size;
 
   Attachment.fromJson(Map<String, dynamic> json)
-      : url = json['url'],
-        size = json['size'];
+    : url = json['url'],
+      size = json['size'];
 }
 
 class SentMessage {
@@ -30,7 +30,7 @@ class SentMessage {
 
   /// Contains the user ID for the person that sent the message
   final String
-      senderId; // redundant since the user is always me, but keeps it consistant
+  senderId; // redundant since the user is always me, but keeps it consistant
 
   /// Contains the message's text
   final String? text;
@@ -45,19 +45,20 @@ class SentMessage {
   final List<double>? location;
 
   SentMessage.fromJson(Map<String, dynamic> json)
-      : id = json['id'],
-        conversationId = json['conversationId'],
-        type = (json['type'] == 'UserMessage'
-            ? MessageType.UserMessage
-            : MessageType.SystemMessage),
-        readBy = List.from(json['readBy']),
-        senderId = json['senderId'],
-        text = json['text'],
-        attachment = (json['attachment'] != null
-            ? Attachment.fromJson(json['attachment'])
-            : null),
-        location =
-            (json['location'] != null ? List.from(json['location']) : null);
+    : id = json['id'],
+      conversationId = json['conversationId'],
+      type = (json['type'] == 'UserMessage'
+          ? MessageType.UserMessage
+          : MessageType.SystemMessage),
+      readBy = List.from(json['readBy']),
+      senderId = json['senderId'],
+      text = json['text'],
+      attachment = (json['attachment'] != null
+          ? Attachment.fromJson(json['attachment'])
+          : null),
+      location = (json['location'] != null
+          ? List.from(json['location'])
+          : null);
 }
 
 class Message {
@@ -104,36 +105,38 @@ class Message {
   final ContentType type;
 
   Message.fromJson(Map<String, dynamic> json)
-      : attachment = (json['attachment'] != null
-            ? Attachment.fromJson(json['attachment'])
-            : null),
-        body = json['body'],
-        conversation = ConversationData.fromJson(json['conversation']),
-        custom = (json['custom'] != null ? Map.from(json['custom']) : null),
-        id = json['id'],
-        isByMe = json['isByMe'],
-        location =
-            (json['location'] != null ? List.from(json['location']) : null),
-        origin = _originFromString(json['origin']),
-        read = json['read'],
-        sender =
-            (json['sender'] != null ? UserData.fromJson(json['sender']) : null),
-        senderId = json['senderId'],
-        timestamp = json['timestamp'].toDouble(),
-        type = _contentTypeFromString(json['type']);
+    : attachment = (json['attachment'] != null
+          ? Attachment.fromJson(json['attachment'])
+          : null),
+      body = json['body'],
+      conversation = ConversationData.fromJson(json['conversation']),
+      custom = (json['custom'] != null ? Map.from(json['custom']) : null),
+      id = json['id'],
+      isByMe = json['isByMe'],
+      location = (json['location'] != null
+          ? List.from(json['location'])
+          : null),
+      origin = _originFromString(json['origin']),
+      read = json['read'],
+      sender = (json['sender'] != null
+          ? UserData.fromJson(json['sender'])
+          : null),
+      senderId = json['senderId'],
+      timestamp = json['timestamp'].toDouble(),
+      type = _contentTypeFromString(json['type']);
 }
 
 MessageOrigin _originFromString(String str) => switch (str) {
-      'web' => MessageOrigin.web,
-      'rest' => MessageOrigin.rest,
-      'email' => MessageOrigin.email,
-      'import' => MessageOrigin.import,
-      _ => throw ArgumentError('Unknown MessageOrigin $str')
-    };
+  'web' => MessageOrigin.web,
+  'rest' => MessageOrigin.rest,
+  'email' => MessageOrigin.email,
+  'import' => MessageOrigin.import,
+  _ => throw ArgumentError('Unknown MessageOrigin $str'),
+};
 
 ContentType _contentTypeFromString(String str) => switch (str) {
-      'media' => ContentType.media,
-      'text' => ContentType.text,
-      'location' => ContentType.location,
-      _ => throw ArgumentError('Unknown ContentType $str')
-    };
+  'media' => ContentType.media,
+  'text' => ContentType.text,
+  'location' => ContentType.location,
+  _ => throw ArgumentError('Unknown ContentType $str'),
+};

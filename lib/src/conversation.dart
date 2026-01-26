@@ -11,9 +11,9 @@ enum ParticipantAccess { read, readWrite }
 extension ParticipantAccessString on ParticipantAccess {
   /// Converts this enum's values to String.
   String getValue() => switch (this) {
-        ParticipantAccess.read => 'Read',
-        ParticipantAccess.readWrite => 'ReadWrite'
-      };
+    ParticipantAccess.read => 'Read',
+    ParticipantAccess.readWrite => 'ReadWrite',
+  };
 }
 
 /// Possible values for participants' notifications
@@ -22,10 +22,10 @@ enum ParticipantNotification { off, on, mentionsOnly }
 extension ParticipantNotificationString on ParticipantNotification {
   /// Converts this enum's values to String.
   dynamic getValue() => switch (this) {
-        ParticipantNotification.off => false,
-        ParticipantNotification.on => true,
-        ParticipantNotification.mentionsOnly => 'MentionsOnly'
-      };
+    ParticipantNotification.off => false,
+    ParticipantNotification.on => true,
+    ParticipantNotification.mentionsOnly => 'MentionsOnly',
+  };
 }
 
 // Participants are users + options relative to this conversation
@@ -39,9 +39,9 @@ class Participant {
   const Participant(this.user, {this.access, this.notify});
 
   Participant.of(Participant other)
-      : user = User.of(other.user),
-        access = other.access,
-        notify = other.notify;
+    : user = User.of(other.user),
+      access = other.access,
+      notify = other.notify;
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -131,21 +131,23 @@ class Conversation extends _BaseConversation {
   }) : _session = session;
 
   Conversation.of(Conversation other)
-      : _session = other._session,
-        participants = Set.of(other.participants.map(Participant.of)),
-        super(
-            id: other.id,
-            custom: (other.custom != null ? Map.of(other.custom!) : null),
-            welcomeMessages: (other.welcomeMessages != null
-                ? List.of(other.welcomeMessages!)
-                : null),
-            photoUrl: other.photoUrl,
-            subject: other.subject);
+    : _session = other._session,
+      participants = Set.of(other.participants.map(Participant.of)),
+      super(
+        id: other.id,
+        custom: (other.custom != null ? Map.of(other.custom!) : null),
+        welcomeMessages: (other.welcomeMessages != null
+            ? List.of(other.welcomeMessages!)
+            : null),
+        photoUrl: other.photoUrl,
+        subject: other.subject,
+      );
 
   void _createConversation() {
     if (!_conversationCreated) {
       _session.execute(
-          'conversations["${id}"] = session.getOrCreateConversation("${id}")');
+        'conversations["${id}"] = session.getOrCreateConversation("${id}")',
+      );
 
       _conversationCreated = true;
     }
@@ -157,7 +159,8 @@ class Conversation extends _BaseConversation {
 
     if (options != null) {
       _session.execute(
-          'conversations["${id}"].sendMessage("$text", ${json.encode(options)});');
+        'conversations["${id}"].sendMessage("$text", ${json.encode(options)});',
+      );
     } else {
       _session.execute('conversations["${id}"].sendMessage("$text");');
     }
@@ -208,27 +211,28 @@ class Conversation extends _BaseConversation {
   }
 
   int get hashCode => Object.hash(
-        _session,
-        Object.hashAll(participants),
-        id,
-        (custom != null ? Object.hashAll(custom!.keys) : custom),
-        (custom != null ? Object.hashAll(custom!.values) : custom),
-        (welcomeMessages != null
-            ? Object.hashAll(welcomeMessages!)
-            : welcomeMessages),
-        photoUrl,
-        subject,
-      );
+    _session,
+    Object.hashAll(participants),
+    id,
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (welcomeMessages != null
+        ? Object.hashAll(welcomeMessages!)
+        : welcomeMessages),
+    photoUrl,
+    subject,
+  );
 }
 
 class ConversationData extends _BaseConversation {
   ConversationData.fromJson(Map<String, dynamic> json)
-      : super(
-            id: json['id'],
-            custom: (json['custom'] != null ? Map.from(json['custom']) : null),
-            welcomeMessages: (json['welcomeMessages'] != null
-                ? List.from(json['welcomeMessages'])
-                : null),
-            photoUrl: json['photoUrl'],
-            subject: json['subject']);
+    : super(
+        id: json['id'],
+        custom: (json['custom'] != null ? Map.from(json['custom']) : null),
+        welcomeMessages: (json['welcomeMessages'] != null
+            ? List.from(json['welcomeMessages'])
+            : null),
+        photoUrl: json['photoUrl'],
+        subject: json['subject'],
+      );
 }

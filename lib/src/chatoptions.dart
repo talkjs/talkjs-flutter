@@ -46,11 +46,12 @@ class MessageFieldOptions {
 
   /// TODO: visible
 
-  const MessageFieldOptions(
-      {this.autofocus,
-      this.enterSendsMessage,
-      this.placeholder,
-      this.spellcheck});
+  const MessageFieldOptions({
+    this.autofocus,
+    this.enterSendsMessage,
+    this.placeholder,
+    this.spellcheck,
+  });
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> result = {};
@@ -116,10 +117,10 @@ enum TranslationToggle { off, on, auto }
 extension TranslationToggleValue on TranslationToggle {
   /// Converts this enum's values to String.
   dynamic getValue() => switch (this) {
-        TranslationToggle.off => false,
-        TranslationToggle.on => true,
-        TranslationToggle.auto => 'auto'
-      };
+    TranslationToggle.off => false,
+    TranslationToggle.on => true,
+    TranslationToggle.auto => 'auto',
+  };
 }
 
 /// The possible values for translateConversations
@@ -128,10 +129,10 @@ enum TranslateConversations { off, on, auto }
 extension TranslateConversationsValue on TranslateConversations {
   /// Converts this enum's values to String.
   dynamic getValue() => switch (this) {
-        TranslateConversations.off => false,
-        TranslateConversations.on => true,
-        TranslateConversations.auto => 'auto'
-      };
+    TranslateConversations.off => false,
+    TranslateConversations.on => true,
+    TranslateConversations.auto => 'auto',
+  };
 }
 
 /// Options to configure the behaviour of the [ChatBox] UI.
@@ -247,11 +248,11 @@ class ChatBoxOptions {
   }
 
   int get hashCode => Object.hash(
-        dir,
-        messageField,
-        showChatHeader,
-        showTranslationToggle,
-        theme,
-        translateConversations,
-      );
+    dir,
+    messageField,
+    showChatHeader,
+    showTranslationToggle,
+    theme,
+    translateConversations,
+  );
 }

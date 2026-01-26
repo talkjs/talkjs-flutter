@@ -23,28 +23,22 @@ enum AndroidVisibility {
 
 extension VisibilityToLocalNotification on AndroidVisibility {
   NotificationVisibility toLocalNotification() => switch (this) {
-        AndroidVisibility.PRIVATE => NotificationVisibility.private,
-        AndroidVisibility.PUBLIC => NotificationVisibility.public,
-        AndroidVisibility.SECRET => NotificationVisibility.secret
-      };
+    AndroidVisibility.PRIVATE => NotificationVisibility.private,
+    AndroidVisibility.PUBLIC => NotificationVisibility.public,
+    AndroidVisibility.SECRET => NotificationVisibility.secret,
+  };
 }
 
-enum AndroidImportance {
-  HIGH,
-  DEFAULT,
-  LOW,
-  MIN,
-  NONE,
-}
+enum AndroidImportance { HIGH, DEFAULT, LOW, MIN, NONE }
 
 extension ImportanceToLocalNotification on AndroidImportance {
   Importance toLocalNotification() => switch (this) {
-        AndroidImportance.HIGH => Importance.high,
-        AndroidImportance.DEFAULT => Importance.defaultImportance,
-        AndroidImportance.LOW => Importance.low,
-        AndroidImportance.MIN => Importance.min,
-        AndroidImportance.NONE => Importance.none
-      };
+    AndroidImportance.HIGH => Importance.high,
+    AndroidImportance.DEFAULT => Importance.defaultImportance,
+    AndroidImportance.LOW => Importance.low,
+    AndroidImportance.MIN => Importance.min,
+    AndroidImportance.NONE => Importance.none,
+  };
 }
 
 class AndroidSettings {
@@ -77,28 +71,33 @@ class AndroidSettings {
   });
 
   AndroidSettings.fromJson(Map<String, dynamic> json)
-      : channelId = json['channelId'],
-        channelName = json['channelName'],
-        badge = json['badge'],
-        channelDescription = json['channelDescription'],
-        lights = json['lights'],
-        lightColor = json['lightColor'] == null
-            ? null
-            : Color.fromARGB(
-                json['lightColor']['alpha'],
-                json['lightColor']['red'],
-                json['lightColor']['green'],
-                json['lightColor']['blue']),
-        playSound = json['playSound'],
-        importance = AndroidImportance.values.asNameMap()[json['importance']],
-        visibility = AndroidVisibility.values.asNameMap()[json['visibility']],
-        vibrate = json['vibrate'],
-        vibrationPattern = json['vibrationPattern'] == null
-            ? null
-            : Int64List.fromList(List.from(
-                (json['vibrationPattern'] as List<dynamic>)
-                    .map((e) => e as int))),
-        registerBackgroundHandler = json['registerBackgroundHandler'];
+    : channelId = json['channelId'],
+      channelName = json['channelName'],
+      badge = json['badge'],
+      channelDescription = json['channelDescription'],
+      lights = json['lights'],
+      lightColor = json['lightColor'] == null
+          ? null
+          : Color.fromARGB(
+              json['lightColor']['alpha'],
+              json['lightColor']['red'],
+              json['lightColor']['green'],
+              json['lightColor']['blue'],
+            ),
+      playSound = json['playSound'],
+      importance = AndroidImportance.values.asNameMap()[json['importance']],
+      visibility = AndroidVisibility.values.asNameMap()[json['visibility']],
+      vibrate = json['vibrate'],
+      vibrationPattern = json['vibrationPattern'] == null
+          ? null
+          : Int64List.fromList(
+              List.from(
+                (json['vibrationPattern'] as List<dynamic>).map(
+                  (e) => e as int,
+                ),
+              ),
+            ),
+      registerBackgroundHandler = json['registerBackgroundHandler'];
 
   Map<String, dynamic> toJson() {
     return {
@@ -113,7 +112,7 @@ class AndroidSettings {
               'alpha': lightColor!.alpha,
               'red': lightColor!.red,
               'green': lightColor!.green,
-              'blue': lightColor!.blue
+              'blue': lightColor!.blue,
             },
       'playSound': playSound,
       'importance': importance?.name,
@@ -198,7 +197,8 @@ Future<void> _onFCMBackgroundMessage(RemoteMessage firebaseMessage) async {
 }
 
 Future<bool> handleTalkJSFCMBackgroundMessage(
-    RemoteMessage firebaseMessage) async {
+  RemoteMessage firebaseMessage,
+) async {
   print("📘 Handling a background message: ${firebaseMessage.messageId}");
 
   print('📘 Message data: ${firebaseMessage.data}');
@@ -230,8 +230,9 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
 
   showId = _showIdFromNotificationId[notificationId]!;
 
-  final timestamp =
-      DateTime.fromMillisecondsSinceEpoch(talkjsData['timestamp']);
+  final timestamp = DateTime.fromMillisecondsSinceEpoch(
+    talkjsData['timestamp'],
+  );
 
   final activeNotifications = _activeNotifications[notificationId];
 
@@ -254,9 +255,7 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
       print("📘 _onFCMBackgroundMessage: attachment == null");
       final sender = talkjsData['sender'];
       styleInformation = MessagingStyleInformation(
-        Person(
-          name: 'me',
-        ),
+        Person(name: 'me'),
         groupConversation:
             talkjsData['conversation']['participants'].length > 2,
         messages: [
@@ -278,8 +277,9 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
     final List<Message> messages = [];
     for (final talkjsString in activeNotifications) {
       final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
-      final messageTimestamp =
-          DateTime.fromMillisecondsSinceEpoch(messageTalkjsData['timestamp']);
+      final messageTimestamp = DateTime.fromMillisecondsSinceEpoch(
+        messageTalkjsData['timestamp'],
+      );
       final messageSender = talkjsData['sender'];
 
       messages.add(
@@ -296,9 +296,7 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
     }
 
     styleInformation = MessagingStyleInformation(
-      Person(
-        name: 'me',
-      ),
+      Person(name: 'me'),
       groupConversation: talkjsData['conversation']['participants'].length > 2,
       messages: messages,
     );
@@ -323,7 +321,8 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
       _androidSettings!.channelId,
       _androidSettings!.channelName,
       channelDescription: _androidSettings!.channelDescription,
-      importance: _androidSettings!.importance?.toLocalNotification() ??
+      importance:
+          _androidSettings!.importance?.toLocalNotification() ??
           Importance.high,
       playSound: playSound,
       sound: sound,
@@ -395,14 +394,16 @@ Future<void> registerAndroidPushNotificationHandlers(
   try {
     final activeNotifications = await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.getActiveNotifications();
 
     if (activeNotifications != null) {
       for (final displayedNotification in activeNotifications) {
         if (displayedNotification.payload != null) {
-          final Map<String, dynamic> talkjsData =
-              json.decode(displayedNotification.payload!);
+          final Map<String, dynamic> talkjsData = json.decode(
+            displayedNotification.payload!,
+          );
 
           if ((talkjsData['conversation'] != null) &&
               (talkjsData['conversation']['id'] != null)) {
@@ -416,11 +417,12 @@ Future<void> registerAndroidPushNotificationHandlers(
 
             if (_activeNotifications[notificationId] == null) {
               _activeNotifications[notificationId] = [
-                displayedNotification.payload!
+                displayedNotification.payload!,
               ];
             } else {
-              _activeNotifications[notificationId]!
-                  .add(displayedNotification.payload!);
+              _activeNotifications[notificationId]!.add(
+                displayedNotification.payload!,
+              );
             }
           }
         }
@@ -434,8 +436,8 @@ Future<void> registerAndroidPushNotificationHandlers(
   // Default to registering the background handler for backward compatibility
   final registerBackgroundHandler =
       androidSettings.registerBackgroundHandler == null
-          ? true
-          : androidSettings.registerBackgroundHandler!;
+      ? true
+      : androidSettings.registerBackgroundHandler!;
 
   if (registerBackgroundHandler) {
     FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
