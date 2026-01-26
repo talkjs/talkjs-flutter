@@ -109,10 +109,10 @@ class AndroidSettings {
       'lightColor': lightColor == null
           ? null
           : {
-              'alpha': lightColor!.alpha,
-              'red': lightColor!.red,
-              'green': lightColor!.green,
-              'blue': lightColor!.blue,
+              'alpha': (lightColor!.a * 255.0).round().clamp(0, 255),
+              'red': (lightColor!.r * 255.0).round().clamp(0, 255),
+              'green': (lightColor!.g * 255.0).round().clamp(0, 255),
+              'blue': (lightColor!.b * 255.0).round().clamp(0, 255),
             },
       'playSound': playSound,
       'importance': importance?.name,
