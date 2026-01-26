@@ -28,9 +28,7 @@ class SelectConversationEvent {
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
       : conversation = ConversationData.fromJson(json['conversation']),
         me = UserData.fromJson(json['me']),
-        others = json['others']
-            .map<UserData>((user) => UserData.fromJson(user))
-            .toList();
+        others = json['others'].map(UserData.fromJson).toList();
 }
 
 class ConversationListOptions {
@@ -116,14 +114,14 @@ class ConversationListState extends State<ConversationList> {
   bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
-  final _pending = <String>[];
+  final List<String> _pending = [];
 
   // A counter to ensure that IDs are unique
   int _idCounter = 0;
 
   /// A mapping of user ids to the variable name of the respective JavaScript
   /// Talk.User object.
-  final _users = <String, String>{};
+  final Map<String, String> _users = {};
 
   /// Objects stored for comparing changes
   BaseConversationPredicate? _oldFeedFilter;

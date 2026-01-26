@@ -53,7 +53,7 @@ class MessageFieldOptions {
       this.spellcheck});
 
   Map<String, dynamic> toJson() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     if (autofocus != null) {
       if (autofocus == true) {
@@ -83,7 +83,7 @@ class MessageFieldOptions {
       return true;
     }
 
-    if (!(other is MessageFieldOptions)) {
+    if (other is! MessageFieldOptions) {
       return false;
     }
 
@@ -115,16 +115,11 @@ enum TranslationToggle { off, on, auto }
 
 extension TranslationToggleValue on TranslationToggle {
   /// Converts this enum's values to String.
-  dynamic getValue() {
-    switch (this) {
-      case TranslationToggle.off:
-        return false;
-      case TranslationToggle.on:
-        return true;
-      case TranslationToggle.auto:
-        return 'auto';
-    }
-  }
+  dynamic getValue() => switch (this) {
+        TranslationToggle.off => false,
+        TranslationToggle.on => true,
+        TranslationToggle.auto => 'auto'
+      };
 }
 
 /// The possible values for translateConversations
@@ -132,16 +127,11 @@ enum TranslateConversations { off, on, auto }
 
 extension TranslateConversationsValue on TranslateConversations {
   /// Converts this enum's values to String.
-  dynamic getValue() {
-    switch (this) {
-      case TranslateConversations.off:
-        return false;
-      case TranslateConversations.on:
-        return true;
-      case TranslateConversations.auto:
-        return 'auto';
-    }
-  }
+  dynamic getValue() => switch (this) {
+        TranslateConversations.off => false,
+        TranslateConversations.on => true,
+        TranslateConversations.auto => 'auto'
+      };
 }
 
 /// Options to configure the behaviour of the [ChatBox] UI.
@@ -188,7 +178,7 @@ class ChatBoxOptions {
 
   @override
   String toString() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     if (dir != null) {
       result['dir'] = dir!.name;
@@ -225,7 +215,7 @@ class ChatBoxOptions {
       return true;
     }
 
-    if (!(other is ChatBoxOptions)) {
+    if (other is! ChatBoxOptions) {
       return false;
     }
 

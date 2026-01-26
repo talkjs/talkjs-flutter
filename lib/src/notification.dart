@@ -22,16 +22,11 @@ enum AndroidVisibility {
 }
 
 extension VisibilityToLocalNotification on AndroidVisibility {
-  NotificationVisibility toLocalNotification() {
-    switch (this) {
-      case AndroidVisibility.PRIVATE:
-        return NotificationVisibility.private;
-      case AndroidVisibility.PUBLIC:
-        return NotificationVisibility.public;
-      case AndroidVisibility.SECRET:
-        return NotificationVisibility.secret;
-    }
-  }
+  NotificationVisibility toLocalNotification() => switch (this) {
+        AndroidVisibility.PRIVATE => NotificationVisibility.private,
+        AndroidVisibility.PUBLIC => NotificationVisibility.public,
+        AndroidVisibility.SECRET => NotificationVisibility.secret
+      };
 }
 
 enum AndroidImportance {
@@ -43,20 +38,13 @@ enum AndroidImportance {
 }
 
 extension ImportanceToLocalNotification on AndroidImportance {
-  Importance toLocalNotification() {
-    switch (this) {
-      case AndroidImportance.HIGH:
-        return Importance.high;
-      case AndroidImportance.DEFAULT:
-        return Importance.defaultImportance;
-      case AndroidImportance.LOW:
-        return Importance.low;
-      case AndroidImportance.MIN:
-        return Importance.min;
-      case AndroidImportance.NONE:
-        return Importance.none;
-    }
-  }
+  Importance toLocalNotification() => switch (this) {
+        AndroidImportance.HIGH => Importance.high,
+        AndroidImportance.DEFAULT => Importance.defaultImportance,
+        AndroidImportance.LOW => Importance.low,
+        AndroidImportance.MIN => Importance.min,
+        AndroidImportance.NONE => Importance.none
+      };
 }
 
 class AndroidSettings {
@@ -150,10 +138,10 @@ String? apnsToken;
 final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 AndroidSettings? _androidSettings;
-final _activeNotifications = <String, List<String>>{};
+final Map<String, List<String>> _activeNotifications = {};
 int _nextId = 0;
-final _showIdFromNotificationId = <String, int>{};
-final _imageCache = <String, Uint8List>{};
+final Map<String, int> _showIdFromNotificationId = {};
+final Map<String, Uint8List> _imageCache = {};
 
 Future<Uint8List?> _imageDataFromUrl(String url) async {
   // Use the cached image
@@ -226,7 +214,7 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
   styleInformation = MessagingStyleInformation(Person(name: 'me'));
   int showId;
 
-  if (!(data['talkjs'] is String)) {
+  if (data['talkjs'] is! String) {
     print("📘 _onFCMBackgroundMessage: data['talkjs'] is NOT String");
     return false;
   }
@@ -287,7 +275,7 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
   } else {
     print("📘 _onFCMBackgroundMessage: activeNotifications != null");
     activeNotifications.add(data['talkjs']);
-    final messages = <Message>[];
+    final List<Message> messages = [];
     for (final talkjsString in activeNotifications) {
       final Map<String, dynamic> messageTalkjsData = json.decode(talkjsString);
       final messageTimestamp =

@@ -16,7 +16,7 @@ class Unreads {
       return true;
     }
 
-    if (!(other is Unreads)) {
+    if (other is! Unreads) {
       return false;
     }
 

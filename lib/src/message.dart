@@ -50,15 +50,14 @@ class SentMessage {
         type = (json['type'] == 'UserMessage'
             ? MessageType.UserMessage
             : MessageType.SystemMessage),
-        readBy = List<String>.from(json['readBy']),
+        readBy = List.from(json['readBy']),
         senderId = json['senderId'],
         text = json['text'],
         attachment = (json['attachment'] != null
             ? Attachment.fromJson(json['attachment'])
             : null),
-        location = (json['location'] != null
-            ? List<double>.from(json['location'])
-            : null);
+        location =
+            (json['location'] != null ? List.from(json['location']) : null);
 }
 
 class Message {
@@ -110,14 +109,11 @@ class Message {
             : null),
         body = json['body'],
         conversation = ConversationData.fromJson(json['conversation']),
-        custom = (json['custom'] != null
-            ? Map<String, String?>.from(json['custom'])
-            : null),
+        custom = (json['custom'] != null ? Map.from(json['custom']) : null),
         id = json['id'],
         isByMe = json['isByMe'],
-        location = (json['location'] != null
-            ? List<double>.from(json['location'])
-            : null),
+        location =
+            (json['location'] != null ? List.from(json['location']) : null),
         origin = _originFromString(json['origin']),
         read = json['read'],
         sender =
@@ -127,30 +123,17 @@ class Message {
         type = _contentTypeFromString(json['type']);
 }
 
-MessageOrigin _originFromString(String str) {
-  switch (str) {
-    case 'web':
-      return MessageOrigin.web;
-    case 'rest':
-      return MessageOrigin.rest;
-    case 'email':
-      return MessageOrigin.email;
-    case 'import':
-      return MessageOrigin.import;
-    default:
-      throw ArgumentError('Unknown MessageOrigin $str');
-  }
-}
+MessageOrigin _originFromString(String str) => switch (str) {
+      'web' => MessageOrigin.web,
+      'rest' => MessageOrigin.rest,
+      'email' => MessageOrigin.email,
+      'import' => MessageOrigin.import,
+      _ => throw ArgumentError('Unknown MessageOrigin $str')
+    };
 
-ContentType _contentTypeFromString(String str) {
-  switch (str) {
-    case 'media':
-      return ContentType.media;
-    case 'text':
-      return ContentType.text;
-    case 'location':
-      return ContentType.location;
-    default:
-      throw ArgumentError('Unknown ContentType $str');
-  }
-}
+ContentType _contentTypeFromString(String str) => switch (str) {
+      'media' => ContentType.media,
+      'text' => ContentType.text,
+      'location' => ContentType.location,
+      _ => throw ArgumentError('Unknown ContentType $str')
+    };

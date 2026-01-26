@@ -10,7 +10,7 @@ void createSession({
   required String variableName,
 }) {
   // Initialize Session object
-  final options = <String, dynamic>{};
+  final Map<String, dynamic> options = {};
 
   options['appId'] = session.appId;
 

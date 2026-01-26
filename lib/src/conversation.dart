@@ -10,14 +10,10 @@ enum ParticipantAccess { read, readWrite }
 
 extension ParticipantAccessString on ParticipantAccess {
   /// Converts this enum's values to String.
-  String getValue() {
-    switch (this) {
-      case ParticipantAccess.read:
-        return 'Read';
-      case ParticipantAccess.readWrite:
-        return 'ReadWrite';
-    }
-  }
+  String getValue() => switch (this) {
+        ParticipantAccess.read => 'Read',
+        ParticipantAccess.readWrite => 'ReadWrite'
+      };
 }
 
 /// Possible values for participants' notifications
@@ -25,16 +21,11 @@ enum ParticipantNotification { off, on, mentionsOnly }
 
 extension ParticipantNotificationString on ParticipantNotification {
   /// Converts this enum's values to String.
-  dynamic getValue() {
-    switch (this) {
-      case ParticipantNotification.off:
-        return false;
-      case ParticipantNotification.on:
-        return true;
-      case ParticipantNotification.mentionsOnly:
-        return 'MentionsOnly';
-    }
-  }
+  dynamic getValue() => switch (this) {
+        ParticipantNotification.off => false,
+        ParticipantNotification.on => true,
+        ParticipantNotification.mentionsOnly => 'MentionsOnly'
+      };
 }
 
 // Participants are users + options relative to this conversation
@@ -57,7 +48,7 @@ class Participant {
       return true;
     }
 
-    if (!(other is Participant)) {
+    if (other is! Participant) {
       return false;
     }
 
@@ -84,13 +75,7 @@ class SendMessageOptions {
 
   const SendMessageOptions({required this.custom});
 
-  Map<String, dynamic> toJson() {
-    final result = <String, dynamic>{};
-
-    result['custom'] = custom;
-
-    return result;
-  }
+  Map<String, dynamic> toJson() => {'custom': custom};
 }
 
 /// This represents a conversation that is about to be created, fetched, or
@@ -137,32 +122,22 @@ class Conversation extends _BaseConversation {
 
   Conversation({
     required Session session,
-    required String id,
-    Map<String, String?>? custom,
-    List<String>? welcomeMessages,
-    String? photoUrl,
-    String? subject,
     required this.participants,
-  })  : _session = session,
-        super(
-          id: id,
-          custom: custom,
-          welcomeMessages: welcomeMessages,
-          photoUrl: photoUrl,
-          subject: subject,
-        );
+    required super.id,
+    super.custom,
+    super.welcomeMessages,
+    super.photoUrl,
+    super.subject,
+  }) : _session = session;
 
   Conversation.of(Conversation other)
       : _session = other._session,
-        participants = Set<Participant>.of(other.participants
-            .map((participant) => Participant.of(participant))),
+        participants = Set.of(other.participants.map(Participant.of)),
         super(
             id: other.id,
-            custom: (other.custom != null
-                ? Map<String, String?>.of(other.custom!)
-                : null),
+            custom: (other.custom != null ? Map.of(other.custom!) : null),
             welcomeMessages: (other.welcomeMessages != null
-                ? List<String>.of(other.welcomeMessages!)
+                ? List.of(other.welcomeMessages!)
                 : null),
             photoUrl: other.photoUrl,
             subject: other.subject);
@@ -197,7 +172,7 @@ class Conversation extends _BaseConversation {
       return true;
     }
 
-    if (!(other is Conversation)) {
+    if (other is! Conversation) {
       return false;
     }
 
@@ -250,11 +225,9 @@ class ConversationData extends _BaseConversation {
   ConversationData.fromJson(Map<String, dynamic> json)
       : super(
             id: json['id'],
-            custom: (json['custom'] != null
-                ? Map<String, String?>.from(json['custom'])
-                : null),
+            custom: (json['custom'] != null ? Map.from(json['custom']) : null),
             welcomeMessages: (json['welcomeMessages'] != null
-                ? List<String>.from(json['welcomeMessages'])
+                ? List.from(json['welcomeMessages'])
                 : null),
             photoUrl: json['photoUrl'],
             subject: json['subject']);

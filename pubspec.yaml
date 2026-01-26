@@ -4,7 +4,7 @@ version: 0.16.2
 homepage: https://talkjs.com
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=2.8.1"
 
 platforms:

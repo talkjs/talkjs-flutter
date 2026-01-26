@@ -75,30 +75,18 @@ class User extends _BaseUser {
 
   const User({
     required Session session,
-    required String id,
-    required String name,
-    List<String>? email,
-    List<String>? phone,
-    String? availabilityText,
-    String? locale,
-    String? photoUrl,
-    String? role,
-    Map<String, String?>? custom,
-    String? welcomeMessage,
+    required super.id,
+    required super.name,
+    super.email,
+    super.phone,
+    super.availabilityText,
+    super.locale,
+    super.photoUrl,
+    super.role,
+    super.custom,
+    super.welcomeMessage,
   })  : _session = session,
-        _idOnly = false,
-        super(
-          id: id,
-          name: name,
-          email: email,
-          phone: phone,
-          availabilityText: availabilityText,
-          locale: locale,
-          photoUrl: photoUrl,
-          role: role,
-          custom: custom,
-          welcomeMessage: welcomeMessage,
-        );
+        _idOnly = false;
 
   const User.fromId(String id, Session session)
       : _session = session,
@@ -111,15 +99,13 @@ class User extends _BaseUser {
         super(
           id: other.id,
           name: other.name,
-          email: (other.email != null ? List<String>.of(other.email!) : null),
-          phone: (other.phone != null ? List<String>.of(other.phone!) : null),
+          email: (other.email != null ? List.of(other.email!) : null),
+          phone: (other.phone != null ? List.of(other.phone!) : null),
           availabilityText: other.availabilityText,
           locale: other.locale,
           photoUrl: other.photoUrl,
           role: other.role,
-          custom: (other.custom != null
-              ? Map<String, String?>.of(other.custom!)
-              : null),
+          custom: (other.custom != null ? Map.of(other.custom!) : null),
           welcomeMessage: other.welcomeMessage,
         );
 
@@ -134,10 +120,7 @@ class User extends _BaseUser {
     if (this._idOnly) {
       return '"$id"';
     } else {
-      final result = <String, dynamic>{};
-
-      result['id'] = id;
-      result['name'] = name;
+      final Map<String, dynamic> result = {'id': id, 'name': name};
 
       if (email != null) {
         result['email'] = email;
@@ -180,7 +163,7 @@ class User extends _BaseUser {
       return true;
     }
 
-    if (!(other is User)) {
+    if (other is! User) {
       return false;
     }
 
@@ -256,18 +239,16 @@ class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
       : super(
           availabilityText: json['availabilityText'],
-          custom: (json['custom'] != null
-              ? Map<String, String?>.from(json['custom'])
-              : null),
+          custom: (json['custom'] != null ? Map.from(json['custom']) : null),
           email: (json['email'] != null
               ? (json['email'] is String
-                  ? <String>[json['email']]
-                  : List<String>.from(json['email']))
+                  ? [json['email']]
+                  : List.from(json['email']))
               : null),
           phone: (json['phone'] != null
               ? (json['phone'] is String
-                  ? <String>[json['phone']]
-                  : List<String>.from(json['phone']))
+                  ? [json['phone']]
+                  : List.from(json['phone']))
               : null),
           id: json['id'],
           name: json['name'],

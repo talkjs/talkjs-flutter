@@ -28,8 +28,7 @@ class FieldPredicate<T> {
   FieldPredicate.of(FieldPredicate<T> other)
       : _operand = other._operand,
         _value = other._value,
-        _values =
-            (other._values != null ? List<String?>.of(other._values!) : null),
+        _values = (other._values != null ? List.of(other._values!) : null),
         _useValue = other._useValue;
 
   @override
@@ -38,9 +37,7 @@ class FieldPredicate<T> {
   }
 
   dynamic toJson() {
-    final result = <dynamic>[];
-
-    result.add(_operand);
+    final List<dynamic> result = [_operand];
 
     if (_useValue) {
       result.add(_value);
@@ -58,7 +55,7 @@ class FieldPredicate<T> {
       return true;
     }
 
-    if (!(other is FieldPredicate<T>)) {
+    if (other is! FieldPredicate<T>) {
       return false;
     }
 
@@ -108,22 +105,18 @@ class CustomFieldPredicate extends FieldPredicate<String> {
         super.of(other);
 
   @override
-  dynamic toJson() {
-    if (_exists == null) {
-      return super.toJson();
-    } else if (_exists!) {
-      return 'exists';
-    } else {
-      return '!exists';
-    }
-  }
+  dynamic toJson() => switch (_exists) {
+        null => super.toJson(),
+        true => 'exists',
+        false => '!exists'
+      };
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
 
-    if (!(other is CustomFieldPredicate)) {
+    if (other is! CustomFieldPredicate) {
       return false;
     }
 
@@ -178,16 +171,15 @@ class NumberPredicate {
         _value = value;
   NumberPredicate.between(List<double> values)
       : _operand = 'between',
-        _values = List<double>.of(values);
+        _values = List.of(values);
   NumberPredicate.notBetween(List<double> values)
       : _operand = '!between',
-        _values = List<double>.of(values);
+        _values = List.of(values);
 
   NumberPredicate.of(NumberPredicate other)
       : _operand = other._operand,
         _value = other._value,
-        _values =
-            (other._values != null ? List<double>.of(other._values!) : null);
+        _values = (other._values != null ? List.of(other._values!) : null);
 
   @override
   String toString() {
@@ -195,9 +187,7 @@ class NumberPredicate {
   }
 
   dynamic toJson() {
-    final result = <dynamic>[];
-
-    result.add(_operand);
+    final List<dynamic> result = [_operand];
 
     if (_value != null) {
       result.add(_value);
@@ -215,7 +205,7 @@ class NumberPredicate {
       return true;
     }
 
-    if (!(other is NumberPredicate)) {
+    if (other is! NumberPredicate) {
       return false;
     }
 
@@ -288,19 +278,15 @@ class ConversationPredicate extends BaseConversationPredicate {
       this.subject});
 
   ConversationPredicate.of(ConversationPredicate other)
-      : access = (other.access != null
-            ? FieldPredicate<ConversationAccessLevel>.of(other.access!)
-            : null),
-        custom = (other.custom != null
-            ? Map<String, CustomFieldPredicate>.of(other.custom!)
-            : null),
+      : access =
+            (other.access != null ? FieldPredicate.of(other.access!) : null),
+        custom = (other.custom != null ? Map.of(other.custom!) : null),
         hasUnreadMessages = other.hasUnreadMessages,
         lastMessageTs = (other.lastMessageTs != null
             ? NumberPredicate.of(other.lastMessageTs!)
             : null),
-        subject = (other.subject != null
-            ? FieldPredicate<String?>.of(other.subject!)
-            : null);
+        subject =
+            (other.subject != null ? FieldPredicate.of(other.subject!) : null);
 
   @override
   BaseConversationPredicate clone() {
@@ -314,7 +300,7 @@ class ConversationPredicate extends BaseConversationPredicate {
 
   @override
   dynamic toJson() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     if (access != null) {
       result['access'] = access;
@@ -345,7 +331,7 @@ class ConversationPredicate extends BaseConversationPredicate {
       return true;
     }
 
-    if (!(other is ConversationPredicate)) {
+    if (other is! ConversationPredicate) {
       return false;
     }
 
@@ -393,7 +379,7 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
 
   CompoundConversationPredicate.of(CompoundConversationPredicate other)
       : _operand = other._operand,
-        _values = List<ConversationPredicate>.of(other._values);
+        _values = List.of(other._values);
 
   @override
   BaseConversationPredicate clone() {
@@ -406,15 +392,7 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
   }
 
   @override
-  dynamic toJson() {
-    final result = <dynamic>[];
-
-    result.add(_operand);
-
-    result.add(_values);
-
-    return result;
-  }
+  dynamic toJson() => [_operand, _values];
 
   @override
   bool operator ==(Object other) {
@@ -422,7 +400,7 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
       return true;
     }
 
-    if (!(other is CompoundConversationPredicate)) {
+    if (other is! CompoundConversationPredicate) {
       return false;
     }
 
@@ -476,16 +454,11 @@ class SenderPredicate {
   const SenderPredicate({this.id, this.custom, this.locale, this.role});
 
   SenderPredicate.of(SenderPredicate other)
-      : id = (other.id != null ? FieldPredicate<String>.of(other.id!) : null),
-        custom = (other.custom != null
-            ? Map<String, CustomFieldPredicate>.of(other.custom!)
-            : null),
-        locale = (other.locale != null
-            ? FieldPredicate<String>.of(other.locale!)
-            : null),
-        role = (other.role != null
-            ? FieldPredicate<String>.of(other.role!)
-            : null);
+      : id = (other.id != null ? FieldPredicate.of(other.id!) : null),
+        custom = (other.custom != null ? Map.of(other.custom!) : null),
+        locale =
+            (other.locale != null ? FieldPredicate.of(other.locale!) : null),
+        role = (other.role != null ? FieldPredicate.of(other.role!) : null);
 
   @override
   String toString() {
@@ -493,7 +466,7 @@ class SenderPredicate {
   }
 
   Map<String, dynamic> toJson() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     if (id != null) {
       result['id'] = id;
@@ -519,7 +492,7 @@ class SenderPredicate {
       return true;
     }
 
-    if (!(other is SenderPredicate)) {
+    if (other is! SenderPredicate) {
       return false;
     }
 
@@ -577,17 +550,12 @@ class MessagePredicate extends BaseMessagePredicate {
   const MessagePredicate({this.custom, this.origin, this.sender, this.type});
 
   MessagePredicate.of(MessagePredicate other)
-      : custom = (other.custom != null
-            ? Map<String, CustomFieldPredicate>.of(other.custom!)
-            : null),
-        origin = (other.origin != null
-            ? FieldPredicate<MessageOrigin>.of(other.origin!)
-            : null),
+      : custom = (other.custom != null ? Map.of(other.custom!) : null),
+        origin =
+            (other.origin != null ? FieldPredicate.of(other.origin!) : null),
         sender =
             (other.sender != null ? SenderPredicate.of(other.sender!) : null),
-        type = (other.type != null
-            ? FieldPredicate<MessageType>.of(other.type!)
-            : null);
+        type = (other.type != null ? FieldPredicate.of(other.type!) : null);
 
   @override
   BaseMessagePredicate clone() {
@@ -601,7 +569,7 @@ class MessagePredicate extends BaseMessagePredicate {
 
   @override
   dynamic toJson() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     if (custom != null) {
       result['custom'] = custom;
@@ -628,7 +596,7 @@ class MessagePredicate extends BaseMessagePredicate {
       return true;
     }
 
-    if (!(other is MessagePredicate)) {
+    if (other is! MessagePredicate) {
       return false;
     }
 
@@ -671,7 +639,7 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
 
   CompoundMessagePredicate.of(CompoundMessagePredicate other)
       : _operand = other._operand,
-        _values = List<MessagePredicate>.of(other._values);
+        _values = List.of(other._values);
 
   @override
   BaseMessagePredicate clone() {
@@ -684,15 +652,7 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
   }
 
   @override
-  dynamic toJson() {
-    final result = <dynamic>[];
-
-    result.add(_operand);
-
-    result.add(_values);
-
-    return result;
-  }
+  dynamic toJson() => [_operand, _values];
 
   @override
   bool operator ==(Object other) {
@@ -700,7 +660,7 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
       return true;
     }
 
-    if (!(other is CompoundMessagePredicate)) {
+    if (other is! CompoundMessagePredicate) {
       return false;
     }
 

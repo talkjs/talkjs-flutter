@@ -111,7 +111,7 @@ class ChatBox extends StatefulWidget {
   final NavigationHandler? onUrlNavigation;
 
   const ChatBox({
-    Key? key,
+    super.key,
     required this.session,
     this.dir,
     this.messageField,
@@ -120,7 +120,7 @@ class ChatBox extends StatefulWidget {
     this.theme,
     this.themeOptions,
     this.translateConversations,
-    this.highlightedWords = const <String>[],
+    this.highlightedWords = const [],
     this.messageFilter,
     this.conversation,
     this.asGuest,
@@ -132,7 +132,7 @@ class ChatBox extends StatefulWidget {
     this.onCustomConversationAction,
     this.onUrlNavigation,
     this.scrollToMessage,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatBox> createState() => ChatBoxState();
@@ -144,20 +144,20 @@ class ChatBoxState extends State<ChatBox> {
   bool _webViewCreated = false;
 
   /// List of JavaScript statements that haven't been executed.
-  final _pending = <String>[];
+  final List<String> _pending = [];
 
   // A counter to ensure that IDs are unique
   int _idCounter = 0;
 
   /// A mapping of user ids to the variable name of the respective JavaScript
   /// Talk.User object.
-  final _users = <String, String>{};
-  final _userObjs = <String, User>{};
+  final Map<String, String> _users = {};
+  final Map<String, User> _userObjs = {};
 
   /// A mapping of conversation ids to the variable name of the respective JavaScript
   /// Talk.ConversationBuilder object.
-  final _conversations = <String, String>{};
-  final _conversationObjs = <String, Conversation>{};
+  final Map<String, String> _conversations = {};
+  final Map<String, Conversation> _conversationObjs = {};
 
   /// Encapsulates the message entry field tied to the currently selected conversation.
   // TODO: messageField still needs to be refactored
@@ -402,8 +402,7 @@ class ChatBoxState extends State<ChatBox> {
         'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event))); true;');
 
     if (widget.onCustomMessageAction != null) {
-      _oldCustomMessageActions =
-          Set<String>.of(widget.onCustomMessageAction!.keys);
+      _oldCustomMessageActions = Set.of(widget.onCustomMessageAction!.keys);
       for (var action in _oldCustomMessageActions) {
         execute(
             'chatBox.onCustomMessageAction("$action", customMessageActionHandler); true;');
@@ -414,7 +413,7 @@ class ChatBoxState extends State<ChatBox> {
 
     if (widget.onCustomConversationAction != null) {
       _oldCustomConversationActions =
-          Set<String>.of(widget.onCustomConversationAction!.keys);
+          Set.of(widget.onCustomConversationAction!.keys);
       for (var action in _oldCustomConversationActions) {
         execute(
             'chatBox.onCustomConversationAction("$action", customConversationActionHandler); true;');
@@ -509,7 +508,7 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _createConversation() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {};
 
     _oldAsGuest = widget.asGuest;
     if (_oldAsGuest != null) {
@@ -547,7 +546,7 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _setHighlightedWords() {
-    _oldHighlightedWords = List<String>.of(widget.highlightedWords);
+    _oldHighlightedWords = List.of(widget.highlightedWords);
 
     execute(
         'chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)}); true;');
@@ -764,7 +763,7 @@ class ChatBoxState extends State<ChatBox> {
 
   void _setConversationAttributes(
       String variableName, Conversation conversation) {
-    final attributes = <String, dynamic>{};
+    final Map<String, dynamic> attributes = {};
 
     if (conversation.custom != null) {
       attributes['custom'] = conversation.custom;
@@ -791,7 +790,7 @@ class ChatBoxState extends State<ChatBox> {
       String variableName, Conversation conversation) {
     for (var participant in conversation.participants) {
       final userVariableName = getUserVariableName(participant.user);
-      final result = <String, dynamic>{};
+      final Map<String, dynamic> result = {};
 
       if (participant.access != null) {
         result['access'] = participant.access!.getValue();

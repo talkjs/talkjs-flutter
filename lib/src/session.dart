@@ -286,13 +286,13 @@ class Session with ChangeNotifier {
 
   Session({
     required this.appId,
-    @Deprecated("Use [token] or [tokenFetcher] instead") this.signature,
     this.token,
     this.tokenFetcher,
-    this.enablePushNotifications = false,
     this.onMessage,
     this.unreads,
     this.onUnreadsChange,
+    this.enablePushNotifications = false,
+    @Deprecated("Use [token] or [tokenFetcher] instead") this.signature,
   }) : _completer = Completer() {
     rootBundle
         .loadString('packages/talkjs_flutter/assets/version.txt')
@@ -347,7 +347,7 @@ class Session with ChangeNotifier {
     List<String>? welcomeMessages,
     String? photoUrl,
     String? subject,
-    Set<Participant> participants = const <Participant>{},
+    Set<Participant> participants = const {},
   }) =>
       Conversation(
         session: this,
@@ -589,7 +589,7 @@ class Session with ChangeNotifier {
       return true;
     }
 
-    if (!(other is Session)) {
+    if (other is! Session) {
       return false;
     }
 
