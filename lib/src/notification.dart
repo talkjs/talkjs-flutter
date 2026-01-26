@@ -337,10 +337,10 @@ Future<bool> handleTalkJSFCMBackgroundMessage(
   );
 
   await _flutterLocalNotificationsPlugin.show(
-    showId, // id
-    data['title'], // title
-    data['message'], // body
-    platformChannelSpecifics, // notificationDetails
+    id: showId,
+    title: data['title'],
+    body: data['message'],
+    notificationDetails: platformChannelSpecifics, // notificationDetails
     payload: data['talkjs'],
   );
 
@@ -379,7 +379,7 @@ Future<void> registerAndroidPushNotificationHandlers(
   FirebaseMessaging.instance.onTokenRefresh.listen(_onFCMTokenRefresh);
 
   await _flutterLocalNotificationsPlugin.initialize(
-    InitializationSettings(
+    settings: InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     ),
     onDidReceiveNotificationResponse: _onSelectNotification,
