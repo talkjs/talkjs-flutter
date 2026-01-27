@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
@@ -298,6 +299,10 @@ class Session with ChangeNotifier {
     rootBundle.loadString('packages/talkjs_flutter/assets/version.txt').then((
       version,
     ) {
+      if (Platform.isAndroid) {
+        InAppWebViewController.setWebContentsDebuggingEnabled(kDebugMode);
+      }
+
       _headlessWebView = HeadlessInAppWebView(
         onWebViewCreated: _onWebViewCreated,
         onLoadStop: _onLoadStop,
@@ -306,6 +311,8 @@ class Session with ChangeNotifier {
               print("session [${message.messageLevel}] ${message.message}");
             },
         initialSettings: InAppWebViewSettings(
+          // Since iOS 16.4, this is required to enabled debugging the webview.
+          isInspectable: kDebugMode,
           applicationNameForUserAgent:
               'TalkJS_Flutter/${version.trim().replaceAll('"', '')}',
         ),

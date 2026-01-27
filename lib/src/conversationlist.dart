@@ -189,6 +189,8 @@ class ConversationListState extends State<ConversationList> {
               disableInputAccessoryView: true,
               transparentBackground: true,
               applicationNameForUserAgent: snapshot.data,
+              // Since iOS 16.4, this is required to enabled debugging the webview.
+              isInspectable: kDebugMode,
             ),
             onWebViewCreated: _onWebViewCreated,
             onLoadStop: _onLoadStop,

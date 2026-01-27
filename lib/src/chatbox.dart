@@ -293,6 +293,8 @@ class ChatBoxState extends State<ChatBox> {
               useShouldOverrideUrlLoading: true,
               applicationNameForUserAgent: snapshot.data,
               mediaPlaybackRequiresUserGesture: false,
+              // Since iOS 16.4, this is required to enabled debugging the webview.
+              isInspectable: kDebugMode,
             ),
             onWebViewCreated: _onWebViewCreated,
             onLoadStop: _onLoadStop,
