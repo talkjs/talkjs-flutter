@@ -17,6 +17,7 @@ import './notification.dart';
 
 typedef MessageHandler = void Function(Message message);
 typedef TokenFetcherHandler = Future<String> Function();
+typedef ErrorHandler = void Function(String error);
 
 enum Provider { fcm, apns }
 
@@ -122,6 +123,7 @@ class Session with ChangeNotifier {
   final Unreads? unreads;
 
   final UnreadsChangeHandler? onUnreadsChange;
+  final ErrorHandler? onError;
 
   void _onWebViewCreated(InAppWebViewController controller) async {
     if (kDebugMode) {
@@ -293,6 +295,7 @@ class Session with ChangeNotifier {
     this.onMessage,
     this.unreads,
     this.onUnreadsChange,
+    this.onError,
     this.enablePushNotifications = false,
     @Deprecated("Use [token] or [tokenFetcher] instead") this.signature,
   }) : _completer = Completer() {
@@ -308,7 +311,13 @@ class Session with ChangeNotifier {
         onLoadStop: _onLoadStop,
         onConsoleMessage:
             (InAppWebViewController controller, ConsoleMessage message) {
-              print("session [${message.messageLevel}] ${message.message}");
+              if (kDebugMode) {
+                print("session [${message.messageLevel}] ${message.message}");
+              }
+
+              if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+                this.onError?.call(message.message);
+              }
             },
         initialSettings: InAppWebViewSettings(
           // Since iOS 16.4, this is required to enabled debugging the webview.

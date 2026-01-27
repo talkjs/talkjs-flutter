@@ -19,6 +19,7 @@ import './themeoptions.dart';
 
 typedef SelectConversationHandler =
     void Function(SelectConversationEvent event);
+typedef ErrorHandler = void Function(String error);
 
 class SelectConversationEvent {
   final ConversationData conversation;
@@ -87,6 +88,7 @@ class ConversationList extends StatefulWidget {
 
   final SelectConversationHandler? onSelectConversation;
   final LoadingStateHandler? onLoadingStateChanged;
+  final ErrorHandler? onError;
 
   const ConversationList({
     Key? key,
@@ -98,6 +100,7 @@ class ConversationList extends StatefulWidget {
     this.feedFilter,
     this.onSelectConversation,
     this.onLoadingStateChanged,
+    this.onError,
   }) : super(key: key);
 
   @override
@@ -196,9 +199,15 @@ class ConversationListState extends State<ConversationList> {
             onLoadStop: _onLoadStop,
             onConsoleMessage:
                 (InAppWebViewController controller, ConsoleMessage message) {
-                  print(
-                    "conversationlist [${message.messageLevel}] ${message.message}",
-                  );
+                  if (kDebugMode) {
+                    print(
+                      "conversationlist [${message.messageLevel}] ${message.message}",
+                    );
+                  }
+
+                  if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+                    widget.onError?.call(message.message);
+                  }
                 },
             gestureRecognizers: {
               // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the conversations

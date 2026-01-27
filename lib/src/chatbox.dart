@@ -29,6 +29,7 @@ typedef ConversationActionHandler =
     void Function(ConversationActionEvent event);
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
+typedef ErrorHandler = void Function(String error);
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -107,6 +108,7 @@ class ChatBox extends StatefulWidget {
   final Map<String, MessageActionHandler>? onCustomMessageAction;
   final Map<String, ConversationActionHandler>? onCustomConversationAction;
   final NavigationHandler? onUrlNavigation;
+  final ErrorHandler? onError;
 
   const ChatBox({
     super.key,
@@ -130,6 +132,7 @@ class ChatBox extends StatefulWidget {
     this.onCustomConversationAction,
     this.onUrlNavigation,
     this.scrollToMessage,
+    this.onError,
   });
 
   @override
@@ -300,7 +303,14 @@ class ChatBoxState extends State<ChatBox> {
             onLoadStop: _onLoadStop,
             onConsoleMessage:
                 (InAppWebViewController controller, ConsoleMessage message) {
-                  print("chatbox [${message.messageLevel}] ${message.message}");
+                  if (kDebugMode) {
+                    print(
+                      "chatbox [${message.messageLevel}] ${message.message}",
+                    );
+                  }
+                  if (message.messageLevel == ConsoleMessageLevel.ERROR) {
+                    widget.onError?.call(message.message);
+                  }
                 },
             gestureRecognizers: {
               // We need only the VerticalDragGestureRecognizer in order to be able to scroll through the messages
