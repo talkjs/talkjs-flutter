@@ -111,7 +111,7 @@ class Session with ChangeNotifier {
   late Completer<bool> _validCredentialsCompleter;
 
   /// List of JavaScript statements that haven't been executed.
-  final _pending = <String>[];
+  final List<String> _pending = [];
 
   final bool? enablePushNotifications;
 

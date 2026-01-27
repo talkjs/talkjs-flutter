@@ -477,7 +477,7 @@ class ChatBoxState extends State<ChatBox> {
       return false;
     }
 
-    var customActions = Set<String>.of(widget.onCustomMessageAction!.keys);
+    final customActions = Set.of(widget.onCustomMessageAction!.keys);
 
     if (!setEquals(customActions, _oldCustomMessageActions)) {
       var retval = false;
@@ -510,7 +510,7 @@ class ChatBoxState extends State<ChatBox> {
       return false;
     }
 
-    var customActions = Set<String>.of(widget.onCustomConversationAction!.keys);
+    final customActions = Set.of(widget.onCustomConversationAction!.keys);
 
     if (!setEquals(customActions, _oldCustomConversationActions)) {
       var retval = false;

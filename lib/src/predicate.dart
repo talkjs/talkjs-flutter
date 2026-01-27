@@ -32,9 +32,7 @@ class FieldPredicate<T> {
       _useValue = other._useValue;
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   dynamic toJson() => [_operand, if (_useValue) _value, ?_values];
 
@@ -160,9 +158,7 @@ class NumberPredicate {
       _values = (other._values != null ? List.of(other._values!) : null);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   dynamic toJson() => [_operand, ?_value, ?_values];
 
@@ -257,14 +253,10 @@ class ConversationPredicate extends BaseConversationPredicate {
           : null);
 
   @override
-  BaseConversationPredicate clone() {
-    return ConversationPredicate.of(this);
-  }
+  BaseConversationPredicate clone() => ConversationPredicate.of(this);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => {
@@ -332,14 +324,10 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
       _values = List.of(other._values);
 
   @override
-  BaseConversationPredicate clone() {
-    return CompoundConversationPredicate.of(this);
-  }
+  BaseConversationPredicate clone() => CompoundConversationPredicate.of(this);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => [_operand, _values];
@@ -410,9 +398,7 @@ class SenderPredicate {
       role = (other.role != null ? FieldPredicate.of(other.role!) : null);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   Map<String, dynamic> toJson() => {
     'id': ?id,
@@ -492,14 +478,10 @@ class MessagePredicate extends BaseMessagePredicate {
       type = (other.type != null ? FieldPredicate.of(other.type!) : null);
 
   @override
-  BaseMessagePredicate clone() {
-    return MessagePredicate.of(this);
-  }
+  BaseMessagePredicate clone() => MessagePredicate.of(this);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => {
@@ -561,14 +543,10 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
       _values = List.of(other._values);
 
   @override
-  BaseMessagePredicate clone() {
-    return CompoundMessagePredicate.of(this);
-  }
+  BaseMessagePredicate clone() => CompoundMessagePredicate.of(this);
 
   @override
-  String toString() {
-    return json.encode(this);
-  }
+  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => [_operand, _values];

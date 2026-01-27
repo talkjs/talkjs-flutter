@@ -90,13 +90,7 @@ class AndroidSettings {
       vibrate = json['vibrate'],
       vibrationPattern = json['vibrationPattern'] == null
           ? null
-          : Int64List.fromList(
-              List.from(
-                (json['vibrationPattern'] as List<dynamic>).map(
-                  (e) => e as int,
-                ),
-              ),
-            ),
+          : Int64List.fromList(List<int>.from((json['vibrationPattern']))),
       registerBackgroundHandler = json['registerBackgroundHandler'];
 
   Map<String, dynamic> toJson() {
@@ -435,9 +429,7 @@ Future<void> registerAndroidPushNotificationHandlers(
 
   // Default to registering the background handler for backward compatibility
   final registerBackgroundHandler =
-      androidSettings.registerBackgroundHandler == null
-      ? true
-      : androidSettings.registerBackgroundHandler!;
+      androidSettings.registerBackgroundHandler ?? true;
 
   if (registerBackgroundHandler) {
     FirebaseMessaging.onBackgroundMessage(_onFCMBackgroundMessage);
