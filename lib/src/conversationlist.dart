@@ -61,11 +61,7 @@ class ConversationListOptions {
 
   @override
   String toString() {
-    final result = <String, dynamic>{};
-
-    if (showFeedHeader != null) {
-      result['showFeedHeader'] = showFeedHeader;
-    }
+    final Map<String, dynamic> result = {'showFeedHeader': ?showFeedHeader};
 
     if (themeOptions != null) {
       result['theme'] = themeOptions?.toJson();

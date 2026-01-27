@@ -10,17 +10,11 @@ void createSession({
   required String variableName,
 }) {
   // Initialize Session object
-  final Map<String, dynamic> options = {};
-
-  options['appId'] = session.appId;
-
-  if (session.signature != null) {
-    options['signature'] = session.signature;
-  }
-
-  if (session.token != null) {
-    options['token'] = session.token;
-  }
+  final options = {
+    'appId': session.appId,
+    'signature': ?session.signature,
+    'token': ?session.token,
+  };
 
   execute('const options = ${json.encode(options)};');
 

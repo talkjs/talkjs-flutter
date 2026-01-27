@@ -4,14 +4,5 @@ class ThemeOptions {
 
   const ThemeOptions({this.name, this.custom});
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
-    if (name != null) {
-      result['name'] = name;
-    }
-    if (custom != null) {
-      result['custom'] = custom;
-    }
-    return result;
-  }
+  Map<String, dynamic> toJson() => {'name': ?name, 'custom': ?custom};
 }

@@ -36,19 +36,7 @@ class FieldPredicate<T> {
     return json.encode(this);
   }
 
-  dynamic toJson() {
-    final List<dynamic> result = [_operand];
-
-    if (_useValue) {
-      result.add(_value);
-    }
-
-    if (_values != null) {
-      result.add(_values);
-    }
-
-    return result;
-  }
+  dynamic toJson() => [_operand, if (_useValue) _value, ?_values];
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -176,19 +164,7 @@ class NumberPredicate {
     return json.encode(this);
   }
 
-  dynamic toJson() {
-    final List<dynamic> result = [_operand];
-
-    if (_value != null) {
-      result.add(_value);
-    }
-
-    if (_values != null) {
-      result.add(_values);
-    }
-
-    return result;
-  }
+  dynamic toJson() => [_operand, ?_value, ?_values];
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -291,31 +267,13 @@ class ConversationPredicate extends BaseConversationPredicate {
   }
 
   @override
-  dynamic toJson() {
-    final Map<String, dynamic> result = {};
-
-    if (access != null) {
-      result['access'] = access;
-    }
-
-    if (custom != null) {
-      result['custom'] = custom;
-    }
-
-    if (hasUnreadMessages != null) {
-      result['hasUnreadMessages'] = hasUnreadMessages;
-    }
-
-    if (lastMessageTs != null) {
-      result['lastMessageTs'] = lastMessageTs;
-    }
-
-    if (subject != null) {
-      result['subject'] = subject;
-    }
-
-    return result;
-  }
+  dynamic toJson() => {
+    'access': ?access,
+    'custom': ?custom,
+    'hasUnreadMessages': ?hasUnreadMessages,
+    'lastMessageTs': ?lastMessageTs,
+    'subject': ?subject,
+  };
 
   @override
   bool operator ==(Object other) {
@@ -456,27 +414,12 @@ class SenderPredicate {
     return json.encode(this);
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
-
-    if (id != null) {
-      result['id'] = id;
-    }
-
-    if (custom != null) {
-      result['custom'] = custom;
-    }
-
-    if (locale != null) {
-      result['locale'] = locale;
-    }
-
-    if (role != null) {
-      result['role'] = role;
-    }
-
-    return result;
-  }
+  Map<String, dynamic> toJson() => {
+    'id': ?id,
+    'custom': ?custom,
+    'locale': ?locale,
+    'role': ?role,
+  };
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
@@ -559,27 +502,12 @@ class MessagePredicate extends BaseMessagePredicate {
   }
 
   @override
-  dynamic toJson() {
-    final Map<String, dynamic> result = {};
-
-    if (custom != null) {
-      result['custom'] = custom;
-    }
-
-    if (origin != null) {
-      result['origin'] = origin;
-    }
-
-    if (sender != null) {
-      result['sender'] = sender;
-    }
-
-    if (type != null) {
-      result['type'] = type;
-    }
-
-    return result;
-  }
+  dynamic toJson() => {
+    'custom': ?custom,
+    'origin': ?origin,
+    'sender': ?sender,
+    'type': ?type,
+  };
 
   @override
   bool operator ==(Object other) {

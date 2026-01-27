@@ -120,41 +120,18 @@ class User extends _BaseUser {
     if (this._idOnly) {
       return '"$id"';
     } else {
-      final Map<String, dynamic> result = {'id': id, 'name': name};
-
-      if (email != null) {
-        result['email'] = email;
-      }
-
-      if (phone != null) {
-        result['phone'] = phone;
-      }
-
-      if (availabilityText != null) {
-        result['availabilityText'] = availabilityText;
-      }
-
-      if (locale != null) {
-        result['locale'] = locale;
-      }
-
-      if (photoUrl != null) {
-        result['photoUrl'] = photoUrl;
-      }
-
-      if (role != null) {
-        result['role'] = role;
-      }
-
-      if (welcomeMessage != null) {
-        result['welcomeMessage'] = welcomeMessage;
-      }
-
-      if (custom != null) {
-        result['custom'] = custom;
-      }
-
-      return json.encode(result);
+      return json.encode({
+        'id': id,
+        'name': name,
+        'email': ?email,
+        'phone': ?phone,
+        'availabilityText': ?availabilityText,
+        'locale': ?locale,
+        'photoUrl': ?photoUrl,
+        'role': ?role,
+        'welcomeMessage': ?welcomeMessage,
+        'custom': ?custom,
+      });
     }
   }
 

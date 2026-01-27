@@ -54,7 +54,11 @@ class MessageFieldOptions {
   });
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> result = {};
+    final Map<String, dynamic> result = {
+      'enterSendsMessage': ?enterSendsMessage,
+      'placeholder': ?placeholder,
+      'spellcheck': ?spellcheck,
+    };
 
     if (autofocus != null) {
       if (autofocus == true) {
@@ -62,18 +66,6 @@ class MessageFieldOptions {
       } else {
         result['autofocus'] = autofocus;
       }
-    }
-
-    if (enterSendsMessage != null) {
-      result['enterSendsMessage'] = enterSendsMessage;
-    }
-
-    if (placeholder != null) {
-      result['placeholder'] = placeholder;
-    }
-
-    if (spellcheck != null) {
-      result['spellcheck'] = spellcheck;
     }
 
     return result;
@@ -179,33 +171,19 @@ class ChatBoxOptions {
 
   @override
   String toString() {
-    final Map<String, dynamic> result = {};
-
-    if (dir != null) {
-      result['dir'] = dir!.name;
-    }
-
-    if (messageField != null) {
-      result['messageField'] = messageField;
-    }
-
-    if (showChatHeader != null) {
-      result['showChatHeader'] = showChatHeader;
-    }
-
-    // 'auto' gets the priority over the boolean value
-    if (showTranslationToggle != null) {
-      result['showTranslationToggle'] = showTranslationToggle!.getValue();
-    }
+    final Map<String, dynamic> result = {
+      'dir': ?dir?.name,
+      'messageField': ?messageField,
+      'showChatHeader': ?showChatHeader,
+      // 'auto' gets the priority over the boolean value
+      'showTranslationToggle': ?showTranslationToggle?.getValue(),
+      'translateConversations': ?translateConversations?.getValue(),
+    };
 
     if (themeOptions != null) {
       result['theme'] = themeOptions?.toJson();
     } else if (theme != null) {
       result['theme'] = theme;
-    }
-
-    if (translateConversations != null) {
-      result['translateConversations'] = translateConversations!.getValue();
     }
 
     return json.encode(result);

@@ -538,19 +538,15 @@ class ChatBoxState extends State<ChatBox> {
   }
 
   void _createConversation() {
-    final Map<String, dynamic> result = {};
+    final Map<String, dynamic> result = {
+      'asGuest': ?widget.asGuest,
+      'messageId': ?widget.scrollToMessage,
+    };
 
     _oldAsGuest = widget.asGuest;
-    if (_oldAsGuest != null) {
-      result['asGuest'] = _oldAsGuest;
-    }
-
     _oldScrollToMessage = widget.scrollToMessage;
-    if (_oldScrollToMessage != null) {
-      result['messageId'] = _oldScrollToMessage;
-    }
-
     _oldConversation = widget.conversation;
+
     if (_oldConversation != null) {
       execute(
         'chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)}); true;',
@@ -817,23 +813,12 @@ class ChatBoxState extends State<ChatBox> {
     String variableName,
     Conversation conversation,
   ) {
-    final Map<String, dynamic> attributes = {};
-
-    if (conversation.custom != null) {
-      attributes['custom'] = conversation.custom;
-    }
-
-    if (conversation.welcomeMessages != null) {
-      attributes['welcomeMessages'] = conversation.welcomeMessages;
-    }
-
-    if (conversation.photoUrl != null) {
-      attributes['photoUrl'] = conversation.photoUrl;
-    }
-
-    if (conversation.subject != null) {
-      attributes['subject'] = conversation.subject;
-    }
+    final Map<String, dynamic> attributes = {
+      'custom': ?conversation.custom,
+      'welcomeMessages': ?conversation.welcomeMessages,
+      'photoUrl': ?conversation.photoUrl,
+      'subject': ?conversation.subject,
+    };
 
     if (attributes.isNotEmpty) {
       execute('$variableName.setAttributes(${json.encode(attributes)});');
@@ -846,15 +831,10 @@ class ChatBoxState extends State<ChatBox> {
   ) {
     for (var participant in conversation.participants) {
       final userVariableName = getUserVariableName(participant.user);
-      final Map<String, dynamic> result = {};
-
-      if (participant.access != null) {
-        result['access'] = participant.access!.getValue();
-      }
-
-      if (participant.notify != null) {
-        result['notify'] = participant.notify!.getValue();
-      }
+      final Map<String, dynamic> result = {
+        'access': ?participant.access?.getValue(),
+        'notify': ?participant.notify?.getValue(),
+      };
 
       execute(
         '$variableName.setParticipant($userVariableName, ${json.encode(result)});',
