@@ -26,11 +26,11 @@ jobs:
       - name: Setup Flutter SDK - needed for publishing Flutter packages.
         uses: flutter-actions/setup-flutter@6d11b83d56c388d0b6fe865194248a01a48548b5 #v4.1
 
+      - name: Update version string
+        run: yq '.version' pubspec.yaml > lib/assets/version.txt
+
       - name: Install dependencies
         run: dart pub get
-
-      - name: Publish (Dry run)
-        run: dart pub publish --dry-run
 
         # If the package has errors, it won't upload.
       - name: Publish

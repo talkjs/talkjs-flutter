@@ -1,3 +1,7 @@
+## 0.17.1
+
+- Fix internal version.
+
 ## 0.17.0
 
 - **Breaking change:** Updated the minimum Flutter SDK requirement to 3.32.0
