@@ -4,8 +4,8 @@ version: 0.16.2
 homepage: https://talkjs.com
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
-  flutter: ">=2.8.1"
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.32.0"
 
 platforms:
   android:
@@ -17,14 +17,14 @@ dependencies:
 
   talkjs_flutter_inappwebview: ^6.1.5+3
   crypto: ^3.0.7
-  firebase_core: ^4.3.0
-  firebase_messaging: ^16.1.0
-  flutter_local_notifications: ^18.0.1
-  http: ">=0.13.6 <2.0.0"
+  firebase_core: ^4.4.0
+  firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^20.0.0
+  http: "^1.6.0"
   flutter_apns_only: ^1.6.0
-  permission_handler: ^11.4.0
+  permission_handler: ^12.0.1
   url_launcher: ^6.3.2
-  shared_preferences: ^2.5.3
+  shared_preferences: ^2.5.4
 
 dev_dependencies:
   flutter_test:

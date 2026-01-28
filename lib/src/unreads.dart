@@ -1,22 +1,20 @@
 import './conversation.dart';
 import './message.dart';
 
-typedef UnreadsChangeHandler = void Function(
-    List<UnreadConversation> unreadConversations);
+typedef UnreadsChangeHandler =
+    void Function(List<UnreadConversation> unreadConversations);
 
 class Unreads {
   final UnreadsChangeHandler? onChange;
 
-  const Unreads({
-    this.onChange,
-  });
+  const Unreads({this.onChange});
 
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
 
-    if (!(other is Unreads)) {
+    if (other is! Unreads) {
       return false;
     }
 
@@ -41,7 +39,7 @@ class UnreadConversation {
   final int unreadMessageCount;
 
   UnreadConversation.fromJson(Map<String, dynamic> json)
-      : conversation = ConversationData.fromJson(json['conversation']),
-        lastMessage = Message.fromJson(json['lastMessage']),
-        unreadMessageCount = json['unreadMessageCount'];
+    : conversation = ConversationData.fromJson(json['conversation']),
+      lastMessage = Message.fromJson(json['lastMessage']),
+      unreadMessageCount = json['unreadMessageCount'];
 }

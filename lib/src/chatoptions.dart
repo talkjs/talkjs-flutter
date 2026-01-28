@@ -46,14 +46,19 @@ class MessageFieldOptions {
 
   /// TODO: visible
 
-  const MessageFieldOptions(
-      {this.autofocus,
-      this.enterSendsMessage,
-      this.placeholder,
-      this.spellcheck});
+  const MessageFieldOptions({
+    this.autofocus,
+    this.enterSendsMessage,
+    this.placeholder,
+    this.spellcheck,
+  });
 
   Map<String, dynamic> toJson() {
-    final result = <String, dynamic>{};
+    final Map<String, dynamic> result = {
+      'enterSendsMessage': ?enterSendsMessage,
+      'placeholder': ?placeholder,
+      'spellcheck': ?spellcheck,
+    };
 
     if (autofocus != null) {
       if (autofocus == true) {
@@ -61,18 +66,6 @@ class MessageFieldOptions {
       } else {
         result['autofocus'] = autofocus;
       }
-    }
-
-    if (enterSendsMessage != null) {
-      result['enterSendsMessage'] = enterSendsMessage;
-    }
-
-    if (placeholder != null) {
-      result['placeholder'] = placeholder;
-    }
-
-    if (spellcheck != null) {
-      result['spellcheck'] = spellcheck;
     }
 
     return result;
@@ -83,7 +76,7 @@ class MessageFieldOptions {
       return true;
     }
 
-    if (!(other is MessageFieldOptions)) {
+    if (other is! MessageFieldOptions) {
       return false;
     }
 
@@ -115,16 +108,11 @@ enum TranslationToggle { off, on, auto }
 
 extension TranslationToggleValue on TranslationToggle {
   /// Converts this enum's values to String.
-  dynamic getValue() {
-    switch (this) {
-      case TranslationToggle.off:
-        return false;
-      case TranslationToggle.on:
-        return true;
-      case TranslationToggle.auto:
-        return 'auto';
-    }
-  }
+  dynamic getValue() => switch (this) {
+    TranslationToggle.off => false,
+    TranslationToggle.on => true,
+    TranslationToggle.auto => 'auto',
+  };
 }
 
 /// The possible values for translateConversations
@@ -132,16 +120,11 @@ enum TranslateConversations { off, on, auto }
 
 extension TranslateConversationsValue on TranslateConversations {
   /// Converts this enum's values to String.
-  dynamic getValue() {
-    switch (this) {
-      case TranslateConversations.off:
-        return false;
-      case TranslateConversations.on:
-        return true;
-      case TranslateConversations.auto:
-        return 'auto';
-    }
-  }
+  dynamic getValue() => switch (this) {
+    TranslateConversations.off => false,
+    TranslateConversations.on => true,
+    TranslateConversations.auto => 'auto',
+  };
 }
 
 /// Options to configure the behaviour of the [ChatBox] UI.
@@ -188,33 +171,19 @@ class ChatBoxOptions {
 
   @override
   String toString() {
-    final result = <String, dynamic>{};
-
-    if (dir != null) {
-      result['dir'] = dir!.name;
-    }
-
-    if (messageField != null) {
-      result['messageField'] = messageField;
-    }
-
-    if (showChatHeader != null) {
-      result['showChatHeader'] = showChatHeader;
-    }
-
-    // 'auto' gets the priority over the boolean value
-    if (showTranslationToggle != null) {
-      result['showTranslationToggle'] = showTranslationToggle!.getValue();
-    }
+    final Map<String, dynamic> result = {
+      'dir': ?dir?.name,
+      'messageField': ?messageField,
+      'showChatHeader': ?showChatHeader,
+      // 'auto' gets the priority over the boolean value
+      'showTranslationToggle': ?showTranslationToggle?.getValue(),
+      'translateConversations': ?translateConversations?.getValue(),
+    };
 
     if (themeOptions != null) {
       result['theme'] = themeOptions?.toJson();
     } else if (theme != null) {
       result['theme'] = theme;
-    }
-
-    if (translateConversations != null) {
-      result['translateConversations'] = translateConversations!.getValue();
     }
 
     return json.encode(result);
@@ -225,7 +194,7 @@ class ChatBoxOptions {
       return true;
     }
 
-    if (!(other is ChatBoxOptions)) {
+    if (other is! ChatBoxOptions) {
       return false;
     }
 
@@ -257,11 +226,11 @@ class ChatBoxOptions {
   }
 
   int get hashCode => Object.hash(
-        dir,
-        messageField,
-        showChatHeader,
-        showTranslationToggle,
-        theme,
-        translateConversations,
-      );
+    dir,
+    messageField,
+    showChatHeader,
+    showTranslationToggle,
+    theme,
+    translateConversations,
+  );
 }

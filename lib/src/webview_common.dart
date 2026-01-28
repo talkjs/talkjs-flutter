@@ -10,17 +10,11 @@ void createSession({
   required String variableName,
 }) {
   // Initialize Session object
-  final options = <String, dynamic>{};
-
-  options['appId'] = session.appId;
-
-  if (session.signature != null) {
-    options['signature'] = session.signature;
-  }
-
-  if (session.token != null) {
-    options['token'] = session.token;
-  }
+  final options = {
+    'appId': session.appId,
+    'signature': ?session.signature,
+    'token': ?session.token,
+  };
 
   execute('const options = ${json.encode(options)};');
 
@@ -30,7 +24,8 @@ void createSession({
     // callHandler returns a Promise that can be used to get the json result returned by the
     // callback. In this case "JSCTokenFetcher".
     execute(
-        'options["tokenFetcher"] = () => window.flutter_inappwebview.callHandler("JSCTokenFetcher");');
+      'options["tokenFetcher"] = () => window.flutter_inappwebview.callHandler("JSCTokenFetcher");',
+    );
   }
 
   execute('const session = new Talk.Session(options);');

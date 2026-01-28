@@ -75,53 +75,39 @@ class User extends _BaseUser {
 
   const User({
     required Session session,
-    required String id,
-    required String name,
-    List<String>? email,
-    List<String>? phone,
-    String? availabilityText,
-    String? locale,
-    String? photoUrl,
-    String? role,
-    Map<String, String?>? custom,
-    String? welcomeMessage,
-  })  : _session = session,
-        _idOnly = false,
-        super(
-          id: id,
-          name: name,
-          email: email,
-          phone: phone,
-          availabilityText: availabilityText,
-          locale: locale,
-          photoUrl: photoUrl,
-          role: role,
-          custom: custom,
-          welcomeMessage: welcomeMessage,
-        );
+    required super.id,
+    required super.name,
+    super.email,
+    super.phone,
+    super.availabilityText,
+    super.locale,
+    super.photoUrl,
+    super.role,
+    super.custom,
+    super.welcomeMessage,
+  }) : _session = session,
+       _idOnly = false;
 
   const User.fromId(String id, Session session)
-      : _session = session,
-        _idOnly = true,
-        super(id: id, name: '');
+    : _session = session,
+      _idOnly = true,
+      super(id: id, name: '');
 
   User.of(User other)
-      : _session = other._session,
-        _idOnly = other._idOnly,
-        super(
-          id: other.id,
-          name: other.name,
-          email: (other.email != null ? List<String>.of(other.email!) : null),
-          phone: (other.phone != null ? List<String>.of(other.phone!) : null),
-          availabilityText: other.availabilityText,
-          locale: other.locale,
-          photoUrl: other.photoUrl,
-          role: other.role,
-          custom: (other.custom != null
-              ? Map<String, String?>.of(other.custom!)
-              : null),
-          welcomeMessage: other.welcomeMessage,
-        );
+    : _session = other._session,
+      _idOnly = other._idOnly,
+      super(
+        id: other.id,
+        name: other.name,
+        email: (other.email != null ? List.of(other.email!) : null),
+        phone: (other.phone != null ? List.of(other.phone!) : null),
+        availabilityText: other.availabilityText,
+        locale: other.locale,
+        photoUrl: other.photoUrl,
+        role: other.role,
+        custom: (other.custom != null ? Map.of(other.custom!) : null),
+        welcomeMessage: other.welcomeMessage,
+      );
 
   /// For internal use only. Implementation detail that may change anytime.
   ///
@@ -134,44 +120,18 @@ class User extends _BaseUser {
     if (this._idOnly) {
       return '"$id"';
     } else {
-      final result = <String, dynamic>{};
-
-      result['id'] = id;
-      result['name'] = name;
-
-      if (email != null) {
-        result['email'] = email;
-      }
-
-      if (phone != null) {
-        result['phone'] = phone;
-      }
-
-      if (availabilityText != null) {
-        result['availabilityText'] = availabilityText;
-      }
-
-      if (locale != null) {
-        result['locale'] = locale;
-      }
-
-      if (photoUrl != null) {
-        result['photoUrl'] = photoUrl;
-      }
-
-      if (role != null) {
-        result['role'] = role;
-      }
-
-      if (welcomeMessage != null) {
-        result['welcomeMessage'] = welcomeMessage;
-      }
-
-      if (custom != null) {
-        result['custom'] = custom;
-      }
-
-      return json.encode(result);
+      return json.encode({
+        'id': id,
+        'name': name,
+        'email': ?email,
+        'phone': ?phone,
+        'availabilityText': ?availabilityText,
+        'locale': ?locale,
+        'photoUrl': ?photoUrl,
+        'role': ?role,
+        'welcomeMessage': ?welcomeMessage,
+        'custom': ?custom,
+      });
     }
   }
 
@@ -180,7 +140,7 @@ class User extends _BaseUser {
       return true;
     }
 
-    if (!(other is User)) {
+    if (other is! User) {
       return false;
     }
 
@@ -236,44 +196,42 @@ class User extends _BaseUser {
   }
 
   int get hashCode => Object.hash(
-        _session,
-        _idOnly,
-        availabilityText,
-        (custom != null ? Object.hashAll(custom!.keys) : custom),
-        (custom != null ? Object.hashAll(custom!.values) : custom),
-        (email != null ? Object.hashAll(email!) : email),
-        (phone != null ? Object.hashAll(phone!) : phone),
-        id,
-        name,
-        locale,
-        photoUrl,
-        role,
-        welcomeMessage,
-      );
+    _session,
+    _idOnly,
+    availabilityText,
+    (custom != null ? Object.hashAll(custom!.keys) : custom),
+    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (email != null ? Object.hashAll(email!) : email),
+    (phone != null ? Object.hashAll(phone!) : phone),
+    id,
+    name,
+    locale,
+    photoUrl,
+    role,
+    welcomeMessage,
+  );
 }
 
 class UserData extends _BaseUser {
   UserData.fromJson(Map<String, dynamic> json)
-      : super(
-          availabilityText: json['availabilityText'],
-          custom: (json['custom'] != null
-              ? Map<String, String?>.from(json['custom'])
-              : null),
-          email: (json['email'] != null
-              ? (json['email'] is String
-                  ? <String>[json['email']]
-                  : List<String>.from(json['email']))
-              : null),
-          phone: (json['phone'] != null
-              ? (json['phone'] is String
-                  ? <String>[json['phone']]
-                  : List<String>.from(json['phone']))
-              : null),
-          id: json['id'],
-          name: json['name'],
-          locale: json['locale'],
-          photoUrl: json['photoUrl'],
-          role: json['role'],
-          welcomeMessage: json['welcomeMessage'],
-        );
+    : super(
+        availabilityText: json['availabilityText'],
+        custom: (json['custom'] != null ? Map.from(json['custom']) : null),
+        email: (json['email'] != null
+            ? (json['email'] is String
+                  ? [json['email']]
+                  : List.from(json['email']))
+            : null),
+        phone: (json['phone'] != null
+            ? (json['phone'] is String
+                  ? [json['phone']]
+                  : List.from(json['phone']))
+            : null),
+        id: json['id'],
+        name: json['name'],
+        locale: json['locale'],
+        photoUrl: json['photoUrl'],
+        role: json['role'],
+        welcomeMessage: json['welcomeMessage'],
+      );
 }
