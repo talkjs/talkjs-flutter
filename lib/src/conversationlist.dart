@@ -19,7 +19,6 @@ import './themeoptions.dart';
 
 typedef SelectConversationHandler =
     void Function(SelectConversationEvent event);
-typedef ErrorHandler = void Function(String error);
 
 class SelectConversationEvent {
   final ConversationData conversation;
@@ -91,7 +90,7 @@ class ConversationList extends StatefulWidget {
   final ErrorHandler? onError;
 
   const ConversationList({
-    Key? key,
+    super.key,
     required this.session,
     this.enableZoom = false,
     this.showFeedHeader,
@@ -101,7 +100,7 @@ class ConversationList extends StatefulWidget {
     this.onSelectConversation,
     this.onLoadingStateChanged,
     this.onError,
-  }) : super(key: key);
+  });
 
   @override
   State<ConversationList> createState() => ConversationListState();

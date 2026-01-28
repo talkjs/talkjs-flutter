@@ -17,7 +17,6 @@ import './notification.dart';
 
 typedef MessageHandler = void Function(Message message);
 typedef TokenFetcherHandler = Future<String> Function();
-typedef ErrorHandler = void Function(String error);
 
 enum Provider { fcm, apns }
 

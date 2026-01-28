@@ -29,7 +29,6 @@ typedef ConversationActionHandler =
     void Function(ConversationActionEvent event);
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
-typedef ErrorHandler = void Function(String error);
 
 class SendMessageEvent {
   final ConversationData conversation;

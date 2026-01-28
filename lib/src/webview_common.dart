@@ -3,6 +3,7 @@ import 'dart:convert';
 import './session.dart';
 
 typedef FnExecute = void Function(String statement);
+typedef ErrorHandler = void Function(String error);
 
 void createSession({
   required FnExecute execute,
