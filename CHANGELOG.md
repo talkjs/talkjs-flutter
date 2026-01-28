@@ -1,3 +1,10 @@
+## 0.17.0
+
+- **Breaking change:** Updated the minimum Flutter SDK requirement to 3.32.0
+  and minimum Dart SDK requirement to 3.8.0
+- Add `onError` to Session, Chatbox and ConversationList.
+- Updated dependencies.
+
 ## 0.16.2
 
 - Fix crash when building on Xcode 26.2 and deploying to iOS 26.2.

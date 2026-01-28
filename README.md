@@ -17,9 +17,9 @@ if you have any questions about TalkJS.
 
 ## Requirements
 
-- Dart sdk: ">=2.15.0 <3.0.0"
-- Flutter: ">=2.8.1"
-- Android: `minSDKVersion 19`
+- Dart sdk: ">=3.8.0 <4.0.0"
+- Flutter: ">=3.32.0"
+- Android: `minSDKVersion 23`
 
 ## Installation
 
@@ -34,7 +34,6 @@ dependencies:
 Run the command: `flutter pub get` on the command line or through Android
 Studio's **Get dependencies** button.
 
-
 ## Usage
 
 Import TalkJS in your project source files.
@@ -48,6 +47,7 @@ Then follow our
 to start using TalkJS in your project.
 
 ## TalkJS is fully forward compatible
+
 We promise to never break API compatibility.
 We may at times deprecate methods or fields, but we will never remove them.
 If something that used to work stops working, then that's a bug.
@@ -61,4 +61,3 @@ of features.
 This however does not take away from our commitment to always maintain backward
 compatibility.
 So you can be assured that the package is stable for production use.
-
