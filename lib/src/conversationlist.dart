@@ -28,7 +28,9 @@ class SelectConversationEvent {
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
       me = UserData.fromJson(json['me']),
-      others = json['others'].map(UserData.fromJson).toList();
+      others = json['others']
+          .map<UserData>((user) => UserData.fromJson(user))
+          .toList();
 }
 
 class ConversationListOptions {
@@ -325,6 +327,11 @@ class ConversationListState extends State<ConversationList> {
     if (kDebugMode) {
       print('📗 conversationlist._jscSelectConversation: $message');
     }
+
+    final x = json.decode(message);
+    print('conversation: ${x['conversation']}');
+    print('me: ${x['me']}');
+    print('others: ${x['others']}');
 
     widget.onSelectConversation?.call(
       SelectConversationEvent.fromJson(json.decode(message)),

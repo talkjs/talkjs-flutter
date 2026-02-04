@@ -1,3 +1,7 @@
+## 0.17.3
+
+- Fix runtime type error when triggering `onSelectConversation`.
+
 ## 0.17.2
 
 - Fix missing `params` property from `ConversationActionEvent` and `MessageActionEvent`.
