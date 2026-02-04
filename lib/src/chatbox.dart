@@ -55,18 +55,22 @@ enum LoadingState { loading, loaded }
 class MessageActionEvent {
   final String action;
   final Message message;
+  final Map<String, String> params;
 
   MessageActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
+      params = Map.from(json['params']),
       message = Message.fromJson(json['message']);
 }
 
 class ConversationActionEvent {
   final String action;
+  final Map<String, String> params;
   final ConversationData conversationData;
 
   ConversationActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
+      params = Map.from(json['params']),
       conversationData = ConversationData.fromJson(json['conversation']);
 }
 
