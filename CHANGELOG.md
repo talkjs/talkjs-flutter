@@ -1,3 +1,7 @@
+## 0.17.2
+
+- Fix missing `params` property from `ConversationActionEvent` and `MessageActionEvent`.
+
 ## 0.17.1
 
 - Fix internal version.
