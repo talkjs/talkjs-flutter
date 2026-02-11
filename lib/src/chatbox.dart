@@ -246,7 +246,7 @@ class ChatBoxState extends State<ChatBox> {
 
           // Notify the backend of the UI's focus state
           setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
-        }); true;
+        });
       '''
             .trim(),
       );
@@ -280,7 +280,7 @@ class ChatBoxState extends State<ChatBox> {
           chatBox.mount(document.getElementById("talkjs-container")).then(() => {
             // Notify the backend of the UI's focus state
             setTimeout(() => chatBox.onWindowVisibleChanged(document.visibilityState === "visible"), 1000);
-          }); true;
+          });
         '''
               .trim(),
         );
@@ -427,25 +427,23 @@ class ChatBoxState extends State<ChatBox> {
       translateConversations: widget.translateConversations,
     );
 
-    // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
-    // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
-    execute('chatBox = session.createChatbox(${_oldOptions}); true;');
+    execute('chatBox = session.createChatbox(${_oldOptions});');
 
     _setMessageFilter();
     _setHighlightedWords();
 
     execute(
-      'chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event))); true;',
+      'chatBox.onSendMessage((event) => window.flutter_inappwebview.callHandler("JSCSendMessage", JSON.stringify(event)));',
     );
     execute(
-      'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event))); true;',
+      'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));',
     );
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomMessageActions = Set.of(widget.onCustomMessageAction!.keys);
       for (var action in _oldCustomMessageActions) {
         execute(
-          'chatBox.onCustomMessageAction("$action", customMessageActionHandler); true;',
+          'chatBox.onCustomMessageAction("$action", customMessageActionHandler);',
         );
       }
     } else {
@@ -458,7 +456,7 @@ class ChatBoxState extends State<ChatBox> {
       );
       for (var action in _oldCustomConversationActions) {
         execute(
-          'chatBox.onCustomConversationAction("$action", customConversationActionHandler); true;',
+          'chatBox.onCustomConversationAction("$action", customConversationActionHandler);',
         );
       }
     } else {
@@ -507,7 +505,7 @@ class ChatBoxState extends State<ChatBox> {
           _oldCustomMessageActions.add(action);
 
           execute(
-            'chatBox.onCustomMessageAction("$action", customMessageActionHandler); true;',
+            'chatBox.onCustomMessageAction("$action", customMessageActionHandler);',
           );
 
           retval = true;
@@ -540,7 +538,7 @@ class ChatBoxState extends State<ChatBox> {
           _oldCustomConversationActions.add(action);
 
           execute(
-            'chatBox.onCustomConversationAction("$action", customConversationActionHandler); true;',
+            'chatBox.onCustomConversationAction("$action", customConversationActionHandler);',
           );
 
           retval = true;
@@ -564,13 +562,13 @@ class ChatBoxState extends State<ChatBox> {
 
     if (_oldConversation != null) {
       execute(
-        'chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)}); true;',
+        'chatBox.select(${getConversationVariableName(_oldConversation!)}, ${json.encode(result)});',
       );
     } else {
       if (result.isNotEmpty) {
-        execute('chatBox.select(undefined, ${json.encode(result)}); true;');
+        execute('chatBox.select(undefined, ${json.encode(result)});');
       } else {
-        execute('chatBox.select(undefined); true;');
+        execute('chatBox.select(undefined);');
       }
     }
   }
@@ -591,7 +589,7 @@ class ChatBoxState extends State<ChatBox> {
     _oldHighlightedWords = List.of(widget.highlightedWords);
 
     execute(
-      'chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)}); true;',
+      'chatBox.setHighlightedWords(${json.encode(_oldHighlightedWords)});',
     );
   }
 
@@ -775,15 +773,13 @@ class ChatBoxState extends State<ChatBox> {
 
       _users[user.id] = variableName;
 
-      execute(
-        'let $variableName = new Talk.User(${user.getJsonString()}); true;',
-      );
+      execute('let $variableName = new Talk.User(${user.getJsonString()});');
 
       _userObjs[user.id] = User.of(user);
     } else if (_userObjs[user.id] != user) {
       final variableName = _users[user.id]!;
 
-      execute('$variableName = new Talk.User(${user.getJsonString()}); true;');
+      execute('$variableName = new Talk.User(${user.getJsonString()});');
 
       _userObjs[user.id] = User.of(user);
     }
@@ -799,7 +795,7 @@ class ChatBoxState extends State<ChatBox> {
       _conversations[conversation.id] = variableName;
 
       execute(
-        'let $variableName = session.getOrCreateConversation("${conversation.id}"); true;',
+        'let $variableName = session.getOrCreateConversation("${conversation.id}");',
       );
 
       _setConversationAttributes(variableName, conversation);
@@ -868,7 +864,9 @@ class ChatBoxState extends State<ChatBox> {
         print('📗 chatbox.execute: $statement');
       }
 
-      controller.evaluateJavascript(source: statement);
+      // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+      // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+      controller.evaluateJavascript(source: '$statement; true;');
     } else {
       if (kDebugMode) {
         print('📘 chatbox.execute: $statement');

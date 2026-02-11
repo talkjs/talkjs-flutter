@@ -250,7 +250,7 @@ class ConversationListState extends State<ConversationList> {
     execute('''conversationList.onSelectConversation((event) => {
       event.preventDefault();
       window.flutter_inappwebview.callHandler("JSCSelectConversation", JSON.stringify(event));
-    }); ''');
+    });''');
   }
 
   void _setFeedFilter() {
@@ -328,11 +328,6 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._jscSelectConversation: $message');
     }
 
-    final x = json.decode(message);
-    print('conversation: ${x['conversation']}');
-    print('me: ${x['me']}');
-    print('others: ${x['others']}');
-
     widget.onSelectConversation?.call(
       SelectConversationEvent.fromJson(json.decode(message)),
     );
@@ -394,7 +389,9 @@ class ConversationListState extends State<ConversationList> {
         print('📗 conversationlist.execute: $statement');
       }
 
-      controller.evaluateJavascript(source: statement);
+      // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+      // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+      controller.evaluateJavascript(source: '$statement; true;');
     } else {
       if (kDebugMode) {
         print('📘 conversationlist.execute: $statement');

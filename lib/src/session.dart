@@ -216,7 +216,9 @@ class Session with ChangeNotifier {
     }
 
     // We're sure that _execute only gets called with a valid _webViewController
-    return _webViewController!.evaluateJavascript(source: statement);
+    // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+    // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+    return _webViewController!.evaluateJavascript(source: '$statement; true;');
   }
 
   void _jscOnMessage(List<dynamic> arguments) {
@@ -265,18 +267,18 @@ class Session with ChangeNotifier {
     if (enable) {
       if (fcmToken != null) {
         statement =
-            'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}); true;';
+            'session.setPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
       } else if (apnsToken != null) {
         statement =
-            'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}); true;';
+            'session.setPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
     } else {
       if (fcmToken != null) {
         statement =
-            'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"}); true;';
+            'session.unsetPushRegistration({provider: "fcm", pushRegistrationId: "$fcmToken"});';
       } else if (apnsToken != null) {
         statement =
-            'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"}); true;';
+            'session.unsetPushRegistration({provider: "apns", pushRegistrationId: "$apnsToken"});';
       }
     }
 
@@ -425,7 +427,7 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(true);
     } else {
       _execute(
-        'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;',
+        'session.setPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});',
       );
     }
   }
@@ -475,7 +477,7 @@ class Session with ChangeNotifier {
       _setOrUnsetPushRegistration(false);
     } else {
       _execute(
-        'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"}); true;',
+        'session.unsetPushRegistration({provider: "${provider!.name}", pushRegistrationId: "$pushRegistrationId"});',
       );
     }
   }
@@ -508,7 +510,7 @@ class Session with ChangeNotifier {
       print('📗 session clearPushRegistrations: Clearing push notifications');
     }
 
-    _execute('session.clearPushRegistrations(); true;');
+    _execute('session.clearPushRegistrations();');
   }
 
   /// For internal use only. Implementation detail that may change anytime.
