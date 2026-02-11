@@ -1,3 +1,7 @@
+## 0.17.4
+
+- Fix crash on iOS 26
+
 ## 0.17.3
 
 - Fix runtime type error when triggering `onSelectConversation`.

@@ -328,11 +328,6 @@ class ConversationListState extends State<ConversationList> {
       print('📗 conversationlist._jscSelectConversation: $message');
     }
 
-    final x = json.decode(message);
-    print('conversation: ${x['conversation']}');
-    print('me: ${x['me']}');
-    print('others: ${x['others']}');
-
     widget.onSelectConversation?.call(
       SelectConversationEvent.fromJson(json.decode(message)),
     );
