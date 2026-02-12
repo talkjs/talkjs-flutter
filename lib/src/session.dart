@@ -84,7 +84,9 @@ class Session with ChangeNotifier {
             print('📗 session.me _pending: $statement');
           }
 
-          controller.evaluateJavascript(source: statement);
+          // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+          // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+          controller.evaluateJavascript(source: '$statement; true;');
         }
 
         _completer.complete();
@@ -202,7 +204,9 @@ class Session with ChangeNotifier {
             print('📗 session._onLoadStop _pending: $statement');
           }
 
-          controller.evaluateJavascript(source: statement);
+          // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+          // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+          controller.evaluateJavascript(source: '$statement; true;');
         }
 
         _completer.complete();
@@ -524,7 +528,9 @@ class Session with ChangeNotifier {
         print('📗 session.execute: $statement');
       }
 
-      controller!.evaluateJavascript(source: statement);
+      // This statemement without the `true;` at the end results in a build that crashes on iOS 26.2 when built using Xcode 26.2
+      // Building on Xcode 26.1.1 and running on iOS 26.2 does not result in a crash.
+      controller!.evaluateJavascript(source: '$statement; true;');
     } else {
       if (kDebugMode) {
         print('📘 session.execute: $statement');
