@@ -1,3 +1,7 @@
+## 0.17.5
+
+- Fix crashes on iOS 26 when evaluating javascript before the WebView is loaded
+
 ## 0.17.4
 
 - Fix crash on iOS 26
