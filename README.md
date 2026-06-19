@@ -17,9 +17,10 @@ if you have any questions about TalkJS.
 
 ## Requirements
 
-- Dart sdk: ">=3.8.0 <4.0.0"
-- Flutter: ">=3.32.0"
-- Android: `minSDKVersion 23`
+- Dart sdk: ">=3.10.0 <4.0.0"
+- Flutter: ">=3.38.0"
+- Android: `minSDKVersion 24`
+- iOS: "15+"
 
 ## Installation
 
