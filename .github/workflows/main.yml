@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
 
       - name: Setup Dart SDK and provision OIDC token
-        uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c #v1.7.1
+        uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 #v1.7.2
 
       - name: Setup Flutter SDK - needed for publishing Flutter packages.
-        uses: flutter-actions/setup-flutter@6d11b83d56c388d0b6fe865194248a01a48548b5 #v4.1
+        uses: talkjs/flutter-action@408dece5e074567f0bb32ef68b82fe01ed5fdeac #v1.0.0
 
       - name: Update version string
         run: yq '.version' pubspec.yaml > lib/assets/version.txt
