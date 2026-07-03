@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:talkjs_flutter/src/themeoptions.dart';
 
 import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,16 +18,18 @@ import './user.dart';
 import './message.dart';
 import './predicate.dart';
 import './webview_common.dart';
+import './types.dart';
 
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler =
     void Function(TranslationToggledEvent event);
-typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
 typedef ConversationActionHandler =
     void Function(ConversationActionEvent event);
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
+
+enum UrlNavigationAction { deny, allow }
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -49,8 +50,6 @@ class TranslationToggledEvent {
     : conversation = ConversationData.fromJson(json['conversation']),
       isEnabled = json['isEnabled'];
 }
-
-enum LoadingState { loading, loaded }
 
 class MessageActionEvent {
   final String action;
@@ -79,8 +78,6 @@ class UrlNavigationRequest {
 
   UrlNavigationRequest(this.url);
 }
-
-enum UrlNavigationAction { deny, allow }
 
 /// A messaging UI for just a single conversation.
 ///

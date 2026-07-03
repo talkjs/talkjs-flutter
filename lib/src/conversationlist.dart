@@ -13,9 +13,8 @@ import './session.dart';
 import './conversation.dart';
 import './user.dart';
 import './predicate.dart';
-import './chatbox.dart';
 import './webview_common.dart';
-import './themeoptions.dart';
+import './types.dart';
 
 typedef SelectConversationHandler =
     void Function(SelectConversationEvent event);
@@ -28,9 +27,7 @@ class SelectConversationEvent {
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
       me = UserData.fromJson(json['me']),
-      others = json['others']
-          .map<UserData>((user) => UserData.fromJson(user))
-          .toList();
+      others = json['others'].map(UserData.fromJson).toList();
 }
 
 class ConversationListOptions {
