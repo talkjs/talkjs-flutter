@@ -15,6 +15,7 @@ export 'src/predicate.dart';
 export 'src/notification.dart';
 export 'src/themeoptions.dart';
 export 'src/unreads.dart';
+export 'src/types.dart';
 
 /// The [Talk] object provides utility functions to help use TalkJS.
 class Talk {

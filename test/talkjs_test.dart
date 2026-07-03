@@ -106,7 +106,7 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ) ==
             MessagePredicate(
               custom: {
@@ -125,7 +125,7 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ),
         true);
   });
@@ -238,7 +238,7 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             )) ==
             MessagePredicate(
               custom: {
@@ -257,7 +257,7 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ),
         true);
   });
@@ -297,7 +297,7 @@ void main() {
             locale: FieldPredicate.notOneOf(['it', 'fr']),
             role: FieldPredicate.notEquals('admin'),
           ),
-          type: FieldPredicate.notEquals(MessageType.systemMessage),
+          type: FieldPredicate.notEquals(MessageType.SystemMessage),
         )),
         '{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]}');
   });
@@ -352,11 +352,11 @@ void main() {
             locale: FieldPredicate.notOneOf(['it', 'fr']),
             role: FieldPredicate.notEquals('admin'),
           ),
-          type: FieldPredicate.notEquals(MessageType.systemMessage),
+          type: FieldPredicate.notEquals(MessageType.SystemMessage),
         ),
         MessagePredicate(
           origin: FieldPredicate.notEquals(MessageOrigin.web),
-          type: FieldPredicate.equals(MessageType.systemMessage),
+          type: FieldPredicate.equals(MessageType.SystemMessage),
         ),
       ])),
       '["any",[{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]},{"origin":["!=","web"],"type":["==","SystemMessage"]}]]',

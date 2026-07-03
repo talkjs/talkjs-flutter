@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import './types.dart';
+
 class FieldPredicate<T> {
   final String _operand;
   String? _value;
@@ -355,32 +357,6 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
 
   @override
   int get hashCode => Object.hash(_operand, Object.hashAll(_values));
-}
-
-class MessageOrigin {
-  final String _value;
-
-  const MessageOrigin._(this._value);
-
-  static const MessageOrigin web = MessageOrigin._('web');
-  static const MessageOrigin rest = MessageOrigin._('rest');
-  static const MessageOrigin email = MessageOrigin._('email');
-  static const MessageOrigin import = MessageOrigin._('import');
-
-  @override
-  String toString() => _value;
-}
-
-class MessageType {
-  final String _value;
-
-  const MessageType._(this._value);
-
-  static const MessageType userMessage = MessageType._('UserMessage');
-  static const MessageType systemMessage = MessageType._('SystemMessage');
-
-  @override
-  String toString() => _value;
 }
 
 class SenderPredicate {

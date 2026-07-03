@@ -1,10 +1,19 @@
 import './conversation.dart';
-import './predicate.dart';
 import './user.dart';
+import './types.dart';
 
-enum MessageType { UserMessage, SystemMessage }
+enum ContentType {
+  media,
+  text,
+  location;
 
-enum ContentType { media, text, location }
+  factory ContentType.fromString(String str) => switch (str) {
+    'media' => .media,
+    'text' => .text,
+    'location' => .location,
+    _ => throw ArgumentError('Unknown ContentType $str'),
+  };
+}
 
 class Attachment {
   final String url;
@@ -47,9 +56,7 @@ class SentMessage {
   SentMessage.fromJson(Map<String, dynamic> json)
     : id = json['id'],
       conversationId = json['conversationId'],
-      type = (json['type'] == 'UserMessage'
-          ? MessageType.UserMessage
-          : MessageType.SystemMessage),
+      type = MessageType.fromString(json['type']),
       readBy = List.from(json['readBy']),
       senderId = json['senderId'],
       text = json['text'],
@@ -116,27 +123,12 @@ class Message {
       location = (json['location'] != null
           ? List.from(json['location'])
           : null),
-      origin = _originFromString(json['origin']),
+      origin = MessageOrigin.fromString(json['origin']),
       read = json['read'],
       sender = (json['sender'] != null
           ? UserData.fromJson(json['sender'])
           : null),
       senderId = json['senderId'],
       timestamp = json['timestamp'].toDouble(),
-      type = _contentTypeFromString(json['type']);
+      type = ContentType.fromString(json['type']);
 }
-
-MessageOrigin _originFromString(String str) => switch (str) {
-  'web' => MessageOrigin.web,
-  'rest' => MessageOrigin.rest,
-  'email' => MessageOrigin.email,
-  'import' => MessageOrigin.import,
-  _ => throw ArgumentError('Unknown MessageOrigin $str'),
-};
-
-ContentType _contentTypeFromString(String str) => switch (str) {
-  'media' => ContentType.media,
-  'text' => ContentType.text,
-  'location' => ContentType.location,
-  _ => throw ArgumentError('Unknown ContentType $str'),
-};
