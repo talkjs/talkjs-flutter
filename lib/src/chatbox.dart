@@ -86,6 +86,7 @@ class UrlNavigationRequest {
 class ChatBox extends StatefulWidget {
   final Session session;
 
+  final CustomEmojis? customEmojis;
   final TextDirection? dir;
   final MessageFieldOptions? messageField;
   final bool? showChatHeader;
@@ -114,6 +115,7 @@ class ChatBox extends StatefulWidget {
     super.key,
     required this.session,
     this.dir,
+    this.customEmojis,
     this.messageField,
     this.showChatHeader,
     this.showTranslationToggle,
@@ -416,6 +418,7 @@ class ChatBoxState extends State<ChatBox> {
   void _createChatBox() {
     _oldOptions = ChatBoxOptions(
       dir: widget.dir,
+      customEmojis: widget.customEmojis,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
@@ -464,6 +467,7 @@ class ChatBoxState extends State<ChatBox> {
   bool _checkRecreateChatBox() {
     final options = ChatBoxOptions(
       dir: widget.dir,
+      customEmojis: widget.customEmojis,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,

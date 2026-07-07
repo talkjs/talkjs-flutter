@@ -10,6 +10,17 @@ class ChatBoxOptions {
   /// Defaults to [TextDirection.rtl].
   final TextDirection? dir;
 
+  ///Allows users to send and receive custom emojis.
+  ///
+  ///This adds a set of custom emoji images to the emoji picker, the emoji autocompleter, and emoji reactions.
+  ///
+  ///Every emoji name *must* start and end with a colon, for example :lol:. Emoji names can be up to 50 characters long, including the colons.
+  ///
+  ///Make sure you always specify a consistent, backward-compatible set of custom emojis. If an existing message contains a custom emoji that is not specified in customEmojis here, then the emoji cannot be displayed and the textual name will be displayed instead (including colons).
+  ///
+  ///If you want to allow an emoji to be displayed if it's used in existing data, but not let users select it in new messages/reactions, set the hidden option to true for that emoji.
+  final CustomEmojis? customEmojis;
+
   /// Settings that affect the behavior of the message field
   final MessageFieldOptions? messageField;
 
@@ -36,6 +47,7 @@ class ChatBoxOptions {
 
   const ChatBoxOptions({
     this.dir,
+    this.customEmojis,
     this.messageField,
     this.showChatHeader,
     this.showTranslationToggle,
@@ -50,6 +62,7 @@ class ChatBoxOptions {
       'dir': ?dir?.name,
       'messageField': ?messageField,
       'showChatHeader': ?showChatHeader,
+      'customEmojis': ?customEmojis,
       // 'auto' gets the priority over the boolean value
       'showTranslationToggle': ?showTranslationToggle?.getValue(),
       'translateConversations': ?translateConversations?.getValue(),
@@ -74,6 +87,10 @@ class ChatBoxOptions {
     }
 
     if (dir != other.dir) {
+      return false;
+    }
+
+    if (customEmojis != other.customEmojis) {
       return false;
     }
 
@@ -102,6 +119,7 @@ class ChatBoxOptions {
 
   int get hashCode => Object.hash(
     dir,
+    customEmojis,
     messageField,
     showChatHeader,
     showTranslationToggle,

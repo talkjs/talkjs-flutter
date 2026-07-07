@@ -1,6 +1,7 @@
 // Typedefs
 
 typedef LoadingStateHandler = void Function(LoadingState state);
+typedef CustomEmojis = Map<String, CustomEmojiDefinition>;
 
 // Enums
 
@@ -72,6 +73,15 @@ enum MessageType {
 }
 
 // Classes
+
+class CustomEmojiDefinition {
+  final String url;
+  final bool? hidden;
+
+  const CustomEmojiDefinition({required this.url, this.hidden = null});
+
+  Map<String, dynamic> toJson() => {'url': url, 'hidden': ?hidden};
+}
 
 class ThemeOptions {
   final String? name;
