@@ -38,6 +38,7 @@ class FieldPredicate<T> {
 
   dynamic toJson() => [_operand, if (_useValue) _value, ?_values];
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -66,6 +67,7 @@ class FieldPredicate<T> {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     _operand,
     _value,
@@ -95,6 +97,7 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     false => '!exists',
   };
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -127,6 +130,7 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     _operand,
     _value,
@@ -164,6 +168,7 @@ class NumberPredicate {
 
   dynamic toJson() => [_operand, ?_value, ?_values];
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -188,6 +193,7 @@ class NumberPredicate {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     _operand,
     _value,
@@ -383,6 +389,7 @@ class SenderPredicate {
     'role': ?role,
   };
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -411,6 +418,7 @@ class SenderPredicate {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     id,
     (custom != null ? Object.hashAll(custom!.keys) : custom),

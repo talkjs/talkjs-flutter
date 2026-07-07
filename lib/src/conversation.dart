@@ -46,6 +46,7 @@ class Participant {
       access = other.access,
       notify = other.notify;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -70,6 +71,7 @@ class Participant {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(user, access, notify);
 }
 
@@ -173,6 +175,7 @@ class Conversation extends _BaseConversation {
     return Future<void>.value();
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -213,6 +216,7 @@ class Conversation extends _BaseConversation {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     _session,
     Object.hashAll(participants),

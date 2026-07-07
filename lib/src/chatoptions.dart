@@ -77,6 +77,7 @@ class ChatBoxOptions {
     return json.encode(result);
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -117,6 +118,7 @@ class ChatBoxOptions {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     dir,
     customEmojis,

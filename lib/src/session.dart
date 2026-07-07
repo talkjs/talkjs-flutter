@@ -624,6 +624,7 @@ class Session with ChangeNotifier {
 
   // enablePushNotifications is deliberately omitted, so that we can enable and disable push notifications at will,
   // without necessarily recreating the ChatBox
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -669,6 +670,7 @@ class Session with ChangeNotifier {
   }
 
   // me and enablePushNotifications are deliberately omitted, so that this object has the exact same hash regardless of its state
+  @override
   int get hashCode => Object.hash(
     appId,
     signature,

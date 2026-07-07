@@ -56,6 +56,7 @@ enum MessageOrigin {
     _ => throw ArgumentError('Unknown MessageOrigin $str'),
   };
 
+  @override
   String toString() => this.name;
 }
 
@@ -69,6 +70,7 @@ enum MessageType {
     _ => throw ArgumentError('Unknown MessageType $str'),
   };
 
+  @override
   String toString() => this.name;
 }
 
@@ -150,6 +152,7 @@ class MessageFieldOptions {
     return result;
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -178,6 +181,7 @@ class MessageFieldOptions {
     return true;
   }
 
+  @override
   int get hashCode =>
       Object.hash(autofocus, enterSendsMessage, placeholder, spellcheck);
 }

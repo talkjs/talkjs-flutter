@@ -9,6 +9,7 @@ class Unreads {
 
   const Unreads({this.onChange});
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -25,6 +26,7 @@ class Unreads {
     return true;
   }
 
+  @override
   int get hashCode => onChange.hashCode;
 }
 

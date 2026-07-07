@@ -135,6 +135,7 @@ class User extends _BaseUser {
     }
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
@@ -195,6 +196,7 @@ class User extends _BaseUser {
     return true;
   }
 
+  @override
   int get hashCode => Object.hash(
     _session,
     _idOnly,
