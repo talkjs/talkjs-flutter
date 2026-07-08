@@ -55,7 +55,7 @@ class FieldPredicate<T> {
   int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? Object.hashAll(_values!) : _values),
+    (_values != null ? Object.hashAllUnordered(_values!) : _values),
     _useValue,
   );
 }
@@ -99,7 +99,7 @@ class CustomFieldPredicate extends FieldPredicate<String> {
   int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? Object.hashAll(_values!) : _values),
+    (_values != null ? Object.hashAllUnordered(_values!) : _values),
     _useValue,
     _exists,
   );
@@ -149,7 +149,7 @@ class NumberPredicate {
   int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? Object.hashAll(_values!) : _values),
+    (_values != null ? Object.hashAllUnordered(_values!) : _values),
   );
 }
 
@@ -244,8 +244,7 @@ class ConversationPredicate extends BaseConversationPredicate {
   @override
   int get hashCode => Object.hash(
     access,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
     hasUnreadMessages,
     lastMessageTs,
     subject,
@@ -285,7 +284,7 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
   }
 
   @override
-  int get hashCode => Object.hash(_operand, Object.hashAll(_values));
+  int get hashCode => Object.hash(_operand, Object.hashAllUnordered(_values));
 }
 
 class SenderPredicate {
@@ -328,8 +327,7 @@ class SenderPredicate {
   @override
   int get hashCode => Object.hash(
     id,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
     locale,
     role,
   );
@@ -397,8 +395,7 @@ class MessagePredicate extends BaseMessagePredicate {
 
   @override
   int get hashCode => Object.hash(
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
     origin,
     sender,
     type,
@@ -438,5 +435,5 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
   }
 
   @override
-  int get hashCode => Object.hash(_operand, Object.hashAll(_values));
+  int get hashCode => Object.hash(_operand, Object.hashAllUnordered(_values));
 }

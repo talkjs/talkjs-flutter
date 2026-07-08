@@ -181,12 +181,11 @@ class Conversation extends _BaseConversation {
   @override
   int get hashCode => Object.hash(
     _session,
-    Object.hashAll(participants),
+    Object.hashAllUnordered(participants),
     id,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
+    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
     (welcomeMessages != null
-        ? Object.hashAll(welcomeMessages!)
+        ? Object.hashAllUnordered(welcomeMessages!)
         : welcomeMessages),
     photoUrl,
     subject,
