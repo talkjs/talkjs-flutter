@@ -63,7 +63,7 @@ class ConversationListOptions {
     final Map<String, dynamic> result = {'showFeedHeader': ?showFeedHeader};
 
     if (themeOptions != null) {
-      result['theme'] = themeOptions?.toJson();
+      result['theme'] = themeOptions;
     } else if (theme != null) {
       result['theme'] = theme;
     }

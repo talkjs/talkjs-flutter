@@ -40,8 +40,6 @@ class ChatBoxOptions {
 
   final ThemeOptions? themeOptions;
 
-  /// TODO: thirdparties
-
   /// Enables conversation translation with Google Translate.
   final TranslateConversations? translateConversations;
 
@@ -69,7 +67,7 @@ class ChatBoxOptions {
     };
 
     if (themeOptions != null) {
-      result['theme'] = themeOptions?.toJson();
+      result['theme'] = themeOptions;
     } else if (theme != null) {
       result['theme'] = theme;
     }
