@@ -44,27 +44,11 @@ class FieldPredicate<T> {
       return true;
     }
 
-    if (other is! FieldPredicate<T>) {
-      return false;
-    }
-
-    if (_operand != other._operand) {
-      return false;
-    }
-
-    if (_value != other._value) {
-      return false;
-    }
-
-    if (!listEquals(_values, other._values)) {
-      return false;
-    }
-
-    if (_useValue != other._useValue) {
-      return false;
-    }
-
-    return true;
+    return other is FieldPredicate<T> &&
+        _operand == other._operand &&
+        _value == other._value &&
+        listEquals(_values, other._values) &&
+        _useValue == other._useValue;
   }
 
   @override
@@ -103,31 +87,12 @@ class CustomFieldPredicate extends FieldPredicate<String> {
       return true;
     }
 
-    if (other is! CustomFieldPredicate) {
-      return false;
-    }
-
-    if (_operand != other._operand) {
-      return false;
-    }
-
-    if (_value != other._value) {
-      return false;
-    }
-
-    if (!listEquals(_values, other._values)) {
-      return false;
-    }
-
-    if (_useValue != other._useValue) {
-      return false;
-    }
-
-    if (_exists != other._exists) {
-      return false;
-    }
-
-    return true;
+    return other is CustomFieldPredicate &&
+        _operand == other._operand &&
+        _value == other._value &&
+        listEquals(_values, other._values) &&
+        _useValue == other._useValue &&
+        _exists == other._exists;
   }
 
   @override
@@ -174,23 +139,10 @@ class NumberPredicate {
       return true;
     }
 
-    if (other is! NumberPredicate) {
-      return false;
-    }
-
-    if (_operand != other._operand) {
-      return false;
-    }
-
-    if (_value != other._value) {
-      return false;
-    }
-
-    if (!listEquals(_values, other._values)) {
-      return false;
-    }
-
-    return true;
+    return other is NumberPredicate &&
+        _operand == other._operand &&
+        _value == other._value &&
+        listEquals(_values, other._values);
   }
 
   @override
@@ -281,31 +233,12 @@ class ConversationPredicate extends BaseConversationPredicate {
       return true;
     }
 
-    if (other is! ConversationPredicate) {
-      return false;
-    }
-
-    if (access != other.access) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (hasUnreadMessages != other.hasUnreadMessages) {
-      return false;
-    }
-
-    if (lastMessageTs != other.lastMessageTs) {
-      return false;
-    }
-
-    if (subject != other.subject) {
-      return false;
-    }
-
-    return true;
+    return other is ConversationPredicate &&
+        access == other.access &&
+        mapEquals(custom, other.custom) &&
+        hasUnreadMessages == other.hasUnreadMessages &&
+        lastMessageTs == other.lastMessageTs &&
+        subject == other.subject;
   }
 
   @override
@@ -346,19 +279,9 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
       return true;
     }
 
-    if (other is! CompoundConversationPredicate) {
-      return false;
-    }
-
-    if (_operand != other._operand) {
-      return false;
-    }
-
-    if (!listEquals(_values, other._values)) {
-      return false;
-    }
-
-    return true;
+    return other is CompoundConversationPredicate &&
+        _operand == other._operand &&
+        listEquals(_values, other._values);
   }
 
   @override
@@ -395,27 +318,11 @@ class SenderPredicate {
       return true;
     }
 
-    if (other is! SenderPredicate) {
-      return false;
-    }
-
-    if (id != other.id) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (locale != other.locale) {
-      return false;
-    }
-
-    if (role != other.role) {
-      return false;
-    }
-
-    return true;
+    return other is SenderPredicate &&
+        id == other.id &&
+        mapEquals(custom, other.custom) &&
+        locale == other.locale &&
+        role == other.role;
   }
 
   @override
@@ -481,27 +388,11 @@ class MessagePredicate extends BaseMessagePredicate {
       return true;
     }
 
-    if (other is! MessagePredicate) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (origin != other.origin) {
-      return false;
-    }
-
-    if (sender != other.sender) {
-      return false;
-    }
-
-    if (type != other.type) {
-      return false;
-    }
-
-    return true;
+    return other is MessagePredicate &&
+        mapEquals(custom, other.custom) &&
+        origin == other.origin &&
+        sender == other.sender &&
+        type == other.type;
   }
 
   @override
@@ -541,19 +432,9 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
       return true;
     }
 
-    if (other is! CompoundMessagePredicate) {
-      return false;
-    }
-
-    if (_operand != other._operand) {
-      return false;
-    }
-
-    if (!listEquals(_values, other._values)) {
-      return false;
-    }
-
-    return true;
+    return other is CompoundMessagePredicate &&
+        _operand == other._operand &&
+        listEquals(_values, other._values);
   }
 
   @override

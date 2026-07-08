@@ -15,15 +15,7 @@ class Unreads {
       return true;
     }
 
-    if (other is! Unreads) {
-      return false;
-    }
-
-    if (onChange != other.onChange) {
-      return false;
-    }
-
-    return true;
+    return other is Unreads && onChange == other.onChange;
   }
 
   @override

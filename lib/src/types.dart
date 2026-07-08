@@ -158,27 +158,11 @@ class MessageFieldOptions {
       return true;
     }
 
-    if (other is! MessageFieldOptions) {
-      return false;
-    }
-
-    if (autofocus != other.autofocus) {
-      return false;
-    }
-
-    if (enterSendsMessage != other.enterSendsMessage) {
-      return false;
-    }
-
-    if (placeholder != other.placeholder) {
-      return false;
-    }
-
-    if (spellcheck != other.spellcheck) {
-      return false;
-    }
-
-    return true;
+    return other is MessageFieldOptions &&
+        autofocus == other.autofocus &&
+        enterSendsMessage == other.enterSendsMessage &&
+        placeholder == other.placeholder &&
+        spellcheck == other.spellcheck;
   }
 
   @override

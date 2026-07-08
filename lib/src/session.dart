@@ -630,43 +630,15 @@ class Session with ChangeNotifier {
       return true;
     }
 
-    if (other is! Session) {
-      return false;
-    }
-
-    if (appId != other.appId) {
-      return false;
-    }
-
-    if (me.id != other.me.id) {
-      return false;
-    }
-
-    if (signature != other.signature) {
-      return false;
-    }
-
-    if (token != other.token) {
-      return false;
-    }
-
-    if (tokenFetcher != other.tokenFetcher) {
-      return false;
-    }
-
-    if (onMessage != other.onMessage) {
-      return false;
-    }
-
-    if (unreads != other.unreads) {
-      return false;
-    }
-
-    if (onUnreadsChange != other.onUnreadsChange) {
-      return false;
-    }
-
-    return true;
+    return other is Session &&
+        appId == other.appId &&
+        me.id == other.me.id &&
+        signature == other.signature &&
+        token == other.token &&
+        tokenFetcher == other.tokenFetcher &&
+        onMessage == other.onMessage &&
+        unreads == other.unreads &&
+        onUnreadsChange == other.onUnreadsChange;
   }
 
   // me and enablePushNotifications are deliberately omitted, so that this object has the exact same hash regardless of its state

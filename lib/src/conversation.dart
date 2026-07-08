@@ -52,23 +52,10 @@ class Participant {
       return true;
     }
 
-    if (other is! Participant) {
-      return false;
-    }
-
-    if (user != other.user) {
-      return false;
-    }
-
-    if (access != other.access) {
-      return false;
-    }
-
-    if (notify != other.notify) {
-      return false;
-    }
-
-    return true;
+    return other is Participant &&
+        user == other.user &&
+        access == other.access &&
+        notify == other.notify;
   }
 
   @override
@@ -181,39 +168,14 @@ class Conversation extends _BaseConversation {
       return true;
     }
 
-    if (other is! Conversation) {
-      return false;
-    }
-
-    if (_session != other._session) {
-      return false;
-    }
-
-    if (!setEquals(participants, other.participants)) {
-      return false;
-    }
-
-    if (id != other.id) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (!listEquals(welcomeMessages, other.welcomeMessages)) {
-      return false;
-    }
-
-    if (photoUrl != other.photoUrl) {
-      return false;
-    }
-
-    if (subject != other.subject) {
-      return false;
-    }
-
-    return true;
+    return other is Conversation &&
+        _session == other._session &&
+        setEquals(participants, other.participants) &&
+        id == other.id &&
+        mapEquals(custom, other.custom) &&
+        listEquals(welcomeMessages, other.welcomeMessages) &&
+        photoUrl == other.photoUrl &&
+        subject == other.subject;
   }
 
   @override

@@ -83,39 +83,14 @@ class ChatBoxOptions {
       return true;
     }
 
-    if (other is! ChatBoxOptions) {
-      return false;
-    }
-
-    if (dir != other.dir) {
-      return false;
-    }
-
-    if (customEmojis != other.customEmojis) {
-      return false;
-    }
-
-    if (messageField != other.messageField) {
-      return false;
-    }
-
-    if (showChatHeader != other.showChatHeader) {
-      return false;
-    }
-
-    if (showTranslationToggle != other.showTranslationToggle) {
-      return false;
-    }
-
-    if (theme != other.theme) {
-      return false;
-    }
-
-    if (translateConversations != other.translateConversations) {
-      return false;
-    }
-
-    return true;
+    return other is ChatBoxOptions &&
+        dir == other.dir &&
+        customEmojis == other.customEmojis &&
+        messageField == other.messageField &&
+        showChatHeader == other.showChatHeader &&
+        showTranslationToggle == other.showTranslationToggle &&
+        theme == other.theme &&
+        translateConversations == other.translateConversations;
   }
 
   @override

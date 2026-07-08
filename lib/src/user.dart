@@ -141,59 +141,19 @@ class User extends _BaseUser {
       return true;
     }
 
-    if (other is! User) {
-      return false;
-    }
-
-    if (_session != other._session) {
-      return false;
-    }
-
-    if (_idOnly != other._idOnly) {
-      return false;
-    }
-
-    if (availabilityText != other.availabilityText) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (!listEquals(email, other.email)) {
-      return false;
-    }
-
-    if (!listEquals(phone, other.phone)) {
-      return false;
-    }
-
-    if (id != other.id) {
-      return false;
-    }
-
-    if (name != other.name) {
-      return false;
-    }
-
-    if (locale != other.locale) {
-      return false;
-    }
-
-    if (photoUrl != other.photoUrl) {
-      return false;
-    }
-
-    if (role != other.role) {
-      return false;
-    }
-
-    if (welcomeMessage != other.welcomeMessage) {
-      return false;
-    }
-
-    return true;
+    return other is User &&
+        _session == other._session &&
+        _idOnly == other._idOnly &&
+        availabilityText == other.availabilityText &&
+        mapEquals(custom, other.custom) &&
+        listEquals(email, other.email) &&
+        listEquals(phone, other.email) &&
+        id == other.id &&
+        name == other.name &&
+        locale == other.locale &&
+        photoUrl == other.photoUrl &&
+        role == other.role &&
+        welcomeMessage == other.welcomeMessage;
   }
 
   @override
