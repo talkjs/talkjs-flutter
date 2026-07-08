@@ -28,6 +28,7 @@ typedef ConversationActionHandler =
     void Function(ConversationActionEvent event);
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
+typedef LeaveConversationHandler = void Function(LeaveConversationEvent event);
 
 enum UrlNavigationAction { deny, allow }
 
@@ -73,6 +74,13 @@ class ConversationActionEvent {
       conversationData = ConversationData.fromJson(json['conversation']);
 }
 
+class LeaveConversationEvent {
+  final ConversationData conversation;
+
+  LeaveConversationEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']);
+}
+
 class UrlNavigationRequest {
   final String url;
 
@@ -110,6 +118,7 @@ class ChatBox extends StatefulWidget {
   final Map<String, ConversationActionHandler>? onCustomConversationAction;
   final NavigationHandler? onUrlNavigation;
   final ErrorHandler? onError;
+  final LeaveConversationHandler? onLeaveConversation;
 
   const ChatBox({
     super.key,
@@ -135,6 +144,7 @@ class ChatBox extends StatefulWidget {
     this.onUrlNavigation,
     this.scrollToMessage,
     this.onError,
+    this.onLeaveConversation,
   });
 
   @override
@@ -438,6 +448,9 @@ class ChatBoxState extends State<ChatBox> {
     execute(
       'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));',
     );
+    execute(
+      'chatBox.onLeaveConversation((event) => window.flutter_inappwebview.callHandler("JSCLeaveConversation", JSON.stringify(event)));',
+    );
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomMessageActions = Set.of(widget.onCustomMessageAction!.keys);
@@ -653,6 +666,10 @@ class ChatBoxState extends State<ChatBox> {
       handlerName: 'JSCTokenFetcher',
       callback: _jscTokenFetcher,
     );
+    controller.addJavaScriptHandler(
+      handlerName: 'JSCLeaveConversation',
+      callback: _jscLeaveConversation,
+    );
 
     String htmlData = await rootBundle.loadString(
       'packages/talkjs_flutter/assets/index.html',
@@ -743,6 +760,18 @@ class ChatBoxState extends State<ChatBox> {
 
     widget.onCustomConversationAction?[action]?.call(
       ConversationActionEvent.fromJson(jsonConversationData),
+    );
+  }
+
+  void _jscLeaveConversation(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscLeaveConversation: $message');
+    }
+
+    widget.onLeaveConversation?.call(
+      LeaveConversationEvent.fromJson(json.decode(message)),
     );
   }
 
