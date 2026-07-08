@@ -170,11 +170,12 @@ class ConversationAccessLevel {
 
 abstract class BaseConversationPredicate {
   const BaseConversationPredicate();
-  String toString();
+
   dynamic toJson();
   BaseConversationPredicate clone();
-  bool operator ==(Object other);
-  int get hashCode;
+
+  @override
+  String toString() => json.encode(this);
 }
 
 class ConversationPredicate extends BaseConversationPredicate {
@@ -214,9 +215,6 @@ class ConversationPredicate extends BaseConversationPredicate {
 
   @override
   BaseConversationPredicate clone() => ConversationPredicate.of(this);
-
-  @override
-  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => {
@@ -265,9 +263,6 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
 
   @override
   BaseConversationPredicate clone() => CompoundConversationPredicate.of(this);
-
-  @override
-  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => [_operand, _values];
@@ -335,11 +330,12 @@ class SenderPredicate {
 
 abstract class BaseMessagePredicate {
   const BaseMessagePredicate();
-  String toString();
+
   dynamic toJson();
   BaseMessagePredicate clone();
-  bool operator ==(Object other);
-  int get hashCode;
+
+  @override
+  String toString() => json.encode(this);
 }
 
 class MessagePredicate extends BaseMessagePredicate {
@@ -368,9 +364,6 @@ class MessagePredicate extends BaseMessagePredicate {
 
   @override
   BaseMessagePredicate clone() => MessagePredicate.of(this);
-
-  @override
-  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => {
@@ -416,9 +409,6 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
 
   @override
   BaseMessagePredicate clone() => CompoundMessagePredicate.of(this);
-
-  @override
-  String toString() => json.encode(this);
 
   @override
   dynamic toJson() => [_operand, _values];
