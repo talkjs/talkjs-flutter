@@ -37,7 +37,7 @@ void main() {
 
   test('test ConversationPredicate ==', () {
     expect(
-        ConversationPredicate(
+        SimpleConversationPredicate(
               access: FieldPredicate.notEquals(ConversationAccessLevel.none),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
@@ -48,7 +48,7 @@ void main() {
               lastMessageTs: NumberPredicate.greaterThan(1679298371586),
               subject: FieldPredicate.equals(null),
             ) ==
-            ConversationPredicate(
+            SimpleConversationPredicate(
               access: FieldPredicate.notEquals(ConversationAccessLevel.none),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
@@ -89,7 +89,7 @@ void main() {
 
   test('test MessagePredicate ==', () {
     expect(
-        MessagePredicate(
+        SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -108,7 +108,7 @@ void main() {
               ),
               type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ) ==
-            MessagePredicate(
+            SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -169,7 +169,7 @@ void main() {
 
   test('test ConversationPredicate of', () {
     expect(
-        ConversationPredicate.of(ConversationPredicate(
+        SimpleConversationPredicate.of(SimpleConversationPredicate(
               access: FieldPredicate.notEquals(ConversationAccessLevel.none),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
@@ -180,7 +180,7 @@ void main() {
               lastMessageTs: NumberPredicate.greaterThan(1679298371586),
               subject: FieldPredicate.notEquals('Pink shoes'),
             )) ==
-            ConversationPredicate(
+            SimpleConversationPredicate(
               access: FieldPredicate.notEquals(ConversationAccessLevel.none),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
@@ -221,7 +221,7 @@ void main() {
 
   test('test MessagePredicate of', () {
     expect(
-        MessagePredicate.of(MessagePredicate(
+        SimpleMessagePredicate.of(SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -240,7 +240,7 @@ void main() {
               ),
               type: FieldPredicate.notEquals(MessageType.SystemMessage),
             )) ==
-            MessagePredicate(
+            SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -264,7 +264,7 @@ void main() {
 
   test('test ConversationPredicate string', () {
     expect(
-        json.encode(ConversationPredicate(
+        json.encode(SimpleConversationPredicate(
           access: FieldPredicate.notEquals(ConversationAccessLevel.none),
           custom: {
             'seller': CustomFieldPredicate.exists(),
@@ -280,7 +280,7 @@ void main() {
 
   test('test MessagePredicate string', () {
     expect(
-        json.encode(MessagePredicate(
+        json.encode(SimpleMessagePredicate(
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -305,7 +305,7 @@ void main() {
   test('test CompoundConversationPredicate', () {
     expect(
       json.encode(CompoundConversationPredicate.any([
-        ConversationPredicate(
+        SimpleConversationPredicate(
           access: FieldPredicate.notEquals(ConversationAccessLevel.none),
           custom: {
             'seller': CustomFieldPredicate.exists(),
@@ -316,7 +316,7 @@ void main() {
           lastMessageTs: NumberPredicate.greaterThan(1679298371586),
           subject: FieldPredicate.oneOf(['Pink shoes', null]),
         ),
-        ConversationPredicate(
+        SimpleConversationPredicate(
           access: FieldPredicate.notEquals(ConversationAccessLevel.none),
           custom: {
             'seller': CustomFieldPredicate.exists(),
@@ -335,7 +335,7 @@ void main() {
   test('test CompoundMessagePredicate', () {
     expect(
       json.encode(CompoundMessagePredicate.any([
-        MessagePredicate(
+        SimpleMessagePredicate(
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -354,7 +354,7 @@ void main() {
           ),
           type: FieldPredicate.notEquals(MessageType.SystemMessage),
         ),
-        MessagePredicate(
+        SimpleMessagePredicate(
           origin: FieldPredicate.notEquals(MessageOrigin.web),
           type: FieldPredicate.equals(MessageType.SystemMessage),
         ),

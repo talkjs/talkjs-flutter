@@ -168,17 +168,17 @@ class ConversationAccessLevel {
   String toString() => _value;
 }
 
-abstract class BaseConversationPredicate {
-  const BaseConversationPredicate();
+abstract class ConversationPredicate {
+  const ConversationPredicate();
 
   dynamic toJson();
-  BaseConversationPredicate clone();
+  ConversationPredicate clone();
 
   @override
   String toString() => json.encode(this);
 }
 
-class ConversationPredicate extends BaseConversationPredicate {
+class SimpleConversationPredicate extends ConversationPredicate {
   /// Only select conversations that the current user as specific access to.
   final FieldPredicate<ConversationAccessLevel>? access;
 
@@ -194,7 +194,7 @@ class ConversationPredicate extends BaseConversationPredicate {
   /// Only select conversations that have the subject set to particular values.
   final FieldPredicate<String?>? subject;
 
-  const ConversationPredicate({
+  const SimpleConversationPredicate({
     this.access,
     this.custom,
     this.hasUnreadMessages,
@@ -202,7 +202,7 @@ class ConversationPredicate extends BaseConversationPredicate {
     this.subject,
   });
 
-  ConversationPredicate.of(ConversationPredicate other)
+  SimpleConversationPredicate.of(SimpleConversationPredicate other)
     : access = (other.access != null ? FieldPredicate.of(other.access!) : null),
       custom = (other.custom != null ? Map.of(other.custom!) : null),
       hasUnreadMessages = other.hasUnreadMessages,
@@ -214,7 +214,7 @@ class ConversationPredicate extends BaseConversationPredicate {
           : null);
 
   @override
-  BaseConversationPredicate clone() => ConversationPredicate.of(this);
+  ConversationPredicate clone() => SimpleConversationPredicate.of(this);
 
   @override
   dynamic toJson() => {
@@ -231,7 +231,7 @@ class ConversationPredicate extends BaseConversationPredicate {
       return true;
     }
 
-    return other is ConversationPredicate &&
+    return other is SimpleConversationPredicate &&
         access == other.access &&
         mapEquals(custom, other.custom) &&
         hasUnreadMessages == other.hasUnreadMessages &&
@@ -249,7 +249,7 @@ class ConversationPredicate extends BaseConversationPredicate {
   );
 }
 
-class CompoundConversationPredicate extends BaseConversationPredicate {
+class CompoundConversationPredicate extends ConversationPredicate {
   final String _operand;
   List<ConversationPredicate> _values;
 
@@ -262,7 +262,7 @@ class CompoundConversationPredicate extends BaseConversationPredicate {
       _values = List.of(other._values);
 
   @override
-  BaseConversationPredicate clone() => CompoundConversationPredicate.of(this);
+  ConversationPredicate clone() => CompoundConversationPredicate.of(this);
 
   @override
   dynamic toJson() => [_operand, _values];
@@ -328,17 +328,17 @@ class SenderPredicate {
   );
 }
 
-abstract class BaseMessagePredicate {
-  const BaseMessagePredicate();
+abstract class MessagePredicate {
+  const MessagePredicate();
 
   dynamic toJson();
-  BaseMessagePredicate clone();
+  MessagePredicate clone();
 
   @override
   String toString() => json.encode(this);
 }
 
-class MessagePredicate extends BaseMessagePredicate {
+class SimpleMessagePredicate extends MessagePredicate {
   /// Only select messages that have particular custom fields set to particular values.
   final Map<String, CustomFieldPredicate>? custom;
 
@@ -352,9 +352,14 @@ class MessagePredicate extends BaseMessagePredicate {
   /// Only show messages of a given type
   final FieldPredicate<MessageType>? type;
 
-  const MessagePredicate({this.custom, this.origin, this.sender, this.type});
+  const SimpleMessagePredicate({
+    this.custom,
+    this.origin,
+    this.sender,
+    this.type,
+  });
 
-  MessagePredicate.of(MessagePredicate other)
+  SimpleMessagePredicate.of(SimpleMessagePredicate other)
     : custom = (other.custom != null ? Map.of(other.custom!) : null),
       origin = (other.origin != null ? FieldPredicate.of(other.origin!) : null),
       sender = (other.sender != null
@@ -363,7 +368,7 @@ class MessagePredicate extends BaseMessagePredicate {
       type = (other.type != null ? FieldPredicate.of(other.type!) : null);
 
   @override
-  BaseMessagePredicate clone() => MessagePredicate.of(this);
+  MessagePredicate clone() => SimpleMessagePredicate.of(this);
 
   @override
   dynamic toJson() => {
@@ -379,7 +384,7 @@ class MessagePredicate extends BaseMessagePredicate {
       return true;
     }
 
-    return other is MessagePredicate &&
+    return other is SimpleMessagePredicate &&
         mapEquals(custom, other.custom) &&
         origin == other.origin &&
         sender == other.sender &&
@@ -395,7 +400,7 @@ class MessagePredicate extends BaseMessagePredicate {
   );
 }
 
-class CompoundMessagePredicate extends BaseMessagePredicate {
+class CompoundMessagePredicate extends MessagePredicate {
   final String _operand;
   List<MessagePredicate> _values;
 
@@ -408,7 +413,7 @@ class CompoundMessagePredicate extends BaseMessagePredicate {
       _values = List.of(other._values);
 
   @override
-  BaseMessagePredicate clone() => CompoundMessagePredicate.of(this);
+  MessagePredicate clone() => CompoundMessagePredicate.of(this);
 
   @override
   dynamic toJson() => [_operand, _values];

@@ -82,7 +82,7 @@ class ConversationList extends StatefulWidget {
   final String? theme;
   final ThemeOptions? themeOptions;
 
-  final BaseConversationPredicate? feedFilter;
+  final ConversationPredicate? feedFilter;
 
   final SelectConversationHandler? onSelectConversation;
   final LoadingStateHandler? onLoadingStateChanged;
@@ -121,7 +121,7 @@ class ConversationListState extends State<ConversationList> {
   final Map<String, String> _users = {};
 
   /// Objects stored for comparing changes
-  BaseConversationPredicate? _oldFeedFilter;
+  ConversationPredicate? _oldFeedFilter;
   bool _oldEnableZoom = true;
 
   late Future<String> userAgentFuture;

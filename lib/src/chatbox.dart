@@ -112,7 +112,7 @@ class ChatBox extends StatefulWidget {
   final ThemeOptions? themeOptions;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords;
-  final BaseMessagePredicate? messageFilter;
+  final MessagePredicate? messageFilter;
   final String? scrollToMessage;
 
   final Conversation? conversation;
@@ -190,7 +190,7 @@ class ChatBoxState extends State<ChatBox> {
   /// Objects stored for comparing changes
   ChatBoxOptions? _oldOptions;
   List<String> _oldHighlightedWords = [];
-  BaseMessagePredicate? _oldMessageFilter;
+  MessagePredicate? _oldMessageFilter;
   bool? _oldAsGuest;
   Conversation? _oldConversation;
   Set<String> _oldCustomMessageActions = {};
