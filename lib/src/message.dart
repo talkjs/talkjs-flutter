@@ -2,18 +2,7 @@ import './conversation.dart';
 import './user.dart';
 import './types.dart';
 
-enum ContentType {
-  media,
-  text,
-  location;
-
-  factory ContentType.fromString(String str) => switch (str) {
-    'media' => .media,
-    'text' => .text,
-    'location' => .location,
-    _ => throw ArgumentError('Unknown ContentType $str'),
-  };
-}
+enum ContentType { media, text, location }
 
 class Attachment {
   final String url;
@@ -56,7 +45,7 @@ class SentMessage {
   SentMessage.fromJson(Map<String, dynamic> json)
     : id = json['id'],
       conversationId = json['conversationId'],
-      type = MessageType.fromString(json['type']),
+      type = MessageType.values.byName(json['type']),
       readBy = List.from(json['readBy']),
       senderId = json['senderId'],
       text = json['text'],
@@ -123,12 +112,12 @@ class Message {
       location = (json['location'] != null
           ? List.from(json['location'])
           : null),
-      origin = MessageOrigin.fromString(json['origin']),
+      origin = MessageOrigin.values.byName(json['origin']),
       read = json['read'],
       sender = (json['sender'] != null
           ? UserData.fromJson(json['sender'])
           : null),
       senderId = json['senderId'],
       timestamp = json['timestamp'].toDouble(),
-      type = ContentType.fromString(json['type']);
+      type = ContentType.values.byName(json['type']);
 }

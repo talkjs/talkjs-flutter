@@ -48,14 +48,6 @@ enum MessageOrigin {
   email,
   import;
 
-  factory MessageOrigin.fromString(String str) => switch (str) {
-    'web' => .web,
-    'rest' => .rest,
-    'email' => .email,
-    'import' => .import,
-    _ => throw ArgumentError('Unknown MessageOrigin $str'),
-  };
-
   @override
   String toString() => this.name;
 }
@@ -63,12 +55,6 @@ enum MessageOrigin {
 enum MessageType {
   UserMessage,
   SystemMessage;
-
-  factory MessageType.fromString(String str) => switch (str) {
-    'UserMessage' => .UserMessage,
-    'SystemMessage' => .SystemMessage,
-    _ => throw ArgumentError('Unknown MessageType $str'),
-  };
 
   @override
   String toString() => this.name;
