@@ -29,6 +29,8 @@ typedef ConversationActionHandler =
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
 typedef LeaveConversationHandler = void Function(LeaveConversationEvent event);
+typedef MarkConversationAsUnreadHandler =
+    void Function(MarkConversationAsUnreadEvent event);
 
 enum UrlNavigationAction { deny, allow }
 
@@ -81,6 +83,13 @@ class LeaveConversationEvent {
     : conversation = ConversationData.fromJson(json['conversation']);
 }
 
+class MarkConversationAsUnreadEvent {
+  final ConversationData conversation;
+
+  MarkConversationAsUnreadEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']);
+}
+
 class UrlNavigationRequest {
   final String url;
 
@@ -119,6 +128,7 @@ class ChatBox extends StatefulWidget {
   final NavigationHandler? onUrlNavigation;
   final ErrorHandler? onError;
   final LeaveConversationHandler? onLeaveConversation;
+  final MarkConversationAsUnreadHandler? onMarkConversationAsUnread;
 
   const ChatBox({
     super.key,
@@ -145,6 +155,7 @@ class ChatBox extends StatefulWidget {
     this.scrollToMessage,
     this.onError,
     this.onLeaveConversation,
+    this.onMarkConversationAsUnread,
   });
 
   @override
@@ -451,6 +462,9 @@ class ChatBoxState extends State<ChatBox> {
     execute(
       'chatBox.onLeaveConversation((event) => window.flutter_inappwebview.callHandler("JSCLeaveConversation", JSON.stringify(event)));',
     );
+    execute(
+      'chatBox.onMarkConversationAsUnread((event) => window.flutter_inappwebview.callHandler("JSCMarkConversationAsUnread", JSON.stringify(event)));',
+    );
 
     if (widget.onCustomMessageAction != null) {
       _oldCustomMessageActions = Set.of(widget.onCustomMessageAction!.keys);
@@ -670,6 +684,10 @@ class ChatBoxState extends State<ChatBox> {
       handlerName: 'JSCLeaveConversation',
       callback: _jscLeaveConversation,
     );
+    controller.addJavaScriptHandler(
+      handlerName: 'JSCMarkConversationAsUnread',
+      callback: _jscMarkConversationAsUnread,
+    );
 
     String htmlData = await rootBundle.loadString(
       'packages/talkjs_flutter/assets/index.html',
@@ -772,6 +790,18 @@ class ChatBoxState extends State<ChatBox> {
 
     widget.onLeaveConversation?.call(
       LeaveConversationEvent.fromJson(json.decode(message)),
+    );
+  }
+
+  void _jscMarkConversationAsUnread(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscMarkConversationAsUnread: $message');
+    }
+
+    widget.onMarkConversationAsUnread?.call(
+      MarkConversationAsUnreadEvent.fromJson(json.decode(message)),
     );
   }
 
