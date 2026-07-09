@@ -68,12 +68,12 @@ class MessageActionEvent {
 class ConversationActionEvent {
   final String action;
   final Map<String, String> params;
-  final ConversationData conversationData;
+  final ConversationData conversation;
 
   ConversationActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
       params = Map.from(json['params']),
-      conversationData = ConversationData.fromJson(json['conversation']);
+      conversation = ConversationData.fromJson(json['conversation']);
 }
 
 class LeaveConversationEvent {
