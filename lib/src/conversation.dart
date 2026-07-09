@@ -193,14 +193,17 @@ class Conversation extends _BaseConversation {
 }
 
 class ConversationData extends _BaseConversation {
+  final Map<String, Map<String, String>> participants;
+
   ConversationData.fromJson(Map<String, dynamic> json)
-    : super(
+    : participants = json['participants'] as Map<String, Map<String, String>>,
+      super(
         id: json['id'],
+        photoUrl: json['photoUrl'],
+        subject: json['subject'],
         custom: (json['custom'] != null ? Map.from(json['custom']) : null),
         welcomeMessages: (json['welcomeMessages'] != null
             ? List.from(json['welcomeMessages'])
             : null),
-        photoUrl: json['photoUrl'],
-        subject: json['subject'],
       );
 }
