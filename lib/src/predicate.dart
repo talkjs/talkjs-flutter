@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import './types.dart';
 
@@ -9,6 +9,9 @@ class FieldPredicate<T> {
   String? _value;
   List<String?>? _values;
   bool _useValue;
+
+  static const _unorderedIterableEquality =
+      UnorderedIterableEquality<String?>();
 
   FieldPredicate.equals(T value)
     : _operand = '==',
@@ -47,16 +50,16 @@ class FieldPredicate<T> {
     return other is FieldPredicate<T> &&
         _operand == other._operand &&
         _value == other._value &&
-        listEquals(_values, other._values) &&
-        _useValue == other._useValue;
+        _useValue == other._useValue &&
+        _unorderedIterableEquality.equals(_values, other._values);
   }
 
   @override
   int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? Object.hashAllUnordered(_values!) : _values),
     _useValue,
+    _unorderedIterableEquality.hash(_values),
   );
 }
 
@@ -90,18 +93,21 @@ class CustomFieldPredicate extends FieldPredicate<String> {
     return other is CustomFieldPredicate &&
         _operand == other._operand &&
         _value == other._value &&
-        listEquals(_values, other._values) &&
         _useValue == other._useValue &&
-        _exists == other._exists;
+        _exists == other._exists &&
+        FieldPredicate._unorderedIterableEquality.equals(
+          _values,
+          other._values,
+        );
   }
 
   @override
   int get hashCode => Object.hash(
     _operand,
     _value,
-    (_values != null ? Object.hashAllUnordered(_values!) : _values),
     _useValue,
     _exists,
+    FieldPredicate._unorderedIterableEquality.hash(_values),
   );
 }
 
@@ -109,6 +115,8 @@ class NumberPredicate {
   final String _operand;
   double? _value;
   List<double>? _values;
+
+  static const _unorderedIterableEquality = UnorderedIterableEquality<double>();
 
   NumberPredicate.greaterThan(double value) : _operand = '>', _value = value;
   NumberPredicate.lessThan(double value) : _operand = '<', _value = value;
@@ -142,15 +150,12 @@ class NumberPredicate {
     return other is NumberPredicate &&
         _operand == other._operand &&
         _value == other._value &&
-        listEquals(_values, other._values);
+        _unorderedIterableEquality.equals(_values, other._values);
   }
 
   @override
-  int get hashCode => Object.hash(
-    _operand,
-    _value,
-    (_values != null ? Object.hashAllUnordered(_values!) : _values),
-  );
+  int get hashCode =>
+      Object.hash(_operand, _value, _unorderedIterableEquality.hash(_values));
 }
 
 class ConversationAccessLevel {
@@ -194,6 +199,8 @@ class SimpleConversationPredicate extends ConversationPredicate {
   /// Only select conversations that have the subject set to particular values.
   final FieldPredicate<String?>? subject;
 
+  static const _mapEquality = MapEquality<String, CustomFieldPredicate>();
+
   const SimpleConversationPredicate({
     this.access,
     this.custom,
@@ -233,25 +240,28 @@ class SimpleConversationPredicate extends ConversationPredicate {
 
     return other is SimpleConversationPredicate &&
         access == other.access &&
-        mapEquals(custom, other.custom) &&
         hasUnreadMessages == other.hasUnreadMessages &&
         lastMessageTs == other.lastMessageTs &&
-        subject == other.subject;
+        subject == other.subject &&
+        _mapEquality.equals(custom, other.custom);
   }
 
   @override
   int get hashCode => Object.hash(
     access,
-    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
     hasUnreadMessages,
     lastMessageTs,
     subject,
+    _mapEquality.hash(custom),
   );
 }
 
 class CompoundConversationPredicate extends ConversationPredicate {
   final String _operand;
   List<ConversationPredicate> _values;
+
+  static const _unorderedIterableEquality =
+      UnorderedIterableEquality<ConversationPredicate>();
 
   CompoundConversationPredicate.any(List<ConversationPredicate> predicates)
     : _operand = 'any',
@@ -275,11 +285,12 @@ class CompoundConversationPredicate extends ConversationPredicate {
 
     return other is CompoundConversationPredicate &&
         _operand == other._operand &&
-        listEquals(_values, other._values);
+        _unorderedIterableEquality.equals(_values, other._values);
   }
 
   @override
-  int get hashCode => Object.hash(_operand, Object.hashAllUnordered(_values));
+  int get hashCode =>
+      Object.hash(_operand, _unorderedIterableEquality.hash(_values));
 }
 
 class SenderPredicate {
@@ -287,6 +298,8 @@ class SenderPredicate {
   final Map<String, CustomFieldPredicate>? custom;
   final FieldPredicate<String>? locale;
   final FieldPredicate<String>? role;
+
+  static const _mapEquality = MapEquality<String, CustomFieldPredicate>();
 
   const SenderPredicate({this.id, this.custom, this.locale, this.role});
 
@@ -314,18 +327,13 @@ class SenderPredicate {
 
     return other is SenderPredicate &&
         id == other.id &&
-        mapEquals(custom, other.custom) &&
         locale == other.locale &&
-        role == other.role;
+        role == other.role &&
+        _mapEquality.equals(custom, other.custom);
   }
 
   @override
-  int get hashCode => Object.hash(
-    id,
-    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
-    locale,
-    role,
-  );
+  int get hashCode => Object.hash(id, locale, role, _mapEquality.hash(custom));
 }
 
 abstract class MessagePredicate {
@@ -351,6 +359,8 @@ class SimpleMessagePredicate extends MessagePredicate {
 
   /// Only show messages of a given type
   final FieldPredicate<MessageType>? type;
+
+  static const _mapEquality = MapEquality<String, CustomFieldPredicate>();
 
   const SimpleMessagePredicate({
     this.custom,
@@ -385,24 +395,23 @@ class SimpleMessagePredicate extends MessagePredicate {
     }
 
     return other is SimpleMessagePredicate &&
-        mapEquals(custom, other.custom) &&
+        _mapEquality.equals(custom, other.custom) &&
         origin == other.origin &&
         sender == other.sender &&
         type == other.type;
   }
 
   @override
-  int get hashCode => Object.hash(
-    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
-    origin,
-    sender,
-    type,
-  );
+  int get hashCode =>
+      Object.hash(origin, sender, type, _mapEquality.hash(custom));
 }
 
 class CompoundMessagePredicate extends MessagePredicate {
   final String _operand;
   List<MessagePredicate> _values;
+
+  static const _unorderedIterableEquality =
+      UnorderedIterableEquality<MessagePredicate>();
 
   CompoundMessagePredicate.any(List<MessagePredicate> predicates)
     : _operand = 'any',
@@ -426,9 +435,10 @@ class CompoundMessagePredicate extends MessagePredicate {
 
     return other is CompoundMessagePredicate &&
         _operand == other._operand &&
-        listEquals(_values, other._values);
+        _unorderedIterableEquality.equals(_values, other._values);
   }
 
   @override
-  int get hashCode => Object.hash(_operand, Object.hashAllUnordered(_values));
+  int get hashCode =>
+      Object.hash(_operand, _unorderedIterableEquality.hash(_values));
 }

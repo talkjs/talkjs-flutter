@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import './session.dart';
 import './user.dart';
@@ -112,6 +112,10 @@ class Conversation extends _BaseConversation {
 
   bool _conversationCreated = false;
 
+  static const _mapEquality = MapEquality<String, String?>();
+  static const _unorderedIterableEquality =
+      UnorderedIterableEquality<dynamic>();
+
   Conversation({
     required Session session,
     required this.participants,
@@ -170,25 +174,26 @@ class Conversation extends _BaseConversation {
 
     return other is Conversation &&
         _session == other._session &&
-        setEquals(participants, other.participants) &&
         id == other.id &&
-        mapEquals(custom, other.custom) &&
-        listEquals(welcomeMessages, other.welcomeMessages) &&
         photoUrl == other.photoUrl &&
-        subject == other.subject;
+        subject == other.subject &&
+        _mapEquality.equals(custom, other.custom) &&
+        _unorderedIterableEquality.equals(participants, other.participants) &&
+        _unorderedIterableEquality.equals(
+          welcomeMessages,
+          other.welcomeMessages,
+        );
   }
 
   @override
   int get hashCode => Object.hash(
     _session,
-    Object.hashAllUnordered(participants),
     id,
-    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
-    (welcomeMessages != null
-        ? Object.hashAllUnordered(welcomeMessages!)
-        : welcomeMessages),
     photoUrl,
     subject,
+    _mapEquality.hash(custom),
+    _unorderedIterableEquality.hash(participants),
+    _unorderedIterableEquality.hash(welcomeMessages),
   );
 }
 

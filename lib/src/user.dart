@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import './session.dart';
 
@@ -72,6 +73,9 @@ class User extends _BaseUser {
 
   // To tie the user to a session
   final Session _session;
+
+  static const _mapEquality = MapEquality<String, String?>();
+  static const _unorderedIterableEquality = UnorderedIterableEquality<String>();
 
   const User({
     required Session session,
@@ -146,8 +150,8 @@ class User extends _BaseUser {
         _idOnly == other._idOnly &&
         availabilityText == other.availabilityText &&
         mapEquals(custom, other.custom) &&
-        listEquals(email, other.email) &&
-        listEquals(phone, other.email) &&
+        _unorderedIterableEquality.equals(email, other.email) &&
+        _unorderedIterableEquality.equals(phone, other.phone) &&
         id == other.id &&
         name == other.name &&
         locale == other.locale &&
@@ -161,9 +165,9 @@ class User extends _BaseUser {
     _session,
     _idOnly,
     availabilityText,
-    (custom != null ? Object.hashAllUnordered(custom!.entries) : custom),
-    (email != null ? Object.hashAllUnordered(email!) : email),
-    (phone != null ? Object.hashAllUnordered(phone!) : phone),
+    _mapEquality.hash(custom),
+    _unorderedIterableEquality.hash(email),
+    _unorderedIterableEquality.hash(phone),
     id,
     name,
     locale,
