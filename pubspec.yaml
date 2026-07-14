@@ -18,8 +18,8 @@ dependencies:
 
   talkjs_flutter_inappwebview: 6.2.0+1
   crypto: ^3.0.7
-  firebase_core: ^4.11.0
-  firebase_messaging: ^16.4.0
+  firebase_messaging: ^16.4.3
+  firebase_core: ^4.12.1
   flutter_local_notifications: ^22.0.1
   http: ^1.6.0
   talkjs_flutter_apns_only: ^2.0.0
