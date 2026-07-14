@@ -113,6 +113,7 @@ class Conversation extends _BaseConversation {
   bool _conversationCreated = false;
 
   static const _mapEquality = MapEquality<String, String?>();
+  static const _listEquality = ListEquality<String>();
   static const _unorderedIterableEquality =
       UnorderedIterableEquality<dynamic>();
 
@@ -178,11 +179,8 @@ class Conversation extends _BaseConversation {
         photoUrl == other.photoUrl &&
         subject == other.subject &&
         _mapEquality.equals(custom, other.custom) &&
-        _unorderedIterableEquality.equals(participants, other.participants) &&
-        _unorderedIterableEquality.equals(
-          welcomeMessages,
-          other.welcomeMessages,
-        );
+        _listEquality.equals(welcomeMessages, other.welcomeMessages) &&
+        _unorderedIterableEquality.equals(participants, other.participants);
   }
 
   @override
@@ -192,8 +190,8 @@ class Conversation extends _BaseConversation {
     photoUrl,
     subject,
     _mapEquality.hash(custom),
+    _listEquality.hash(welcomeMessages),
     _unorderedIterableEquality.hash(participants),
-    _unorderedIterableEquality.hash(welcomeMessages),
   );
 }
 
