@@ -905,7 +905,7 @@ class ChatBoxState extends State<ChatBox> {
     for (var participant in conversation.participants) {
       final userVariableName = getUserVariableName(participant.user);
       final Map<String, dynamic> result = {
-        'access': ?participant.access?.getValue(),
+        'access': ?participant.access?.name,
         'notify': ?participant.notify?.getValue(),
       };
 

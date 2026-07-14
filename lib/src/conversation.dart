@@ -6,28 +6,19 @@ import './session.dart';
 import './user.dart';
 
 /// Possible values for participants' permissions
-enum ParticipantAccess {
-  read,
-  readWrite;
-
-  /// Converts this enum's values to String.
-  String getValue() => switch (this) {
-    .read => 'Read',
-    .readWrite => 'ReadWrite',
-  };
-}
+enum ParticipantAccess { Read, ReadWrite }
 
 /// Possible values for participants' notifications
 enum ParticipantNotification {
-  off,
-  on,
-  mentionsOnly;
+  Off,
+  On,
+  MentionsOnly;
 
   /// Converts this enum's values to String.
   dynamic getValue() => switch (this) {
-    .off => false,
-    .on => true,
-    .mentionsOnly => 'MentionsOnly',
+    .Off => false,
+    .On => true,
+    .MentionsOnly => 'MentionsOnly',
   };
 }
 
