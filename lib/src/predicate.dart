@@ -158,19 +158,11 @@ class NumberPredicate {
       Object.hash(_operand, _value, _unorderedIterableEquality.hash(_values));
 }
 
-class ConversationAccessLevel {
-  final String _value;
-
-  const ConversationAccessLevel._(this._value);
-
-  static const ConversationAccessLevel none = ConversationAccessLevel._('None');
-  static const ConversationAccessLevel read = ConversationAccessLevel._('Read');
-  static const ConversationAccessLevel readWrite = ConversationAccessLevel._(
-    'ReadWrite',
-  );
+enum ConversationAccessLevel {
+  None, Read, ReadWrite;
 
   @override
-  String toString() => _value;
+  String toString() => this.name;
 }
 
 abstract class ConversationPredicate {

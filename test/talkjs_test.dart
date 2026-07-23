@@ -13,9 +13,9 @@ void main() {
   test('test FieldPredicate ==', () {
     expect(
         FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite) ==
+                ConversationAccessLevel.ReadWrite) ==
             FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite),
+                ConversationAccessLevel.ReadWrite),
         true);
     expect(
         FieldPredicate<String>.notOneOf(['it', 'fr']) ==
@@ -38,7 +38,7 @@ void main() {
   test('test ConversationPredicate ==', () {
     expect(
         SimpleConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -49,7 +49,7 @@ void main() {
               subject: FieldPredicate.equals(null),
             ) ==
             SimpleConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -134,9 +134,9 @@ void main() {
     expect(
         FieldPredicate<ConversationAccessLevel>.of(
                 FieldPredicate<ConversationAccessLevel>.equals(
-                    ConversationAccessLevel.readWrite)) ==
+                    ConversationAccessLevel.ReadWrite)) ==
             FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite),
+                ConversationAccessLevel.ReadWrite),
         true);
     expect(
         FieldPredicate<String>.of(
@@ -170,7 +170,7 @@ void main() {
   test('test ConversationPredicate of', () {
     expect(
         SimpleConversationPredicate.of(SimpleConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -181,7 +181,7 @@ void main() {
               subject: FieldPredicate.notEquals('Pink shoes'),
             )) ==
             SimpleConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -265,7 +265,7 @@ void main() {
   test('test ConversationPredicate string', () {
     expect(
         json.encode(SimpleConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -306,7 +306,7 @@ void main() {
     expect(
       json.encode(CompoundConversationPredicate.any([
         SimpleConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -317,7 +317,7 @@ void main() {
           subject: FieldPredicate.oneOf(['Pink shoes', null]),
         ),
         SimpleConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
