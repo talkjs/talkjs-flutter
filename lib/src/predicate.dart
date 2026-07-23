@@ -258,12 +258,12 @@ class SimpleConversationPredicate extends ConversationPredicate {
 
 class CompoundConversationPredicate extends ConversationPredicate {
   final String _operand;
-  List<ConversationPredicate> _values;
+  List<SimpleConversationPredicate> _values;
 
   static const _unorderedIterableEquality =
-      UnorderedIterableEquality<ConversationPredicate>();
+      UnorderedIterableEquality<SimpleConversationPredicate>();
 
-  CompoundConversationPredicate.any(List<ConversationPredicate> predicates)
+  CompoundConversationPredicate.any(List<SimpleConversationPredicate> predicates)
     : _operand = 'any',
       _values = predicates;
 
@@ -408,12 +408,12 @@ class SimpleMessagePredicate extends MessagePredicate {
 
 class CompoundMessagePredicate extends MessagePredicate {
   final String _operand;
-  List<MessagePredicate> _values;
+  List<SimpleMessagePredicate> _values;
 
   static const _unorderedIterableEquality =
-      UnorderedIterableEquality<MessagePredicate>();
+      UnorderedIterableEquality<SimpleMessagePredicate>();
 
-  CompoundMessagePredicate.any(List<MessagePredicate> predicates)
+  CompoundMessagePredicate.any(List<SimpleMessagePredicate> predicates)
     : _operand = 'any',
       _values = predicates;
 
