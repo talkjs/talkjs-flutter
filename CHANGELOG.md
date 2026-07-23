@@ -5,6 +5,14 @@
   As a result the minimum Dart SDK requirement is **3.10.0** and the minimum Flutter SDK
   is **3.38.0**. Subsequently, the minimum Android SDK supported is now **API Level 24 (Android 7.0)**.
 
+- **Breaking change:** Refactor `MessageType`, `ParticipantAccess`, `ParticipantNotification` and `ConversationAccessLevel` enums.
+- **Breaking change:** Refactor `ConversationActionEvent` by renaming `conversationData` property to `conversation`.
+- **Breaking change:** Rename `BaseMessagePredicate` and `BaseConversationPredicate` to `MessagePredicate` and `ConversationPredicate` respectively.
+  Subsequently, `MessagePredicate` and `ConversationPredicate` were renamed to `SimpleMessagePredicate` and `SimpleConversationPredicate` respectively.
+
+- Add `customEmojis`, `onMarkConversationAsUnread` and `onLeaveConversation` to `Chatbox`.
+- Add `participants` property to `ConversationData` type.
+
 ## 0.17.5
 
 - Fix crashes on iOS 26 when evaluating javascript before the WebView is loaded
