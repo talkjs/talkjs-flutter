@@ -36,7 +36,7 @@ dependencies:
 
   talkjs_flutter:
     path: ../../
-  flutter_local_notifications: ^20.0.0
+  flutter_local_notifications: ^22.0.1
   dart_jsonwebtoken: ^2.14.1
 
 dev_dependencies:

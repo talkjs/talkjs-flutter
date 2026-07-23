@@ -13,9 +13,9 @@ void main() {
   test('test FieldPredicate ==', () {
     expect(
         FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite) ==
+                ConversationAccessLevel.ReadWrite) ==
             FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite),
+                ConversationAccessLevel.ReadWrite),
         true);
     expect(
         FieldPredicate<String>.notOneOf(['it', 'fr']) ==
@@ -37,8 +37,8 @@ void main() {
 
   test('test ConversationPredicate ==', () {
     expect(
-        ConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        SimpleConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -48,8 +48,8 @@ void main() {
               lastMessageTs: NumberPredicate.greaterThan(1679298371586),
               subject: FieldPredicate.equals(null),
             ) ==
-            ConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+            SimpleConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -89,7 +89,7 @@ void main() {
 
   test('test MessagePredicate ==', () {
     expect(
-        MessagePredicate(
+        SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -106,9 +106,9 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ) ==
-            MessagePredicate(
+            SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -125,7 +125,7 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ),
         true);
   });
@@ -134,9 +134,9 @@ void main() {
     expect(
         FieldPredicate<ConversationAccessLevel>.of(
                 FieldPredicate<ConversationAccessLevel>.equals(
-                    ConversationAccessLevel.readWrite)) ==
+                    ConversationAccessLevel.ReadWrite)) ==
             FieldPredicate<ConversationAccessLevel>.equals(
-                ConversationAccessLevel.readWrite),
+                ConversationAccessLevel.ReadWrite),
         true);
     expect(
         FieldPredicate<String>.of(
@@ -169,8 +169,8 @@ void main() {
 
   test('test ConversationPredicate of', () {
     expect(
-        ConversationPredicate.of(ConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        SimpleConversationPredicate.of(SimpleConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -180,8 +180,8 @@ void main() {
               lastMessageTs: NumberPredicate.greaterThan(1679298371586),
               subject: FieldPredicate.notEquals('Pink shoes'),
             )) ==
-            ConversationPredicate(
-              access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+            SimpleConversationPredicate(
+              access: FieldPredicate.notEquals(ConversationAccessLevel.None),
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -221,7 +221,7 @@ void main() {
 
   test('test MessagePredicate of', () {
     expect(
-        MessagePredicate.of(MessagePredicate(
+        SimpleMessagePredicate.of(SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -238,9 +238,9 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             )) ==
-            MessagePredicate(
+            SimpleMessagePredicate(
               custom: {
                 'seller': CustomFieldPredicate.exists(),
                 'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -257,15 +257,15 @@ void main() {
                 locale: FieldPredicate.notOneOf(['it', 'fr']),
                 role: FieldPredicate.notEquals('admin'),
               ),
-              type: FieldPredicate.notEquals(MessageType.systemMessage),
+              type: FieldPredicate.notEquals(MessageType.SystemMessage),
             ),
         true);
   });
 
   test('test ConversationPredicate string', () {
     expect(
-        json.encode(ConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        json.encode(SimpleConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -280,7 +280,7 @@ void main() {
 
   test('test MessagePredicate string', () {
     expect(
-        json.encode(MessagePredicate(
+        json.encode(SimpleMessagePredicate(
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -297,7 +297,7 @@ void main() {
             locale: FieldPredicate.notOneOf(['it', 'fr']),
             role: FieldPredicate.notEquals('admin'),
           ),
-          type: FieldPredicate.notEquals(MessageType.systemMessage),
+          type: FieldPredicate.notEquals(MessageType.SystemMessage),
         )),
         '{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]}');
   });
@@ -305,8 +305,8 @@ void main() {
   test('test CompoundConversationPredicate', () {
     expect(
       json.encode(CompoundConversationPredicate.any([
-        ConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        SimpleConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -316,8 +316,8 @@ void main() {
           lastMessageTs: NumberPredicate.greaterThan(1679298371586),
           subject: FieldPredicate.oneOf(['Pink shoes', null]),
         ),
-        ConversationPredicate(
-          access: FieldPredicate.notEquals(ConversationAccessLevel.none),
+        SimpleConversationPredicate(
+          access: FieldPredicate.notEquals(ConversationAccessLevel.None),
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -335,7 +335,7 @@ void main() {
   test('test CompoundMessagePredicate', () {
     expect(
       json.encode(CompoundMessagePredicate.any([
-        MessagePredicate(
+        SimpleMessagePredicate(
           custom: {
             'seller': CustomFieldPredicate.exists(),
             'category': CustomFieldPredicate.oneOf(['shoes', 'sandals']),
@@ -352,11 +352,11 @@ void main() {
             locale: FieldPredicate.notOneOf(['it', 'fr']),
             role: FieldPredicate.notEquals('admin'),
           ),
-          type: FieldPredicate.notEquals(MessageType.systemMessage),
+          type: FieldPredicate.notEquals(MessageType.SystemMessage),
         ),
-        MessagePredicate(
+        SimpleMessagePredicate(
           origin: FieldPredicate.notEquals(MessageOrigin.web),
-          type: FieldPredicate.equals(MessageType.systemMessage),
+          type: FieldPredicate.equals(MessageType.SystemMessage),
         ),
       ])),
       '["any",[{"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"origin":["==","web"],"sender":{"id":["!=","INVALID_ID"],"custom":{"seller":"exists","category":["oneOf",["shoes","sandals"]],"visibility":["==","visible"]},"locale":["!oneOf",["it","fr"]],"role":["!=","admin"]},"type":["!=","SystemMessage"]},{"origin":["!=","web"],"type":["==","SystemMessage"]}]]',

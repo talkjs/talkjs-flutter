@@ -1,30 +1,24 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import './session.dart';
 import './user.dart';
 
 /// Possible values for participants' permissions
-enum ParticipantAccess { read, readWrite }
-
-extension ParticipantAccessString on ParticipantAccess {
-  /// Converts this enum's values to String.
-  String getValue() => switch (this) {
-    ParticipantAccess.read => 'Read',
-    ParticipantAccess.readWrite => 'ReadWrite',
-  };
-}
+enum ParticipantAccess { Read, ReadWrite }
 
 /// Possible values for participants' notifications
-enum ParticipantNotification { off, on, mentionsOnly }
+enum ParticipantNotification {
+  Off,
+  On,
+  MentionsOnly;
 
-extension ParticipantNotificationString on ParticipantNotification {
   /// Converts this enum's values to String.
   dynamic getValue() => switch (this) {
-    ParticipantNotification.off => false,
-    ParticipantNotification.on => true,
-    ParticipantNotification.mentionsOnly => 'MentionsOnly',
+    .Off => false,
+    .On => true,
+    .MentionsOnly => 'MentionsOnly',
   };
 }
 
@@ -43,30 +37,19 @@ class Participant {
       access = other.access,
       notify = other.notify;
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
 
-    if (other is! Participant) {
-      return false;
-    }
-
-    if (user != other.user) {
-      return false;
-    }
-
-    if (access != other.access) {
-      return false;
-    }
-
-    if (notify != other.notify) {
-      return false;
-    }
-
-    return true;
+    return other is Participant &&
+        user == other.user &&
+        access == other.access &&
+        notify == other.notify;
   }
 
+  @override
   int get hashCode => Object.hash(user, access, notify);
 }
 
@@ -120,6 +103,11 @@ class Conversation extends _BaseConversation {
 
   bool _conversationCreated = false;
 
+  static const _mapEquality = MapEquality<String, String?>();
+  static const _listEquality = ListEquality<String>();
+  static const _unorderedIterableEquality =
+      UnorderedIterableEquality<dynamic>();
+
   Conversation({
     required Session session,
     required this.participants,
@@ -170,69 +158,50 @@ class Conversation extends _BaseConversation {
     return Future<void>.value();
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
 
-    if (other is! Conversation) {
-      return false;
-    }
-
-    if (_session != other._session) {
-      return false;
-    }
-
-    if (!setEquals(participants, other.participants)) {
-      return false;
-    }
-
-    if (id != other.id) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (!listEquals(welcomeMessages, other.welcomeMessages)) {
-      return false;
-    }
-
-    if (photoUrl != other.photoUrl) {
-      return false;
-    }
-
-    if (subject != other.subject) {
-      return false;
-    }
-
-    return true;
+    return other is Conversation &&
+        _session == other._session &&
+        id == other.id &&
+        photoUrl == other.photoUrl &&
+        subject == other.subject &&
+        _mapEquality.equals(custom, other.custom) &&
+        _listEquality.equals(welcomeMessages, other.welcomeMessages) &&
+        _unorderedIterableEquality.equals(participants, other.participants);
   }
 
+  @override
   int get hashCode => Object.hash(
     _session,
-    Object.hashAll(participants),
     id,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
-    (welcomeMessages != null
-        ? Object.hashAll(welcomeMessages!)
-        : welcomeMessages),
     photoUrl,
     subject,
+    _mapEquality.hash(custom),
+    _listEquality.hash(welcomeMessages),
+    _unorderedIterableEquality.hash(participants),
   );
 }
 
 class ConversationData extends _BaseConversation {
+  final Map<String, ParticipantAccess> participants;
+
   ConversationData.fromJson(Map<String, dynamic> json)
-    : super(
+    : participants = _participantAccessFromJson(json['participants']),
+      super(
         id: json['id'],
+        photoUrl: json['photoUrl'],
+        subject: json['subject'],
         custom: (json['custom'] != null ? Map.from(json['custom']) : null),
         welcomeMessages: (json['welcomeMessages'] != null
             ? List.from(json['welcomeMessages'])
             : null),
-        photoUrl: json['photoUrl'],
-        subject: json['subject'],
       );
 }
+
+Map<String, ParticipantAccess> _participantAccessFromJson(Map<String, dynamic> json) => json.map(
+  (key, value) => MapEntry(key, ParticipantAccess.values.byName(value['access']!)),
+);

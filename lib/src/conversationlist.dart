@@ -13,9 +13,8 @@ import './session.dart';
 import './conversation.dart';
 import './user.dart';
 import './predicate.dart';
-import './chatbox.dart';
 import './webview_common.dart';
-import './themeoptions.dart';
+import './types.dart';
 
 typedef SelectConversationHandler =
     void Function(SelectConversationEvent event);
@@ -28,9 +27,7 @@ class SelectConversationEvent {
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
       me = UserData.fromJson(json['me']),
-      others = json['others']
-          .map<UserData>((user) => UserData.fromJson(user))
-          .toList();
+      others = json['others'].map(UserData.fromJson).toList();
 }
 
 class ConversationListOptions {
@@ -66,7 +63,7 @@ class ConversationListOptions {
     final Map<String, dynamic> result = {'showFeedHeader': ?showFeedHeader};
 
     if (themeOptions != null) {
-      result['theme'] = themeOptions?.toJson();
+      result['theme'] = themeOptions;
     } else if (theme != null) {
       result['theme'] = theme;
     }
@@ -85,7 +82,7 @@ class ConversationList extends StatefulWidget {
   final String? theme;
   final ThemeOptions? themeOptions;
 
-  final BaseConversationPredicate? feedFilter;
+  final ConversationPredicate? feedFilter;
 
   final SelectConversationHandler? onSelectConversation;
   final LoadingStateHandler? onLoadingStateChanged;
@@ -124,7 +121,7 @@ class ConversationListState extends State<ConversationList> {
   final Map<String, String> _users = {};
 
   /// Objects stored for comparing changes
-  BaseConversationPredicate? _oldFeedFilter;
+  ConversationPredicate? _oldFeedFilter;
   bool _oldEnableZoom = true;
 
   late Future<String> userAgentFuture;

@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:talkjs_flutter/src/themeoptions.dart';
 
 import 'package:talkjs_flutter_inappwebview/talkjs_flutter_inappwebview.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -19,16 +18,21 @@ import './user.dart';
 import './message.dart';
 import './predicate.dart';
 import './webview_common.dart';
+import './types.dart';
 
 typedef SendMessageHandler = void Function(SendMessageEvent event);
 typedef TranslationToggledHandler =
     void Function(TranslationToggledEvent event);
-typedef LoadingStateHandler = void Function(LoadingState state);
 typedef MessageActionHandler = void Function(MessageActionEvent event);
 typedef ConversationActionHandler =
     void Function(ConversationActionEvent event);
 typedef NavigationHandler =
     UrlNavigationAction Function(UrlNavigationRequest navigationRequest);
+typedef LeaveConversationHandler = void Function(LeaveConversationEvent event);
+typedef MarkConversationAsUnreadHandler =
+    void Function(MarkConversationAsUnreadEvent event);
+
+enum UrlNavigationAction { deny, allow }
 
 class SendMessageEvent {
   final ConversationData conversation;
@@ -50,8 +54,6 @@ class TranslationToggledEvent {
       isEnabled = json['isEnabled'];
 }
 
-enum LoadingState { loading, loaded }
-
 class MessageActionEvent {
   final String action;
   final Message message;
@@ -66,12 +68,26 @@ class MessageActionEvent {
 class ConversationActionEvent {
   final String action;
   final Map<String, String> params;
-  final ConversationData conversationData;
+  final ConversationData conversation;
 
   ConversationActionEvent.fromJson(Map<String, dynamic> json)
     : action = json['action'],
       params = Map.from(json['params']),
-      conversationData = ConversationData.fromJson(json['conversation']);
+      conversation = ConversationData.fromJson(json['conversation']);
+}
+
+class LeaveConversationEvent {
+  final ConversationData conversation;
+
+  LeaveConversationEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']);
+}
+
+class MarkConversationAsUnreadEvent {
+  final ConversationData conversation;
+
+  MarkConversationAsUnreadEvent.fromJson(Map<String, dynamic> json)
+    : conversation = ConversationData.fromJson(json['conversation']);
 }
 
 class UrlNavigationRequest {
@@ -80,8 +96,6 @@ class UrlNavigationRequest {
   UrlNavigationRequest(this.url);
 }
 
-enum UrlNavigationAction { deny, allow }
-
 /// A messaging UI for just a single conversation.
 ///
 /// Create a Chatbox through [Session.createChatbox] and then call [mount] to show it.
@@ -89,6 +103,7 @@ enum UrlNavigationAction { deny, allow }
 class ChatBox extends StatefulWidget {
   final Session session;
 
+  final CustomEmojis? customEmojis;
   final TextDirection? dir;
   final MessageFieldOptions? messageField;
   final bool? showChatHeader;
@@ -97,7 +112,7 @@ class ChatBox extends StatefulWidget {
   final ThemeOptions? themeOptions;
   final TranslateConversations? translateConversations;
   final List<String> highlightedWords;
-  final BaseMessagePredicate? messageFilter;
+  final MessagePredicate? messageFilter;
   final String? scrollToMessage;
 
   final Conversation? conversation;
@@ -112,11 +127,14 @@ class ChatBox extends StatefulWidget {
   final Map<String, ConversationActionHandler>? onCustomConversationAction;
   final NavigationHandler? onUrlNavigation;
   final ErrorHandler? onError;
+  final LeaveConversationHandler? onLeaveConversation;
+  final MarkConversationAsUnreadHandler? onMarkConversationAsUnread;
 
   const ChatBox({
     super.key,
     required this.session,
     this.dir,
+    this.customEmojis,
     this.messageField,
     this.showChatHeader,
     this.showTranslationToggle,
@@ -136,6 +154,8 @@ class ChatBox extends StatefulWidget {
     this.onUrlNavigation,
     this.scrollToMessage,
     this.onError,
+    this.onLeaveConversation,
+    this.onMarkConversationAsUnread,
   });
 
   @override
@@ -170,7 +190,7 @@ class ChatBoxState extends State<ChatBox> {
   /// Objects stored for comparing changes
   ChatBoxOptions? _oldOptions;
   List<String> _oldHighlightedWords = [];
-  BaseMessagePredicate? _oldMessageFilter;
+  MessagePredicate? _oldMessageFilter;
   bool? _oldAsGuest;
   Conversation? _oldConversation;
   Set<String> _oldCustomMessageActions = {};
@@ -419,6 +439,7 @@ class ChatBoxState extends State<ChatBox> {
   void _createChatBox() {
     _oldOptions = ChatBoxOptions(
       dir: widget.dir,
+      customEmojis: widget.customEmojis,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
@@ -437,6 +458,12 @@ class ChatBoxState extends State<ChatBox> {
     );
     execute(
       'chatBox.onTranslationToggled((event) => window.flutter_inappwebview.callHandler("JSCTranslationToggled", JSON.stringify(event)));',
+    );
+    execute(
+      'chatBox.onLeaveConversation((event) => window.flutter_inappwebview.callHandler("JSCLeaveConversation", JSON.stringify(event)));',
+    );
+    execute(
+      'chatBox.onMarkConversationAsUnread((event) => window.flutter_inappwebview.callHandler("JSCMarkConversationAsUnread", JSON.stringify(event)));',
     );
 
     if (widget.onCustomMessageAction != null) {
@@ -467,6 +494,7 @@ class ChatBoxState extends State<ChatBox> {
   bool _checkRecreateChatBox() {
     final options = ChatBoxOptions(
       dir: widget.dir,
+      customEmojis: widget.customEmojis,
       messageField: widget.messageField,
       showChatHeader: widget.showChatHeader,
       showTranslationToggle: widget.showTranslationToggle,
@@ -652,6 +680,14 @@ class ChatBoxState extends State<ChatBox> {
       handlerName: 'JSCTokenFetcher',
       callback: _jscTokenFetcher,
     );
+    controller.addJavaScriptHandler(
+      handlerName: 'JSCLeaveConversation',
+      callback: _jscLeaveConversation,
+    );
+    controller.addJavaScriptHandler(
+      handlerName: 'JSCMarkConversationAsUnread',
+      callback: _jscMarkConversationAsUnread,
+    );
 
     String htmlData = await rootBundle.loadString(
       'packages/talkjs_flutter/assets/index.html',
@@ -742,6 +778,30 @@ class ChatBoxState extends State<ChatBox> {
 
     widget.onCustomConversationAction?[action]?.call(
       ConversationActionEvent.fromJson(jsonConversationData),
+    );
+  }
+
+  void _jscLeaveConversation(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscLeaveConversation: $message');
+    }
+
+    widget.onLeaveConversation?.call(
+      LeaveConversationEvent.fromJson(json.decode(message)),
+    );
+  }
+
+  void _jscMarkConversationAsUnread(List<dynamic> arguments) {
+    final message = arguments[0];
+
+    if (kDebugMode) {
+      print('📗 chatbox._jscMarkConversationAsUnread: $message');
+    }
+
+    widget.onMarkConversationAsUnread?.call(
+      MarkConversationAsUnreadEvent.fromJson(json.decode(message)),
     );
   }
 
@@ -845,7 +905,7 @@ class ChatBoxState extends State<ChatBox> {
     for (var participant in conversation.participants) {
       final userVariableName = getUserVariableName(participant.user);
       final Map<String, dynamic> result = {
-        'access': ?participant.access?.getValue(),
+        'access': ?participant.access?.name,
         'notify': ?participant.notify?.getValue(),
       };
 

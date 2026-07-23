@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:collection/collection.dart';
 
 import './session.dart';
 
@@ -73,6 +74,9 @@ class User extends _BaseUser {
   // To tie the user to a session
   final Session _session;
 
+  static const _mapEquality = MapEquality<String, String?>();
+  static const _unorderedIterableEquality = UnorderedIterableEquality<String>();
+
   const User({
     required Session session,
     required super.id,
@@ -135,74 +139,35 @@ class User extends _BaseUser {
     }
   }
 
+  @override
   bool operator ==(Object other) {
     if (identical(this, other)) {
       return true;
     }
 
-    if (other is! User) {
-      return false;
-    }
-
-    if (_session != other._session) {
-      return false;
-    }
-
-    if (_idOnly != other._idOnly) {
-      return false;
-    }
-
-    if (availabilityText != other.availabilityText) {
-      return false;
-    }
-
-    if (!mapEquals(custom, other.custom)) {
-      return false;
-    }
-
-    if (!listEquals(email, other.email)) {
-      return false;
-    }
-
-    if (!listEquals(phone, other.phone)) {
-      return false;
-    }
-
-    if (id != other.id) {
-      return false;
-    }
-
-    if (name != other.name) {
-      return false;
-    }
-
-    if (locale != other.locale) {
-      return false;
-    }
-
-    if (photoUrl != other.photoUrl) {
-      return false;
-    }
-
-    if (role != other.role) {
-      return false;
-    }
-
-    if (welcomeMessage != other.welcomeMessage) {
-      return false;
-    }
-
-    return true;
+    return other is User &&
+        _session == other._session &&
+        _idOnly == other._idOnly &&
+        availabilityText == other.availabilityText &&
+        mapEquals(custom, other.custom) &&
+        _unorderedIterableEquality.equals(email, other.email) &&
+        _unorderedIterableEquality.equals(phone, other.phone) &&
+        id == other.id &&
+        name == other.name &&
+        locale == other.locale &&
+        photoUrl == other.photoUrl &&
+        role == other.role &&
+        welcomeMessage == other.welcomeMessage;
   }
 
+  @override
   int get hashCode => Object.hash(
     _session,
     _idOnly,
     availabilityText,
-    (custom != null ? Object.hashAll(custom!.keys) : custom),
-    (custom != null ? Object.hashAll(custom!.values) : custom),
-    (email != null ? Object.hashAll(email!) : email),
-    (phone != null ? Object.hashAll(phone!) : phone),
+    _mapEquality.hash(custom),
+    _unorderedIterableEquality.hash(email),
+    _unorderedIterableEquality.hash(phone),
     id,
     name,
     locale,
