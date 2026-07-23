@@ -187,10 +187,10 @@ class Conversation extends _BaseConversation {
 }
 
 class ConversationData extends _BaseConversation {
-  final Map<String, Map<String, String>> participants;
+  final Map<String, ParticipantAccess> participants;
 
   ConversationData.fromJson(Map<String, dynamic> json)
-    : participants = json['participants'] as Map<String, Map<String, String>>,
+    : participants = _participantAccessFromJson(json['participants'] as Map<String, Map<String, String>>),
       super(
         id: json['id'],
         photoUrl: json['photoUrl'],
@@ -201,3 +201,7 @@ class ConversationData extends _BaseConversation {
             : null),
       );
 }
+
+Map<String, ParticipantAccess> _participantAccessFromJson(Map<String, Map<String, String>> json) => json.map(
+  (key, value) => MapEntry(key, ParticipantAccess.values.byName(value['access']!)),
+);
