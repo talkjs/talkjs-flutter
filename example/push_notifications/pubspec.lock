@@ -555,7 +555,7 @@ packages:
       path: "../.."
       relative: true
     source: path
-    version: "0.17.5"
+    version: "0.18.0"
   talkjs_flutter_apns_only:
     dependency: transitive
     description:
