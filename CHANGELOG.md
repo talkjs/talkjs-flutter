@@ -1,3 +1,7 @@
+## 0.18.1
+
+- Fix code regression when triggering `onSelectConversation`.
+
 ## 0.18.0
 
 - **Breaking change:** Update dependencies.

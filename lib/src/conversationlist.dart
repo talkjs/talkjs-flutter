@@ -27,7 +27,9 @@ class SelectConversationEvent {
   SelectConversationEvent.fromJson(Map<String, dynamic> json)
     : conversation = ConversationData.fromJson(json['conversation']),
       me = UserData.fromJson(json['me']),
-      others = json['others'].map(UserData.fromJson).toList();
+      others = json['others']
+          .map<UserData>((user) => UserData.fromJson(user))
+          .toList();
 }
 
 class ConversationListOptions {
