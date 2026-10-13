@@ -1,3 +1,7 @@
+## 0.18.2
+
+- Fix dark mode on iOS 27
+
 ## 0.18.1
 
 - Fix code regression when triggering `onSelectConversation`.
