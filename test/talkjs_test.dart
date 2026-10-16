@@ -10,6 +10,30 @@ void main() {
     expect(Talk.oneOnOneId('abcd', '1234'), '35ec37e6e0ca43ac8ccc');
   });
 
+  test('test SelectConversationEvent.fromJson', () {
+    // Decode JSON first so `others` is List<dynamic>, matching the WebView payload.
+    final event = SelectConversationEvent.fromJson(
+      json.decode('''
+      {
+        "conversation": {
+          "id": "conversation",
+          "participants": {
+            "me": {"access": "ReadWrite"},
+            "other": {"access": "ReadWrite"}
+          }
+        },
+        "me": {"id": "me", "name": "Me"},
+        "others": [
+          {"id": "other", "name": "Other"}
+        ]
+      }
+      ''') as Map<String, dynamic>,
+    );
+
+    expect(event.others, hasLength(1));
+    expect(event.others.single.id, 'other');
+  });
+
   test('test FieldPredicate ==', () {
     expect(
         FieldPredicate<ConversationAccessLevel>.equals(
